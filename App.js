@@ -13,7 +13,7 @@ const App = () => {
       <Stack.Navigator
         initialRouteName="MovieDetail"
         screenOptions={{
-          headerShown: true, // Show the header by default
+          headerShown: false, // Show the header by default
         }}
       >
       <Stack.Screen

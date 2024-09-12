@@ -1,13 +1,21 @@
-import React from 'react';
+import React, { useState, useEffect }from 'react';
 import { View, Text, StyleSheet } from 'react-native';
+import { API_URL } from '../store';
 
 const MovieDetailScreen = () => {
-  return (
-    <View style={styles.container}>
-      <Text>Movie Details Screen</Text>
-    </View>
-  );
-};
+    // set useStates
+    const [ movie, setMovie ] = useState(null);
+    const [ loading, setLoading ]= useState(true);
+
+
+
+    return (
+        <View style={styles.container}>
+            <Text>Movie Details</Text>
+        </View>
+    );
+    
+}  
 
 const styles = StyleSheet.create({
   container: {
