@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, Image } from 'react-native';
-// import { auth } from './firebase'; // Import Firebase auth
+import { auth } from './firebase'; 
 import Icon from 'react-native-vector-icons/MaterialIcons';
 
 

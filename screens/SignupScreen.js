@@ -1,9 +1,8 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, Image, Switch } from 'react-native';
-// import { auth } from './firebase';
 import PhoneInput from 'react-native-phone-input';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-
+import { auth } from './firebase';  
 
 const SignupScreen = ({ navigation }) => {
   const [fullName, setFullName] = useState('');
@@ -20,8 +19,10 @@ const SignupScreen = ({ navigation }) => {
     }
 
     auth.createUserWithEmailAndPassword(email, password)
-      .then(() => {
+      .then((userCredential) => {
+        // User created successfully, you can save additional information (like fullName, phoneNumber) here.
         Alert.alert('Success', 'Account created successfully');
+        // Navigate to another screen or do other actions
       })
       .catch((error) => {
         Alert.alert('Error', error.message);
@@ -76,39 +77,40 @@ const SignupScreen = ({ navigation }) => {
 
       {/* Password Input */}
       <View style={styles.inputContainer}>
-  <View style={styles.passwordContainer}>
-    <TextInput
-      style={styles.passwordInput}
-      placeholder="Password"
-      placeholderTextColor="#888"
-      value={password}
-      onChangeText={setPassword}
-      secureTextEntry={!showPassword}
-      autoCapitalize="none"
-    />
-    <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
-      <Icon name={showPassword ? 'visibility' : 'visibility-off'} size={24} color="#888" />
-    </TouchableOpacity>
-  </View>
+        <View style={styles.passwordContainer}>
+          <TextInput
+            style={styles.passwordInput}
+            placeholder="Password"
+            placeholderTextColor="#888"
+            value={password}
+            onChangeText={setPassword}
+            secureTextEntry={!showPassword}
+            autoCapitalize="none"
+          />
+          <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
+            <Icon name={showPassword ? 'visibility' : 'visibility-off'} size={24} color="#888" />
+          </TouchableOpacity>
+        </View>
         <Text style={styles.errorText}>Password should be more than 6 characters</Text>
       </View>
 
+      {/* Privacy Policy Checkbox */}
       <View style={styles.checkboxContainer}>
-  <Switch
-    value={isPrivacyChecked}
-    onValueChange={setIsPrivacyChecked}
-    trackColor={{ false: "#767577", true: "#81b0ff" }} 
-  thumbColor={isPrivacyChecked ? "#f4f3f4" : "#f4f3f4"} 
-  />
-  <Text style={styles.checkboxLabel}>I have read and agreed to the Privacy Policy</Text>
-</View>
+        <Switch
+          value={isPrivacyChecked}
+          onValueChange={setIsPrivacyChecked}
+          trackColor={{ false: "#767577", true: "#81b0ff" }} 
+          thumbColor={isPrivacyChecked ? "#f4f3f4" : "#f4f3f4"} 
+        />
+        <Text style={styles.checkboxLabel}>I have read and agreed to the Privacy Policy</Text>
+      </View>
+
       {/* Create Account Button */}
       <TouchableOpacity style={styles.signupButton} onPress={handleSignup}>
         <Text style={styles.signupButtonText}>Create Account</Text>
       </TouchableOpacity>
 
       <Text style={styles.orText}>OR</Text>
-
 
       {/* Already a Member Link */}
       <TouchableOpacity onPress={() => navigation.navigate('Login')}>
@@ -129,7 +131,6 @@ const styles = StyleSheet.create({
     alignSelf: 'center', 
     marginBottom: 20, 
   },
-  
   headerText: {
     color: '#fff',
     fontSize: 16,
