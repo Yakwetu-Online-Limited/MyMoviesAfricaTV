@@ -1,18 +1,18 @@
 import React from 'react';
 import { View, Text, Image, StyleSheet, TouchableOpacity } from 'react-native';
 
-const Header = ({ userName, walletBalance, onTopUp }) => {
+const Header = ({ userName, walletBalance, onTopUp, navigation }) => {
   return (
     <View style={styles.container}>
       <View style={styles.logoContainer}>
         <Image 
-          source={require('../assets/mymovies-africa-logo.png')} // Add your logo image here
+          source={require('../assets/mymovies-africa-logo.png')} 
           style={styles.logo}
         />
         
       </View>
       <View style={styles.userContainer}>
-        <TouchableOpacity onPress={onTopUp} style={styles.topUpButton}>
+        <TouchableOpacity onPress={() => navigation.navigate('PaymentPage')} style={styles.topUpButton}>
           <Text style={styles.topUpText}>Top Up</Text>
         </TouchableOpacity>
         <View style={styles.userInfo}>
