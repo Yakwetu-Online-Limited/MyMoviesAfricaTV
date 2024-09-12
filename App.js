@@ -4,6 +4,7 @@ import { createStackNavigator } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
 import CollectionPage from './screens/CollectionScreen';
+import PaymentPage from './screens/PaymentScreen';
 
 // Placeholder screens for future implementation
 const HomePage = () => <></>;
@@ -70,6 +71,7 @@ const App = () => {
     <NavigationContainer>
       <Stack.Navigator screenOptions={{ headerShown: false }} initialRouteName="Main">
         <Stack.Screen name="Main" component={BottomTabNavigator} />
+        <Stack.Screen name="Payment" component={PaymentPage} />
       </Stack.Navigator>
     </NavigationContainer>
   );
