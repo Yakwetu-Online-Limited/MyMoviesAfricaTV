@@ -76,12 +76,12 @@ const HomePage = () => {
   return (
     <ScrollView style={styles.container}>
       <BannerSection banners={banners} />
-      {/* Components for genres will be added here */}
+      <GenreSection genres={genres} />
     </ScrollView>
   );
 };
 
-// Component for displaying individual banner items
+// Component for displaying banners
 const BannerSection = ({ banners }) => (
   <FlatList
     data={banners}
@@ -109,6 +109,48 @@ const BannerItem = ({ banner }) => {
         <Text style={styles.bannerTitle}>{banner.title}</Text>
         <Text style={styles.bannerDescription}>{banner.description}</Text>
       </View>
+    </View>
+  );
+};
+
+// Component for displaying genres
+const GenreSection = ({ genres }) => (
+  <FlatList
+    data={genres}
+    renderItem={({ item }) => <GenreItem genre={item} />}
+    keyExtractor={item => item.id}
+    ListHeaderComponent={<Text style={styles.genreHeader}>Genres</Text>}
+    showsVerticalScrollIndicator={false}
+  />
+);
+
+// Component for individual genre item
+const GenreItem = ({ genre }) => (
+  <View style={styles.genreContainer}>
+    <Text style={styles.genreTitle}>{genre.name}</Text>
+    <FlatList
+      data={genre.movies}
+      renderItem={({ item }) => <MovieItem movie={item} />}
+      keyExtractor={item => item.id}
+      horizontal
+      showsHorizontalScrollIndicator={false}
+    />
+  </View>
+);
+
+// Component for individual movie item
+const MovieItem = ({ movie }) => {
+  const posterUrl = `https://app.mymovies.africa/api/images/${movie.poster}`;
+
+  return (
+    <View style={styles.movieContainer}>
+      <Image
+        source={{ uri: posterUrl }}
+        style={styles.moviePoster}
+        onError={() => console.log('Error loading poster image:', posterUrl)}
+        defaultSource={defaultPosterImage}
+      />
+      <Text style={styles.movieTitle}>{movie.title}</Text>
     </View>
   );
 };
@@ -146,6 +188,32 @@ const styles = StyleSheet.create({
   },
   bannerDescription: {
     color: 'white',
+    fontSize: 14,
+  },
+  genreHeader: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginVertical: 10,
+    marginHorizontal: 15,
+  },
+  genreContainer: {
+    marginVertical: 10,
+  },
+  genreTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginHorizontal: 15,
+  },
+  movieContainer: {
+    marginHorizontal: 10,
+    alignItems: 'center',
+  },
+  moviePoster: {
+    width: 100,
+    height: 150,
+  },
+  movieTitle: {
+    marginTop: 5,
     fontSize: 14,
   },
 });
