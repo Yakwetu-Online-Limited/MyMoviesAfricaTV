@@ -11,6 +11,14 @@ const SearchScreen = () =>  {
     const [error, setError] = useState(null);
     const [searchQuery, setSearchQuery] = useState('');
 
+    useEffect(() => {
+        fetchMovies();
+    }, []);
+
+    useEffect(() => {
+        filterMovies();
+    }, [searchQuery, movies]);
+
     const fetchMovies = async () => {
         setLoading(true);
         setError(null);
