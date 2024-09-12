@@ -5,27 +5,39 @@ import defaultPosterImage from '../images/default.jpg'; // Default image for fai
 const { width } = Dimensions.get('window'); // Get device width for responsive design
 
 const HomePage = () => {
-  // State variables for genres, banners, and loading
   const [genres, setGenres] = useState([]);
   const [banners, setBanners] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Fetch movies from API function placeholder
+  // Function to fetch movies data from API
   const fetchMovies = async () => {
-    // Code for fetching data will be added here
+    try {
+      const response = await fetch('https://app.mymovies.africa/api/cache');
+      const data = await response.json();
+
+      // Check if data contains the expected content
+      if (data && typeof data === 'object' && data.content) {
+        const formattedGenres = formatGenres(data.content); // Process genres
+        setGenres(formattedGenres);
+        setBanners(data.banners || []); // Set banners if available
+      } else {
+        console.error('Unexpected API response format');
+      }
+    } catch (error) {
+      console.error('Error fetching movie data:', error);
+    } finally {
+      setLoading(false); // End loading state
+    }
   };
 
-  // Format genres function placeholder
   const formatGenres = (moviesData) => {
     // Code for formatting genres will be added here
   };
 
-  // useEffect to call fetchMovies when component mounts
   useEffect(() => {
     fetchMovies();
   }, []);
 
-  // Loader display while data is being fetched
   if (loading) {
     return (
       <View style={styles.loaderContainer}>
@@ -34,7 +46,6 @@ const HomePage = () => {
     );
   }
 
-  // Main component render placeholder
   return (
     <ScrollView style={styles.container}>
       {/* Components for banners and genres will be added here */}
