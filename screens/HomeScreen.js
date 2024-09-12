@@ -1,47 +1,44 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, Image, StyleSheet, ScrollView, ActivityIndicator, Dimensions } from 'react-native';
-import defaultPosterImage from '../images/default.jpg'; // Default image for failed poster loads
+import { View, Text, FlatList, Image, StyleSheet, ScrollView, ActivityIndicator, Dimensions, TouchableOpacity } from 'react-native';
+import defaultPosterImage from '../images/default.jpg'; // Ensure this image path is correct
 
-const { width } = Dimensions.get('window'); // Get device width for responsive design
+const { width } = Dimensions.get('window'); // Get the width of the device screen
 
 const HomePage = () => {
   const [genres, setGenres] = useState([]);
   const [banners, setBanners] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Function to fetch movies data from API
   const fetchMovies = async () => {
     try {
       const response = await fetch('https://app.mymovies.africa/api/cache');
       const data = await response.json();
 
-      // Check if data contains the expected content
       if (data && typeof data === 'object' && data.content) {
-        const formattedGenres = formatGenres(data.content); // Process genres
+        const formattedGenres = formatGenres(data.content);
         setGenres(formattedGenres);
-        setBanners(data.banners || []); // Set banners if available
+        setBanners(data.banners || []);
       } else {
-        console.error('Unexpected API response format');
+        console.error('Unexpected API response format: Missing "content" key');
       }
     } catch (error) {
       console.error('Error fetching movie data:', error);
     } finally {
-      setLoading(false); // End loading state
+      setLoading(false);
     }
   };
 
-  // Function to format genres from movies data
   const formatGenres = (moviesData) => {
     if (!Array.isArray(moviesData)) {
-      console.error('moviesData is not an array');
+      console.error('moviesData is not an array:', moviesData);
       return [];
     }
 
-    const genresMap = {}; // Map to store genre details
+    const genresMap = {};
 
     moviesData.forEach(movie => {
       try {
-        const movieGenres = JSON.parse(movie.genres); // Parse genre JSON
+        const movieGenres = JSON.parse(movie.genres);
         movieGenres.forEach(genre => {
           if (!genresMap[genre]) {
             genresMap[genre] = { id: genre, name: genre, movies: [] };
@@ -57,14 +54,21 @@ const HomePage = () => {
       }
     });
 
-    return Object.values(genresMap); // Return array of genres
+    return Object.values(genresMap);
   };
 
   useEffect(() => {
     fetchMovies();
   }, []);
 
-  // Display loading spinner if data is still being fetched
+  const handleRequestScreening = () => {
+    // Logic for Request Screening button
+  };
+
+  const handleEvents = () => {
+    // Logic for Events button
+  };
+
   if (loading) {
     return (
       <View style={styles.loaderContainer}>
@@ -75,13 +79,23 @@ const HomePage = () => {
 
   return (
     <ScrollView style={styles.container}>
+      <Text style={styles.header}>Movie Catalog</Text>
+      <View style={styles.buttonContainer}>
+        <TouchableOpacity style={styles.button} onPress={handleRequestScreening}>
+          <Text style={styles.buttonText}>Request Screening</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.button} onPress={handleEvents}>
+          <Text style={styles.buttonText}>Events</Text>
+        </TouchableOpacity>
+      </View>
       <BannerSection banners={banners} />
-      <GenreSection genres={genres} />
+      {genres.map(genre => (
+        <GenreSection key={genre.id} name={genre.name} movies={genre.movies} />
+      ))}
     </ScrollView>
   );
 };
 
-// Component for displaying banners
 const BannerSection = ({ banners }) => (
   <FlatList
     data={banners}
@@ -93,9 +107,10 @@ const BannerSection = ({ banners }) => (
   />
 );
 
-// Component for individual banner item
 const BannerItem = ({ banner }) => {
   const bannerUrl = `https://app.mymovies.africa/api/images/${banner.image}`;
+
+  console.log('Full Banner Image URL:', bannerUrl);
 
   return (
     <View style={styles.bannerContainer}>
@@ -113,24 +128,27 @@ const BannerItem = ({ banner }) => {
   );
 };
 
-// Component for displaying genres
-const GenreSection = ({ genres }) => (
-  <FlatList
-    data={genres}
-    renderItem={({ item }) => <GenreItem genre={item} />}
-    keyExtractor={item => item.id}
-    ListHeaderComponent={<Text style={styles.genreHeader}>Genres</Text>}
-    showsVerticalScrollIndicator={false}
-  />
-);
+const MovieItem = ({ title, poster }) => {
+  const [imageError, setImageError] = useState(false);
 
-// Component for individual genre item
-const GenreItem = ({ genre }) => (
-  <View style={styles.genreContainer}>
-    <Text style={styles.genreTitle}>{genre.name}</Text>
+  return (
+    <View style={styles.movieItem}>
+      <Image
+        source={imageError || !poster ? defaultPosterImage : { uri: poster }}
+        style={styles.poster}
+        onError={() => setImageError(true)}
+      />
+      <Text style={styles.movieTitle}>{title}</Text>
+    </View>
+  );
+};
+
+const GenreSection = ({ name, movies }) => (
+  <View style={styles.genreSection}>
+    <Text style={styles.genreTitle}>{name}</Text>
     <FlatList
-      data={genre.movies}
-      renderItem={({ item }) => <MovieItem movie={item} />}
+      data={movies}
+      renderItem={({ item }) => <MovieItem title={item.title} poster={item.poster} />}
       keyExtractor={item => item.id}
       horizontal
       showsHorizontalScrollIndicator={false}
@@ -138,27 +156,52 @@ const GenreItem = ({ genre }) => (
   </View>
 );
 
-// Component for individual movie item
-const MovieItem = ({ movie }) => {
-  const posterUrl = `https://app.mymovies.africa/api/images/${movie.poster}`;
-
-  return (
-    <View style={styles.movieContainer}>
-      <Image
-        source={{ uri: posterUrl }}
-        style={styles.moviePoster}
-        onError={() => console.log('Error loading poster image:', posterUrl)}
-        defaultSource={defaultPosterImage}
-      />
-      <Text style={styles.movieTitle}>{movie.title}</Text>
-    </View>
-  );
-};
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#f0f0f0',
+  },
+  header: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    padding: 16,
+  },
+  buttonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    marginBottom: 16,
+  },
+  button: {
+    backgroundColor: '#007bff',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 5,
+  },
+  buttonText: {
+    color: 'white',
+    fontWeight: 'bold',
+  },
+  genreSection: {
+    marginBottom: 20,
+  },
+  genreTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginLeft: 16,
+    marginBottom: 10,
+  },
+  movieItem: {
+    marginLeft: 16,
+    width: 120,
+  },
+  poster: {
+    width: 120,
+    height: 180,
+    borderRadius: 8,
+  },
+  movieTitle: {
+    marginTop: 5,
+    textAlign: 'center',
   },
   loaderContainer: {
     flex: 1,
@@ -188,32 +231,6 @@ const styles = StyleSheet.create({
   },
   bannerDescription: {
     color: 'white',
-    fontSize: 14,
-  },
-  genreHeader: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginVertical: 10,
-    marginHorizontal: 15,
-  },
-  genreContainer: {
-    marginVertical: 10,
-  },
-  genreTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginHorizontal: 15,
-  },
-  movieContainer: {
-    marginHorizontal: 10,
-    alignItems: 'center',
-  },
-  moviePoster: {
-    width: 100,
-    height: 150,
-  },
-  movieTitle: {
-    marginTop: 5,
     fontSize: 14,
   },
 });
