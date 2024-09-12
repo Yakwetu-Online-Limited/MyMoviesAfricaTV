@@ -1,32 +1,83 @@
 import React from 'react';
-import { SafeAreaView, StatusBar, StyleSheet } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
-import HomePage from './screens/HomeScreen'; 
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { Ionicons } from '@expo/vector-icons';
+import HomePage from './screens/HomeScreen';
+import CollectionPage from './screens/CollectionScreen';
+import PaymentPage from './screens/PaymentScreen';
+
+// Placeholder screens for future implementation
+
+const SearchPage = () => <></>;
+const ProfilePage = () => <></>;
 
 const Stack = createStackNavigator();
+const Tab = createBottomTabNavigator();
+
+const BottomTabNavigator = () => {
+  return (
+    <Tab.Navigator
+      screenOptions={({ route }) => ({
+        tabBarIcon: ({ focused, color, size }) => {
+          let iconName;
+
+          if (route.name === 'Home') {
+            iconName = focused ? 'home' : 'home-outline';
+          } else if (route.name === 'Search') {
+            iconName = focused ? 'search' : 'search-outline';
+          } else if (route.name === 'Collection') {
+            iconName = focused ? 'list' : 'list-outline';
+          } else if (route.name === 'Profile') {
+            iconName = focused ? 'person' : 'person-outline';
+          }
+
+          return <Ionicons name={iconName} size={size} color={color} />;
+        },
+        tabBarActiveTintColor: '#aa00ff',
+        tabBarInactiveTintColor: 'gray',
+        tabBarStyle: {
+          backgroundColor: '#000',
+          borderTopWidth: 0,
+        },
+        tabBarShowLabel: false,
+      })}
+    >
+      <Tab.Screen
+        name="Home"
+        component={HomePage}
+        options={{ headerShown: false }} 
+      />
+      <Tab.Screen
+        name="Search"
+        component={SearchPage}
+        options={{ headerShown: false }} 
+      />
+      <Tab.Screen
+        name="Collection"
+        component={CollectionPage}
+        options={{ headerShown: false }} 
+      />
+      <Tab.Screen
+        name="Profile"
+        component={ProfilePage}
+        options={{ headerShown: false }} 
+      />
+    </Tab.Navigator>
+  );
+};
 
 const App = () => {
   return (
     <NavigationContainer>
-      <SafeAreaView style={styles.container}>
-        <StatusBar barStyle="dark-content" />
-        <Stack.Navigator>
-          <Stack.Screen 
-            name="Home" 
-            component={HomePage} 
-            options={{ title: 'Movie Catalog' }}
-          />
-        </Stack.Navigator>
-      </SafeAreaView>
+      <Stack.Navigator screenOptions={{ headerShown: false }} initialRouteName="Main">
+        <Stack.Screen name="Main" component={BottomTabNavigator} />
+        <Stack.Screen name="Home" component={HomePage} options={{ title: 'Movie Catalog' }} />
+        <Stack.Screen name="Collection" component={CollectionPage} />
+        <Stack.Screen name="Payment" component={PaymentPage} />
+      </Stack.Navigator>
     </NavigationContainer>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-});
 
 export default App;
