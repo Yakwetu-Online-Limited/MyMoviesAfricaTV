@@ -15,7 +15,7 @@ const App = () => {
           <Stack.Screen 
             name="Home" 
             component={HomePage} 
-            options={{ title: 'Movie Catalog' }}
+            options={{ headerShown: false }}
           />
         </Stack.Navigator>
       </SafeAreaView>
