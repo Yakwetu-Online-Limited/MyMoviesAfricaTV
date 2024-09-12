@@ -20,7 +20,6 @@ const SearchScreen = () =>  {
             const data = await response.json();
             console.log('API Response:', data);
 
-            // Check if 'content' key exists and is an array
             if (data.content && Array.isArray(data.content)) {
                 setMovies(data.content);
                 setFilteredMovies(data.content);
@@ -37,6 +36,17 @@ const SearchScreen = () =>  {
         }
     };
 
+
+    const filterMovies = () => {
+        if (searchQuery.trim() === '') {
+            setFilteredMovies(movies);
+        } else {
+            const filtered = movies.filter(movie =>
+                movie.title.toLowerCase().includes(searchQuery.toLowerCase())
+            );
+            setFilteredMovies(filtered);
+        }
+    };
 
 };
 
