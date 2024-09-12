@@ -30,14 +30,41 @@ const HomePage = () => {
     }
   };
 
+  // Function to format genres from movies data
   const formatGenres = (moviesData) => {
-    // Code for formatting genres will be added here
+    if (!Array.isArray(moviesData)) {
+      console.error('moviesData is not an array');
+      return [];
+    }
+
+    const genresMap = {}; // Map to store genre details
+
+    moviesData.forEach(movie => {
+      try {
+        const movieGenres = JSON.parse(movie.genres); // Parse genre JSON
+        movieGenres.forEach(genre => {
+          if (!genresMap[genre]) {
+            genresMap[genre] = { id: genre, name: genre, movies: [] };
+          }
+          genresMap[genre].movies.push({
+            id: movie.id,
+            title: movie.title,
+            poster: movie.poster || null,
+          });
+        });
+      } catch (err) {
+        console.error('Error parsing genres for movie:', movie.title, err);
+      }
+    });
+
+    return Object.values(genresMap); // Return array of genres
   };
 
   useEffect(() => {
     fetchMovies();
   }, []);
 
+  // Display loading spinner if data is still being fetched
   if (loading) {
     return (
       <View style={styles.loaderContainer}>
@@ -48,8 +75,41 @@ const HomePage = () => {
 
   return (
     <ScrollView style={styles.container}>
-      {/* Components for banners and genres will be added here */}
+      <BannerSection banners={banners} />
+      {/* Components for genres will be added here */}
     </ScrollView>
+  );
+};
+
+// Component for displaying individual banner items
+const BannerSection = ({ banners }) => (
+  <FlatList
+    data={banners}
+    renderItem={({ item }) => <BannerItem banner={item} />}
+    keyExtractor={item => item.ref}
+    horizontal
+    pagingEnabled
+    showsHorizontalScrollIndicator={false}
+  />
+);
+
+// Component for individual banner item
+const BannerItem = ({ banner }) => {
+  const bannerUrl = `https://app.mymovies.africa/api/images/${banner.image}`;
+
+  return (
+    <View style={styles.bannerContainer}>
+      <Image
+        source={{ uri: bannerUrl }}
+        style={styles.bannerImage}
+        onError={() => console.log('Error loading banner image:', bannerUrl)}
+        defaultSource={defaultPosterImage}
+      />
+      <View style={styles.bannerOverlay}>
+        <Text style={styles.bannerTitle}>{banner.title}</Text>
+        <Text style={styles.bannerDescription}>{banner.description}</Text>
+      </View>
+    </View>
   );
 };
 
@@ -62,6 +122,31 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  bannerContainer: {
+    width: width,
+    height: 200,
+  },
+  bannerImage: {
+    width: '100%',
+    height: '100%',
+  },
+  bannerOverlay: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    padding: 10,
+  },
+  bannerTitle: {
+    color: 'white',
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  bannerDescription: {
+    color: 'white',
+    fontSize: 14,
   },
 });
 
