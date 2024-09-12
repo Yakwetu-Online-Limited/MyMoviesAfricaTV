@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, FlatList, ActivityIndicator, StyleSheet, Image, TouchableOpacity } from 'react-native';
+import placeholderImage from '../images/default.jpg';
+
 
 const API_URL = 'https://app.mymovies.africa/api/cache';
 
@@ -68,7 +70,7 @@ const SearchScreen = () =>  {
         <TouchableOpacity onPress={() => handlePress()}>
             <View style={styles.card}>
                 <View style={styles.row}>
-                    <Image source={{ uri: item.image_url }} style={styles.image} />
+                    <Image source={placeholderImage} style={styles.image} />
                     <View style={styles.cardContent}>
                         <Text style={styles.title}>{item.title}</Text>
                         <Text style={styles.synopsis}>{truncateSynopsis(item.synopsis)}</Text>
@@ -78,6 +80,31 @@ const SearchScreen = () =>  {
         </TouchableOpacity>
     );
 
+    if (loading) {
+        return <ActivityIndicator size="large" color="purple" />;
+    }
+
+    if (error) {
+        return <Text>{error}</Text>;
+    }
+
+    return (
+        <View style={styles.container}>
+            <TextInput
+                style={styles.searchBar}
+                placeholder="Search movies..."
+                value={searchQuery}
+                onChangeText={setSearchQuery}
+            />
+            <FlatList
+                data={filteredMovies}
+                keyExtractor={(item) => item.id}
+                renderItem={renderItem}
+            />
+        </View>
+    );
 };
+
+
 
 export default SearchScreen;
