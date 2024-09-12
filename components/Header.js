@@ -38,7 +38,7 @@ const styles = StyleSheet.create({
   },
   logo: {
     width: 120,
-    height: 80,
+    height: 90,
     resizeMode: 'contain',
   },
   userContainer: {
