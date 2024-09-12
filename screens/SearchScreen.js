@@ -105,6 +105,55 @@ const SearchScreen = () =>  {
     );
 };
 
+const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        padding: 10,
+        backgroundColor: '#000',  // Set the background color to black
+    },
+    searchBar: {
+        height: 40,
+        borderColor: 'grey',
+        backgroundColor: 'grey',
+        borderWidth: 1,
+        paddingHorizontal: 8,
+        marginBottom: 10,
+        color: 'white',  // Set text color to white for visibility on black background
+    },
+    card: {
+        backgroundColor: 'rgb(37, 38, 43)',  // Card background remains white
+        borderRadius: 8,
+        elevation: 3,
+        marginBottom: 10,
+        overflow: 'hidden'
+    },
+    row: {
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    image: {
+        width: 100,
+        height: 150,
+        resizeMode: 'cover',
+        marginRight: 10
+    },
+    cardContent: {
+        flex: 1,
+        padding: 10
+    },
+    title: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        marginBottom: 5,
+        color: '#e0e0e0'  // Title color to ensure visibility
+    },
+    synopsis: {
+        fontSize: 14,
+        color: '#555'  // Synopsis color for readability
+    }
+});
+
+
 
 
 export default SearchScreen;
