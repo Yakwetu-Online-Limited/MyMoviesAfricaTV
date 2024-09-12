@@ -56,6 +56,28 @@ const SearchScreen = () =>  {
         }
     };
 
+    const truncateSynopsis = (synopsis) => {
+        return synopsis.length > 100 ? synopsis.substring(0, 100) + '...' : synopsis;
+    };
+
+     const handlePress = () => {
+         navigation.navigate();
+     };
+
+    const renderItem = ({ item }) => (
+        <TouchableOpacity onPress={() => handlePress()}>
+            <View style={styles.card}>
+                <View style={styles.row}>
+                    <Image source={{ uri: item.image_url }} style={styles.image} />
+                    <View style={styles.cardContent}>
+                        <Text style={styles.title}>{item.title}</Text>
+                        <Text style={styles.synopsis}>{truncateSynopsis(item.synopsis)}</Text>
+                    </View>
+                </View>
+            </View>
+        </TouchableOpacity>
+    );
+
 };
 
 export default SearchScreen;
