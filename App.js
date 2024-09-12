@@ -72,7 +72,7 @@ const App = () => {
     <NavigationContainer>
       <Stack.Navigator screenOptions={{ headerShown: false }} initialRouteName="Main">
         <Stack.Screen name="Main" component={BottomTabNavigator} />
-        <Stack.Screen name="Home" component={HomePage} options={{ title: 'Movie Catalog' }} />
+        <Stack.Screen name="Home" component={HomePage}  />
         <Stack.Screen name="Collection" component={CollectionPage} />
         <Stack.Screen name="Payment" component={PaymentPage} />
       </Stack.Navigator>

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, FlatList, Image, StyleSheet, ScrollView, ActivityIndicator, Dimensions, TouchableOpacity } from 'react-native';
 import defaultPosterImage from '../images/default.jpg'; // Ensure this image path is correct
-
+import Header from '../components/Header';
 const { width } = Dimensions.get('window'); // Get the width of the device screen
 
 const HomePage = () => {
@@ -165,6 +165,7 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: 'bold',
     padding: 16,
+    marginTop: 50,
   },
   buttonContainer: {
     flexDirection: 'row',
