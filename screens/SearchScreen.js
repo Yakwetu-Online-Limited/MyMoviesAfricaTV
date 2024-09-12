@@ -92,7 +92,7 @@ const SearchScreen = () =>  {
         <View style={styles.container}>
             <TextInput
                 style={styles.searchBar}
-                placeholder="Search movies..."
+                placeholder="Search Content by Title, Genre, Actors or Duration ... "
                 value={searchQuery}
                 onChangeText={setSearchQuery}
             />
@@ -109,19 +109,19 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         padding: 10,
-        backgroundColor: '#000',  // Set the background color to black
+        backgroundColor: '#000', 
     },
     searchBar: {
         height: 40,
         borderColor: 'grey',
-        backgroundColor: 'grey',
-        borderWidth: 1,
+        backgroundColor: 'white',
+        borderWidth: 2,
         paddingHorizontal: 8,
         marginBottom: 10,
-        color: 'white',  // Set text color to white for visibility on black background
+        color: 'black',  
     },
     card: {
-        backgroundColor: 'rgb(37, 38, 43)',  // Card background remains white
+        backgroundColor: 'rgb(37, 38, 43)', 
         borderRadius: 8,
         elevation: 3,
         marginBottom: 10,
@@ -145,11 +145,11 @@ const styles = StyleSheet.create({
         fontSize: 18,
         fontWeight: 'bold',
         marginBottom: 5,
-        color: '#e0e0e0'  // Title color to ensure visibility
+        color: '#e0e0e0'  
     },
     synopsis: {
         fontSize: 14,
-        color: '#555'  // Synopsis color for readability
+        color: '#555'  
     }
 });
 
