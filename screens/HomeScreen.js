@@ -1,13 +1,27 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, Image, StyleSheet, ScrollView, ActivityIndicator, Dimensions, TouchableOpacity } from 'react-native';
-import defaultPosterImage from '../images/default.jpg'; // Ensure this image path is correct
-import Header from '../components/Header';
-const { width } = Dimensions.get('window'); // Get the width of the device screen
+import {
+  View,
+  Text,
+  FlatList,
+  Image,
+  StyleSheet,
+  ScrollView,
+  ActivityIndicator,
+  Dimensions,
+  TouchableOpacity
+} from 'react-native';
+import defaultPosterImage from '../images/default.jpg';
+
+const { width } = Dimensions.get('window');
 
 const HomePage = () => {
   const [genres, setGenres] = useState([]);
   const [banners, setBanners] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchMovies();
+  }, []);
 
   const fetchMovies = async () => {
     try {
@@ -57,18 +71,6 @@ const HomePage = () => {
     return Object.values(genresMap);
   };
 
-  useEffect(() => {
-    fetchMovies();
-  }, []);
-
-  const handleRequestScreening = () => {
-    // Logic for Request Screening button
-  };
-
-  const handleEvents = () => {
-    // Logic for Events button
-  };
-
   if (loading) {
     return (
       <View style={styles.loaderContainer}>
@@ -81,15 +83,15 @@ const HomePage = () => {
     <ScrollView style={styles.container}>
       <Text style={styles.header}>Movie Catalog</Text>
       <View style={styles.buttonContainer}>
-        <TouchableOpacity style={styles.button} onPress={handleRequestScreening}>
+        <TouchableOpacity style={styles.button} onPress={() => {}}>
           <Text style={styles.buttonText}>Request Screening</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.button} onPress={handleEvents}>
+        <TouchableOpacity style={styles.button} onPress={() => {}}>
           <Text style={styles.buttonText}>Events</Text>
         </TouchableOpacity>
       </View>
       <BannerSection banners={banners} />
-      {genres.map(genre => (
+      {genres.slice(0, 5).map(genre => (
         <GenreSection key={genre.id} name={genre.name} movies={genre.movies} />
       ))}
     </ScrollView>
@@ -110,14 +112,11 @@ const BannerSection = ({ banners }) => (
 const BannerItem = ({ banner }) => {
   const bannerUrl = `https://app.mymovies.africa/api/images/${banner.image}`;
 
-  console.log('Full Banner Image URL:', bannerUrl);
-
   return (
     <View style={styles.bannerContainer}>
       <Image
         source={{ uri: bannerUrl }}
         style={styles.bannerImage}
-        onError={() => console.log('Error loading banner image:', bannerUrl)}
         defaultSource={defaultPosterImage}
       />
       <View style={styles.bannerOverlay}>
@@ -149,7 +148,7 @@ const GenreSection = ({ name, movies }) => (
     <FlatList
       data={movies}
       renderItem={({ item }) => <MovieItem title={item.title} poster={item.poster} />}
-      keyExtractor={item => item.id}
+      keyExtractor={item => item.id.toString()}
       horizontal
       showsHorizontalScrollIndicator={false}
     />
