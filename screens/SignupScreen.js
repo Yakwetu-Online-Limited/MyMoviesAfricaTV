@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, Image, Switch } from 'react-native';
 import PhoneInput from 'react-native-phone-input';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-import { auth } from './firebase';  
+import { auth } from '../firebase'; 
+import { createUserWithEmailAndPassword } from 'firebase/auth';
 
 const SignupScreen = ({ navigation }) => {
   const [fullName, setFullName] = useState('');
@@ -12,19 +13,31 @@ const SignupScreen = ({ navigation }) => {
   const [showPassword, setShowPassword] = useState(false);
   const [isPrivacyChecked, setIsPrivacyChecked] = useState(false);
 
+  const [isLoading, setIsLoading] = useState(false);
   const handleSignup = () => {
     if (fullName === '' || email === '' || phoneNumber === '' || password === '' || !isPrivacyChecked) {
       Alert.alert('Error', 'Please fill in all fields and agree to the Privacy Policy');
       return;
     }
 
-    auth.createUserWithEmailAndPassword(email, password)
+    setIsLoading(true);
+
+    createUserWithEmailAndPassword(auth, email, password)
       .then((userCredential) => {
         // User created successfully, you can save additional information (like fullName, phoneNumber) here.
         Alert.alert('Success', 'Account created successfully');
         // Navigate to another screen or do other actions
       })
       .catch((error) => {
+        setIsLoading(false);
+        let errorMessage = 'An error occurred.';
+        if(error.code === 'auth/email-already-in-use'){
+          errorMessage = 'Email already in use';
+        } else if(error.code === 'auth/invalid-email'){
+          errorMessage = 'Please enter a valid email address';
+        } else if (error.code === 'auth/weak-password'){
+          errorMessage = 'Password should be at least 6 characters';
+        }
         Alert.alert('Error', error.message);
       });
   };
@@ -46,7 +59,7 @@ const SignupScreen = ({ navigation }) => {
           value={fullName}
           onChangeText={setFullName}
         />
-        <Text style={styles.errorText}>Full name is required</Text>
+        {fullName === '' && <Text style={styles.errorText}>Full name is required</Text>}
       </View>
 
       {/* Email Input */}
