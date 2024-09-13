@@ -18,6 +18,7 @@ const HomePage = () => {
   const [genres, setGenres] = useState([]);
   const [banners, setBanners] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [displayedGenres, setDisplayedGenres] = useState(5);
 
   useEffect(() => {
     fetchMovies();
@@ -71,6 +72,10 @@ const HomePage = () => {
     return Object.values(genresMap);
   };
 
+  const handleLoadMore = () => {
+    setDisplayedGenres(prevDisplayed => prevDisplayed + 5);
+  };
+
   if (loading) {
     return (
       <View style={styles.loaderContainer}>
@@ -91,9 +96,14 @@ const HomePage = () => {
         </TouchableOpacity>
       </View>
       <BannerSection banners={banners} />
-      {genres.slice(0, 5).map(genre => (
+      {genres.slice(0, displayedGenres).map(genre => (
         <GenreSection key={genre.id} name={genre.name} movies={genre.movies} />
       ))}
+      {displayedGenres < genres.length && (
+        <TouchableOpacity style={styles.loadMoreButton} onPress={handleLoadMore}>
+          <Text style={styles.loadMoreText}>Load More</Text>
+        </TouchableOpacity>
+      )}
     </ScrollView>
   );
 };
@@ -232,6 +242,17 @@ const styles = StyleSheet.create({
   bannerDescription: {
     color: 'white',
     fontSize: 14,
+  },
+  loadMoreButton: {
+    backgroundColor: '#007bff',
+    padding: 10,
+    borderRadius: 5,
+    marginVertical: 20,
+    alignSelf: 'center',
+  },
+  loadMoreText: {
+    color: 'white',
+    fontWeight: 'bold',
   },
 });
 
