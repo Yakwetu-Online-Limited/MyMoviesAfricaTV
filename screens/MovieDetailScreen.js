@@ -1,6 +1,7 @@
 import React, { useState, useEffect }from 'react';
-import { View, Text, StyleSheet, ActivityIndicator, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, ActivityIndicator, ScrollView, Image} from 'react-native';
 import { API_URL } from '../store';
+import { getArtwork } from '../utils/media';
 
 const MovieDetailScreen = () => {
     // set useStates
@@ -15,7 +16,7 @@ const MovieDetailScreen = () => {
         //Function to fetch movie data from the api
         const fetchMovieData = async() => {
             try {
-                const response = await fetch ('https://app.mymovies.africa/api/cache');
+                const response = await fetch (API_URL);
                 const data = await response.json();
                 const movieData = data.content.find(movie => movie.id === movieId);
                 if (!movieData) {
@@ -39,10 +40,13 @@ const MovieDetailScreen = () => {
         return <Text>Error fetching movie data: {error}</Text>
     }
 
+    // Fetch the movie poster using getArtwork
+    const posterUrl = getArtwork(movie.ref).portrait;
 
 
     return (
         <ScrollView style={styles.container}>
+            
             <Text style={styles.title}>{movie.title}</Text>
             <Text style={styles.meta}>{movie.year} {movie.duration} minutes {movie.classification}</Text>
             <Text style={styles.cast}>{movie.tags}</Text>
