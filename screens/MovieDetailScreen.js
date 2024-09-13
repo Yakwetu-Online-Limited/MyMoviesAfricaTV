@@ -1,5 +1,5 @@
 import React, { useState, useEffect }from 'react';
-import { View, Text, StyleSheet, ActivityIndicator} from 'react-native';
+import { View, Text, StyleSheet, ActivityIndicator, ScrollView } from 'react-native';
 import { API_URL } from '../store';
 
 const MovieDetailScreen = () => {
@@ -8,14 +8,14 @@ const MovieDetailScreen = () => {
     const [ loading, setLoading ]= useState(true);
     const [ error, setError ] = useState(null);
 
-    const movieId = '180'; // Static ID for testing
+    const movieId = '182'; // Static ID for testing
 
     // Fetch the movie data from the API
     useEffect(() => {
         //Function to fetch movie data from the api
         const fetchMovieData = async() => {
             try {
-                const response = await fetch (API_URL);
+                const response = await fetch ('https://app.mymovies.africa/api/cache');
                 const data = await response.json();
                 const movieData = data.content.find(movie => movie.id === movieId);
                 if (!movieData) {
@@ -42,19 +42,44 @@ const MovieDetailScreen = () => {
 
 
     return (
-        <View style={styles.container}>
-            <Text>Movie Details</Text>
-        </View>
+        <ScrollView style={styles.container}>
+            <Text style={styles.title}>{movie.title}</Text>
+            <Text style={styles.meta}>{movie.year} {movie.duration} minutes {movie.classification}</Text>
+            <Text style={styles.cast}>{movie.tags}</Text>
+            <Text style={styles.synopsis}>{movie.synopsis}</Text>
+
+            <Text style={styles.title}>Watch More Like This </Text>
+        </ScrollView>
     );
-    
-}  
+};  
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    padding: 16,
+    marginTop:40,
+    backgroundColor:"black",
+    color:"white",
   },
+  title: {
+    color: "white",
+    fontSize: 24,
+
+  },
+  synopsis: {
+    color: "white",
+    fontSize: 16,
+    marginVertical: 10,
+
+  },
+  cast:{
+    color: "#888",
+    marginTop: 10,
+  },
+  meta: {
+    color:"white",
+    paddingTop: 5,
+
+  }
 });
 
 export default MovieDetailScreen;
