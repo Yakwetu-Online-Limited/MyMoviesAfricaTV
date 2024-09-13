@@ -27,7 +27,7 @@ const HomePage = () => {
 
       if (data && typeof data === 'object' && data.content) {
         const formattedGenres = formatGenres(data.content);
-        const formattedGenres = formatGenres(data.content);
+        
         setGenres(formattedGenres);
         setBanners(data.banners || []);
         setBanners(data.banners || []);
@@ -48,12 +48,12 @@ const HomePage = () => {
       return [];
     }
 
-    const genresMap = {};
+   
     const genresMap = {};
 
     moviesData.forEach(movie => {
       try {
-        const movieGenres = JSON.parse(movie.genres);
+        
         const movieGenres = JSON.parse(movie.genres);
         movieGenres.forEach(genre => {
           if (!genresMap[genre]) {
