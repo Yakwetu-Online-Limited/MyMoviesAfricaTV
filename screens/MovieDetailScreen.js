@@ -46,9 +46,14 @@ const MovieDetailScreen = () => {
 
     return (
         <ScrollView style={styles.container}>
+            <Image 
+            source={{ uri: posterUrl }} 
+            style={{ width: '100%', height: 400, marginTop: 16 }} 
+            resizeMode="cover" 
+            />
             
             <Text style={styles.title}>{movie.title}</Text>
-            <Text style={styles.meta}>{movie.year} {movie.duration} minutes {movie.classification}</Text>
+            <Text style={styles.meta}>{movie.year} | {movie.duration} minutes | {movie.classification}</Text>
             <Text style={styles.cast}>{movie.tags}</Text>
             <Text style={styles.synopsis}>{movie.synopsis}</Text>
 
