@@ -89,6 +89,7 @@ const styles = StyleSheet.create({
     padding: 10,
     borderRadius: 5,
     textAlign: 'center',
+    marginTop: 40,
     marginBottom: 20,
   },
   selectText: {
