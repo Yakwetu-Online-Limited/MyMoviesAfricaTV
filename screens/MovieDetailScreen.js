@@ -3,15 +3,17 @@ import { View, Text, StyleSheet, ActivityIndicator, ScrollView, Dimensions, Imag
 import { API_URL } from '../store';
 import { getArtwork } from '../utils/media';
 import { TouchableOpacity } from 'react-native-gesture-handler';
-import { Video } from 'react-native-video';
+import  Video  from 'react-native-video';
 
 const { width } = Dimensions.get('window');
 
-const MovieDetailScreen = () => {
+const MovieDetailScreen = ({route}) => {
     // set useStates
     const [ movie, setMovie ] = useState(null);
     const [ loading, setLoading ]= useState(true);
     const [ error, setError ] = useState(null);
+
+    //const { movieId } = route.params;
 
     const movieId = '184'; // Static ID for testing
 
@@ -27,17 +29,17 @@ const MovieDetailScreen = () => {
                     throw new Error ('Movie not found');
                 }
                 setMovie(movieData);
+                setLoading(false);
             } catch(error) {
                 setError(error.message); 
-            } finally {
-                setLoading(false)
-            };
+                setLoading(false);
+            }
         };
         fetchMovieData();
     }, []);
     // Render loading state.
     if (loading) {
-        return <ActivityIndicator size = "large" color="#0000ff" />
+        return <ActivityIndicator size = "large" color="#0000ff" alignItems="center" />
     }
     // Render error state
     if (error) {
@@ -67,13 +69,15 @@ const MovieDetailScreen = () => {
                 controls={true}
                 resizeMode="cover"
                 paused={false}
+                onError={(err) => console.error('Video error: ', err)}
                 style={styles.video}  
                 />
 
             ) : (
                 <Text> No trailer available.</Text>
             )}
-             */}
+                */}
+             
                 
                 
             <View style={styles.buttonContainer}>
@@ -109,6 +113,7 @@ const styles = StyleSheet.create({
   title: {
     color: "white",
     fontSize: 24,
+    fontWeight: 'bold',
 
   },
   synopsis: {
