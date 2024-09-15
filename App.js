@@ -6,10 +6,11 @@ import { Ionicons } from '@expo/vector-icons';
 import HomePage from './screens/HomeScreen';
 import CollectionPage from './screens/CollectionScreen';
 import PaymentPage from './screens/PaymentScreen';
+import SearchPage from './screens/SearchScreen';
 
 // Placeholder screens for future implementation
 
-const SearchPage = () => <></>;
+
 const ProfilePage = () => <></>;
 
 const Stack = createStackNavigator();
@@ -73,6 +74,7 @@ const App = () => {
       <Stack.Navigator screenOptions={{ headerShown: false }} initialRouteName="Main">
         <Stack.Screen name="Main" component={BottomTabNavigator} />
         <Stack.Screen name="Home" component={HomePage}  />
+        <Stack.Screen name="Search" component={SearchPage} />
         <Stack.Screen name="Collection" component={CollectionPage} />
         <Stack.Screen name="Payment" component={PaymentPage} />
       </Stack.Navigator>
