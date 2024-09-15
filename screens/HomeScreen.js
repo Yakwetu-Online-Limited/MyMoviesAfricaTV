@@ -77,6 +77,7 @@ const HomePage = () => {
             id: movie.id,
             title: movie.title,
             poster: movie.poster || null,
+            ref: movie.ref || null,
           });
         });
       } catch (err) {
@@ -228,18 +229,16 @@ const BannerSection = ({ banners }) => (
 );
 
 const BannerItem = ({ banner }) => {
-  
-  const bannerUrl = getArtwork(banner.ref).portrait;
-  console.log('Banner URL:', bannerUrl); // Debug: Log the banner URL
-  
+  // Check if the 'ref' is available, if not fallback to a default URL
+  const bannerUrl = banner.ref ? getArtwork(banner.ref).portrait : null;
 
   return (
     <View style={styles.bannerContainer}>
       <Image
         source={{ uri: bannerUrl }}
         style={styles.bannerImage}
-        onError={() => console.log('Error loading banner image:', bannerUrl)}
-        defaultSource={defaultPosterImage}
+        onError={() => console.log('Error loading banner image:', bannerUrl)}  // Logs error
+        defaultSource={defaultPosterImage}  // Fallback image
       />
       <View style={styles.bannerOverlay}>
         <Text style={styles.bannerTitle}>{banner.title}</Text>
@@ -247,6 +246,7 @@ const BannerItem = ({ banner }) => {
     </View>
   );
 };
+
 
 const GenreSection = ({ genres }) => (
   <View>
@@ -270,7 +270,12 @@ const MovieItem = ({ movie }) => {
   console.log('Movie Data:', movie);
 
   // Get the URL for the poster
-  const posterUrl = getArtwork(movie.poster).portrait;
+  // const posterUrl = getArtwork(movie.poster).portrait;
+
+  const posterUrl = movie.poster || (movie.ref ? getArtwork(movie.ref).portrait : null);
+
+
+  
 
   // Log the constructed URL
   console.log('Movie Poster URL:', posterUrl);
