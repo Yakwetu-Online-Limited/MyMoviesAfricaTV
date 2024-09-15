@@ -13,6 +13,8 @@ import {
   TextInput,
 } from 'react-native';
 import defaultPosterImage from '../images/default.jpg';
+import { baseURL, mediaURL } from '../components/urlStore';
+import { getArtwork } from '../components/imageUtils';
 
 const { width } = Dimensions.get('window');
 
@@ -38,7 +40,7 @@ const HomePage = () => {
 
   const fetchMovies = async () => {
     try {
-      const response = await fetch('https://app.mymovies.africa/api/cache');
+      const response = await fetch(`${baseURL}api/cache`);
       const data = await response.json();
 
       if (data && typeof data === 'object' && data.content) {
@@ -58,7 +60,7 @@ const HomePage = () => {
 
   const formatGenres = (moviesData) => {
     if (!Array.isArray(moviesData)) {
-      console.error('moviesData is not an array:', moviesData);
+      // console.error('moviesData is not an array:', moviesData);
       return [];
     }
 
@@ -213,6 +215,8 @@ const HeaderSection = ({ setModalVisible }) => (
 );
 
 const BannerSection = ({ banners }) => (
+  // console.log('Banners:', banners),
+  // Debug: Log the banners data
   <FlatList
     data={banners}
     renderItem={({ item }) => <BannerItem banner={item} />}
@@ -224,7 +228,10 @@ const BannerSection = ({ banners }) => (
 );
 
 const BannerItem = ({ banner }) => {
-  const bannerUrl = `https://app.mymovies.africa/api/images/${banner.image}`;
+  
+  const bannerUrl = getArtwork(banner.ref).portrait;
+  console.log('Banner URL:', bannerUrl); // Debug: Log the banner URL
+  
 
   return (
     <View style={styles.bannerContainer}>
@@ -259,20 +266,29 @@ const GenreSection = ({ genres }) => (
 );
 
 const MovieItem = ({ movie }) => {
-  const posterUrl = `https://app.mymovies.africa/api/images/${movie.poster}`;
+  // Log the movie data
+  console.log('Movie Data:', movie);
+
+  // Get the URL for the poster
+  const posterUrl = getArtwork(movie.poster).portrait;
+
+  // Log the constructed URL
+  console.log('Movie Poster URL:', posterUrl);
 
   return (
     <View style={styles.movieContainer}>
       <Image
         source={{ uri: posterUrl }}
         style={styles.moviePoster}
-        onError={() => console.log('Error loading poster image:', posterUrl)}
-        defaultSource={defaultPosterImage}
+        onError={(error) => {
+          console.log('Error loading poster image:', error.nativeEvent.error);
+        }}
       />
       <Text style={styles.movieTitle}>{movie.title}</Text>
     </View>
   );
 };
+
 
 const InputField = ({ label, value, onChangeText, placeholder, required, errorMessage, keyboardType }) => (
   <View style={styles.inputGroup}>
@@ -451,6 +467,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#1E1E1E',
     borderRadius: 10,
     padding: 20,
+    maxHeight: '80%',
   },
   modalHeader: {
     flexDirection: 'row',
@@ -458,25 +475,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 20,
   },
-  modalTitle:
-  {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#FFFFFF',
-  },
-  modalContainer: {
-    width: '90%',
-    // Limit the height to 80% of the screen height
-    backgroundColor: '#1E1E1E',
-    borderRadius: 10,
-    padding: 20,
-  },
-  modalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 20,
-  },
+
   modalTitle: {
     fontSize: 24,
     fontWeight: 'bold',
