@@ -26,7 +26,7 @@ const SignupScreen = ({ navigation }) => {
       .then((userCredential) => {
         // User created successfully, you can save additional information (like fullName, phoneNumber) here.
         Alert.alert('Success', 'Account created successfully');
-        // Navigate to another screen or do other actions
+        navigation.navigate('Login');
       })
       .catch((error) => {
         setIsLoading(false);
@@ -37,6 +37,8 @@ const SignupScreen = ({ navigation }) => {
           errorMessage = 'Please enter a valid email address';
         } else if (error.code === 'auth/weak-password'){
           errorMessage = 'Password should be at least 6 characters';
+        }  else if (error.code === 'auth/operation-not-allowed') {
+          errorMessage = 'Authentication method is not enabled';
         }
         Alert.alert('Error', error.message);
       });
