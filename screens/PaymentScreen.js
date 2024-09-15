@@ -33,8 +33,8 @@ const PaymentPage = () => {
           color="#4CAF50"
         />
         <Image
-          // Uncomment this and use your actual image path
-          // source={require('../assets/mpesa-logo.png')}
+          
+          source={require('../assets/mpesa-logo.png')}
           style={styles.paymentImage}
         />
       </View>
@@ -48,8 +48,8 @@ const PaymentPage = () => {
           color="#FF3D00"
         />
         <Image
-          // Uncomment this and use your actual image path
-          // source={require('../assets/bonga-logo.png')}
+          
+          source={require('../assets/bonga-logo.png')}
           style={styles.paymentImage}
         />
       </View>
@@ -63,8 +63,8 @@ const PaymentPage = () => {
           color="#1A73E8"
         />
         <Image
-          // Uncomment this and use your actual image path
-          // source={require('../assets/visa-logo.png')}
+          
+          source={require('../assets/visa-logo.png')}
           style={styles.paymentImage}
         />
       </View>
@@ -89,6 +89,7 @@ const styles = StyleSheet.create({
     padding: 10,
     borderRadius: 5,
     textAlign: 'center',
+    marginTop: 40,
     marginBottom: 20,
   },
   selectText: {
