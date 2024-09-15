@@ -80,6 +80,11 @@ const App = () => {
         <Stack.Screen name="Search" component={SearchPage} />
         <Stack.Screen name="Collection" component={CollectionPage} />
         <Stack.Screen name="Payment" component={PaymentPage} />
+        <Stack.Screen
+          name="MovieDetail"
+          component={MovieDetailScreen}
+          options={{ title: 'Movie Details' }}
+      />
       </Stack.Navigator>
     </NavigationContainer>
   );
