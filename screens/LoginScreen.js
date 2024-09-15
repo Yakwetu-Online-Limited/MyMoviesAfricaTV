@@ -19,7 +19,7 @@ const LoginScreen = ({ navigation }) => {
     signInWithEmailAndPassword(auth, email, password)
       .then(() => {
         Alert.alert('Success', 'Logged in successfully');
-        navigation.navigate('HomeScreen');	
+        navigation.navigate('Home');	
       })
       .catch((error) => {
         Alert.alert('Error', error.message);
