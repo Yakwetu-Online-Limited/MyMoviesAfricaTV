@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, Image } from 'react-native';
 import { auth } from '../firebase'; 
+import { signInWithEmailAndPassword } from 'firebase/auth';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 
 
@@ -15,9 +16,10 @@ const LoginScreen = ({ navigation }) => {
       return;
     }
 
-    auth.signInWithEmailAndPassword(email, password)
+    signInWithEmailAndPassword(auth, email, password)
       .then(() => {
         Alert.alert('Success', 'Logged in successfully');
+        navigation.navigate('HomeScreen');	
       })
       .catch((error) => {
         Alert.alert('Error', error.message);
