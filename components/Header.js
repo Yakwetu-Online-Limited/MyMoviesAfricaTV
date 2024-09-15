@@ -1,7 +1,10 @@
 import React from 'react';
 import { View, Text, Image, StyleSheet, TouchableOpacity } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 
-const Header = ({ userName, walletBalance, onTopUp, navigation }) => {
+const Header = ({ userName, walletBalance, onTopUp}) => {
+
+  const navigation = useNavigation();
   return (
     <View style={styles.container}>
       <View style={styles.logoContainer}>
@@ -12,7 +15,7 @@ const Header = ({ userName, walletBalance, onTopUp, navigation }) => {
         
       </View>
       <View style={styles.userContainer}>
-        <TouchableOpacity onPress={() => navigation.navigate('PaymentPage')} style={styles.topUpButton}>
+        <TouchableOpacity onPress={() => navigation.navigate('Payment')} style={styles.topUpButton}>
           <Text style={styles.topUpText}>Top Up</Text>
         </TouchableOpacity>
         <View style={styles.userInfo}>
