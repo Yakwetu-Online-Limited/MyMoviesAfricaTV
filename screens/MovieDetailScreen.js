@@ -1,8 +1,9 @@
 import React, { useState, useEffect }from 'react';
-import { View, Text, StyleSheet, ActivityIndicator, ScrollView, Image, Dimensions} from 'react-native';
+import { View, Text, StyleSheet, ActivityIndicator, ScrollView, Dimensions, Image} from 'react-native';
 import { API_URL } from '../store';
 import { getArtwork } from '../utils/media';
 import { TouchableOpacity } from 'react-native-gesture-handler';
+import { Video } from 'react-native-video';
 
 const { width } = Dimensions.get('window');
 
@@ -12,7 +13,7 @@ const MovieDetailScreen = () => {
     const [ loading, setLoading ]= useState(true);
     const [ error, setError ] = useState(null);
 
-    const movieId = '211'; // Static ID for testing
+    const movieId = '184'; // Static ID for testing
 
     // Fetch the movie data from the API
     useEffect(() => {
@@ -27,10 +28,10 @@ const MovieDetailScreen = () => {
                 }
                 setMovie(movieData);
             } catch(error) {
-                setError(error.message);
+                setError(error.message); 
             } finally {
-                setLoading(false);
-            }
+                setLoading(false)
+            };
         };
         fetchMovieData();
     }, []);
@@ -54,27 +55,43 @@ const MovieDetailScreen = () => {
 
     return (
         <ScrollView style={styles.container}>
-            <Image 
-            source={{ uri: posterUrl }} 
-            style={{ width: '100%', height: 400, marginTop: 16 }} 
-            resizeMode="cover" 
-            />
+
+            <View style={styles.posterContainer}>
+                <Image source={{ uri:posterUrl }} style={styles.poster} />
+            </View>
+
+            {/* Display movie tariler if available 
+
+            {movie.trailer_url ? (
+                <Video source={{ uri: movie.trailer_url }}
+                controls={true}
+                resizeMode="cover"
+                paused={false}
+                style={styles.video}  
+                />
+
+            ) : (
+                <Text> No trailer available.</Text>
+            )}
+             */}
+                
+                
             <View style={styles.buttonContainer}>
-            <TouchableOpacity style={styles.button} onPress={() => handleRent('RENTAL')}>
+
+            <TouchableOpacity style={styles.buttonRent} onPress={() => handleRent('RENTAL')}>
                 <Text style={styles.buttonText}>Rent for 7 Days</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity style={styles.button} onPress={() => handleRent('EST')} >
+            <TouchableOpacity style={styles.buttonOwn} onPress={() => handleRent('EST')} >
                 <Text style={styles.buttonText}>Own for Life</Text>
             </TouchableOpacity>
 
             </View>
 
-            
-
             <Text style={styles.title}>{movie.title}</Text>
             <Text style={styles.meta}>{movie.year} | {movie.duration} minutes | {movie.classification}</Text>
             <Text style={styles.cast}>{movie.tags}</Text>
+            <Text style={{ color:'#008080', fontWeight: 'bold',marginTop: 15 }}> Synopsis </Text>
             <Text style={styles.synopsis}>{movie.synopsis}</Text>
 
             <Text style={styles.title}>Watch More Like This </Text>
@@ -101,8 +118,10 @@ const styles = StyleSheet.create({
 
   },
   cast:{
-    color: "#888",
+    color: "white",
     marginTop: 10,
+    backgroundColor:'grey',
+    padding: 10,
   },
   meta: {
     color:"white",
@@ -114,19 +133,47 @@ const styles = StyleSheet.create({
     justifyContent: "space-evenly",
     marginBottom: 20,
   },
-  button:{
-    backgroundColor: '#007BFF',
+  buttonRent:{
+    backgroundColor: 'grey',
+    borderColor: '#008080',
+    borderWidth: 2,
     paddingVertical: 12,
     paddingHorizontal: 20,
-    borderRadius: 20,
+    borderRadius: 50,
     marginTop: 16,
-    alignItems: "center",
+    alignItems: "center", 
     
+  },
+  buttonOwn: {
+    borderColor: '#d648d7',
+    backgroundColor: 'black',
+    borderWidth:2,
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 50,
+    marginTop: 16,
+    alignItems: "center", 
+
   },
   buttonText: {
     color: "#fff",
     fontSize: 16,
     fontWeight: "bold"
+  },
+  video: {
+    width: "100%",
+    height: 200,
+    marginTop: 16,
+    backgroundColor:"black",
+  },
+  posterContainer: {
+    alignItems: "center",
+  },
+  poster: {
+    width:'100%',
+    height: 500,
+    borderRadius: 10,
+    resizeMode: 'contain',
   }
 });
 
