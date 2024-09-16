@@ -26,7 +26,7 @@ const SignupScreen = ({ navigation }) => {
       .then((userCredential) => {
         // User created successfully, you can save additional information (like fullName, phoneNumber) here.
         Alert.alert('Success', 'Account created successfully');
-        navigation.navigate('Login');
+        navigation.navigate('Collection', {username: fullName});
       })
       .catch((error) => {
         setIsLoading(false);
