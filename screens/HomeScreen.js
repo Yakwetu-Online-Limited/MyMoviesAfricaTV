@@ -1,12 +1,29 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, Image, StyleSheet, ScrollView, ActivityIndicator, Dimensions, TouchableOpacity, Modal, TextInput, Button } from 'react-native';
-import defaultPosterImage from '../images/default.jpg'; // Default image for failed poster loads
-// import { MapPinIcon, ChevronDownIcon } from 'lucide-react-native';
+import {
+  View,
+  Text,
+  FlatList,
+  Image,
+  StyleSheet,
+  ScrollView,
+  ActivityIndicator,
+  Dimensions,
+  TouchableOpacity,
+  Modal,
+  TextInput,
+} from 'react-native';
+import defaultPosterImage from '../images/default.jpg';
+import { baseURL, mediaURL } from '../components/urlStore';
+import { getArtwork } from '../components/imageUtils';
 
 const { width } = Dimensions.get('window');
 
+const GENRES_PER_PAGE = 5;
+
 const HomePage = () => {
   const [genres, setGenres] = useState([]);
+  const [visibleGenres, setVisibleGenres] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1);
   const [banners, setBanners] = useState([]);
   const [loading, setLoading] = useState(true);
   const [modalVisible, setModalVisible] = useState(false);
@@ -20,16 +37,16 @@ const HomePage = () => {
     attendees: '',
     date: '',
   });
+
   const fetchMovies = async () => {
     try {
-      const response = await fetch('https://app.mymovies.africa/api/cache');
+      const response = await fetch(`${baseURL}api/cache`);
       const data = await response.json();
 
       if (data && typeof data === 'object' && data.content) {
         const formattedGenres = formatGenres(data.content);
-        
         setGenres(formattedGenres);
-        setBanners(data.banners || []);
+        loadMoreGenres(formattedGenres);
         setBanners(data.banners || []);
       } else {
         console.error('Unexpected API response format: Missing "content" key');
@@ -43,16 +60,14 @@ const HomePage = () => {
 
   const formatGenres = (moviesData) => {
     if (!Array.isArray(moviesData)) {
-      console.error('moviesData is not an array:', moviesData);
+      // console.error('moviesData is not an array:', moviesData);
       return [];
     }
 
-   
     const genresMap = {};
 
     moviesData.forEach(movie => {
       try {
-        
         const movieGenres = JSON.parse(movie.genres);
         movieGenres.forEach(genre => {
           if (!genresMap[genre]) {
@@ -62,6 +77,7 @@ const HomePage = () => {
             id: movie.id,
             title: movie.title,
             poster: movie.poster || null,
+            ref: movie.ref || null,
           });
         });
       } catch (err) {
@@ -70,14 +86,21 @@ const HomePage = () => {
     });
 
     return Object.values(genresMap);
-    return Object.values(genresMap);
+  };
+
+  const loadMoreGenres = (allGenres = genres) => {
+    const startIndex = (currentPage - 1) * GENRES_PER_PAGE;
+    const endIndex = startIndex + GENRES_PER_PAGE;
+    const newVisibleGenres = allGenres.slice(0, endIndex);
+    setVisibleGenres(newVisibleGenres);
+    setCurrentPage(currentPage + 1);
   };
 
   useEffect(() => {
     fetchMovies();
   }, []);
+
   const handleRequestScreening = () => {
-    // Logic to handle form submission (e.g., API request)
     console.log('Screening request submitted:', requestDetails);
     setModalVisible(false);
   };
@@ -94,7 +117,12 @@ const HomePage = () => {
     <ScrollView style={styles.container}>
       <HeaderSection setModalVisible={setModalVisible} />
       <BannerSection banners={banners} />
-      <GenreSection genres={genres} />
+      <GenreSection genres={visibleGenres} />
+      {visibleGenres.length < genres.length && (
+        <TouchableOpacity style={styles.loadMoreButton} onPress={() => loadMoreGenres()}>
+          <Text style={styles.loadMoreButtonText}>Load More Genres</Text>
+        </TouchableOpacity>
+      )}
 
       <Modal
         visible={modalVisible}
@@ -119,16 +147,13 @@ const HomePage = () => {
                 placeholder="Enter organization name"
                 required
               />
-
               <InputField
                 label="Contact Person Name"
                 value={requestDetails.contactPersonName}
                 onChangeText={(text) => setRequestDetails({ ...requestDetails, contactPersonName: text })}
                 placeholder="Enter full name"
                 required
-                
               />
-
               <InputField
                 label="Email"
                 value={requestDetails.email}
@@ -136,19 +161,15 @@ const HomePage = () => {
                 placeholder="Enter email address"
                 keyboardType="email-address"
                 required
-              
               />
-
               <PhoneInputField
                 value={requestDetails.phone}
                 onChangeText={(text) => setRequestDetails({ ...requestDetails, phone: text })}
               />
-
               <LocationInputField
                 value={requestDetails.location}
                 onChangeText={(text) => setRequestDetails({ ...requestDetails, location: text })}
               />
-
               <SelectField
                 label="Movie to Screen"
                 value={requestDetails.movie}
@@ -156,14 +177,12 @@ const HomePage = () => {
                 placeholder="Select Movie"
                 required
               />
-
               <SelectField
                 label="Number of Attendees"
                 value={requestDetails.attendees}
                 onPress={() => {/* Implement attendee selection */}}
                 placeholder="Select Attendee Tier"
               />
-
               <InputField
                 label="Date of the Screening"
                 value={requestDetails.date}
@@ -171,7 +190,6 @@ const HomePage = () => {
                 placeholder="Select screening date"
                 required
               />
-
               <TouchableOpacity style={styles.submitButton} onPress={handleRequestScreening}>
                 <Text style={styles.submitButtonText}>Request Screening</Text>
               </TouchableOpacity>
@@ -182,6 +200,100 @@ const HomePage = () => {
     </ScrollView>
   );
 };
+
+const HeaderSection = ({ setModalVisible }) => (
+  <View style={styles.headerContainer}>
+    <Image source={require('../images/mymovies-africa-logo.png')} style={styles.logo} />
+    <View style={styles.headerButtons}>
+      <TouchableOpacity style={styles.requestScreeningButton} onPress={() => setModalVisible(true)}>
+        <Text style={styles.buttonText}>Request Screening</Text>
+      </TouchableOpacity>
+      <TouchableOpacity style={styles.eventsButton}>
+        <Text style={styles.buttonText}>Events</Text>
+      </TouchableOpacity>
+    </View>
+  </View>
+);
+
+const BannerSection = ({ banners }) => (
+  // console.log('Banners:', banners),
+  // Debug: Log the banners data
+  <FlatList
+    data={banners}
+    renderItem={({ item }) => <BannerItem banner={item} />}
+    keyExtractor={item => item.ref}
+    horizontal
+    pagingEnabled
+    showsHorizontalScrollIndicator={false}
+  />
+);
+
+const BannerItem = ({ banner }) => {
+  // Check if the 'ref' is available, if not fallback to a default URL
+  const bannerUrl = banner.ref ? getArtwork(banner.ref).portrait : null;
+
+  return (
+    <View style={styles.bannerContainer}>
+      <Image
+        source={{ uri: bannerUrl }}
+        style={styles.bannerImage}
+        onError={() => console.log('Error loading banner image:', bannerUrl)}  // Logs error
+        defaultSource={defaultPosterImage}  // Fallback image
+      />
+      <View style={styles.bannerOverlay}>
+        <Text style={styles.bannerTitle}>{banner.title}</Text>
+      </View>
+    </View>
+  );
+};
+
+
+const GenreSection = ({ genres }) => (
+  <View>
+    {genres.map((genre) => (
+      <View key={genre.id} style={styles.genreSection}>
+        <Text style={styles.genreTitle}>{genre.name}</Text>
+        <FlatList
+          data={genre.movies}
+          renderItem={({ item }) => <MovieItem movie={item} />}
+          keyExtractor={item => item.id}
+          horizontal
+          showsHorizontalScrollIndicator={false}
+        />
+      </View>
+    ))}
+  </View>
+);
+
+const MovieItem = ({ movie }) => {
+  // Log the movie data
+  console.log('Movie Data:', movie);
+
+  // Get the URL for the poster
+  // const posterUrl = getArtwork(movie.poster).portrait;
+
+  const posterUrl = movie.poster || (movie.ref ? getArtwork(movie.ref).portrait : null);
+
+
+  
+
+  // Log the constructed URL
+  console.log('Movie Poster URL:', posterUrl);
+
+  return (
+    <View style={styles.movieContainer}>
+      <Image
+        source={{ uri: posterUrl }}
+        style={styles.moviePoster}
+        onError={(error) => {
+          console.log('Error loading poster image:', error.nativeEvent.error);
+        }}
+      />
+      <Text style={styles.movieTitle}>{movie.title}</Text>
+    </View>
+  );
+};
+
 
 const InputField = ({ label, value, onChangeText, placeholder, required, errorMessage, keyboardType }) => (
   <View style={styles.inputGroup}>
@@ -240,89 +352,11 @@ const SelectField = ({ label, value, onPress, placeholder, required }) => (
     </TouchableOpacity>
   </View>
 );
-const HeaderSection = ({ setModalVisible }) => (
-  <View style={styles.headerContainer}>
-    <Image source={require('../images/mymovies-africa-logo.png')} style={styles.logo} />
-    <View style={styles.headerButtons}>
-      <TouchableOpacity style={styles.requestScreeningButton} onPress={() => setModalVisible(true)}>
-        <Text style={styles.buttonText}>Request Screening</Text>
-      </TouchableOpacity>
-      <TouchableOpacity style={styles.eventsButton}>
-        <Text style={styles.buttonText}>Events</Text>
-      </TouchableOpacity>
-    </View>
-  </View>
-);
-
-
-const BannerSection = ({ banners }) => (
-  <FlatList
-    data={banners}
-    renderItem={({ item }) => <BannerItem banner={item} />}
-    keyExtractor={item => item.ref}
-    horizontal
-    pagingEnabled
-    showsHorizontalScrollIndicator={false}
-  />
-);
-
-const BannerItem = ({ banner }) => {
-  const bannerUrl = `https://app.mymovies.africa/api/images/${banner.image}`;
-
-  console.log('Full Banner Image URL:', bannerUrl);
-
-  return (
-    <View style={styles.bannerContainer}>
-      <Image
-        source={{ uri: bannerUrl }}
-        style={styles.bannerImage}
-        onError={() => console.log('Error loading banner image:', bannerUrl)}
-        defaultSource={defaultPosterImage}
-      />
-      <View style={styles.bannerOverlay}>
-        <Text style={styles.bannerTitle}>{banner.title}</Text>
-      </View>
-    </View>
-  );
-};
-
-const GenreSection = ({ genres }) => (
-  <View>
-    {genres.map((genre) => (
-      <View key={genre.id} style={styles.genreSection}>
-        <Text style={styles.genreTitle}>{genre.name}</Text>
-        <FlatList
-          data={genre.movies}
-          renderItem={({ item }) => <MovieItem movie={item} />}
-          keyExtractor={item => item.id}
-          horizontal
-          showsHorizontalScrollIndicator={false}
-        />
-      </View>
-    ))}
-  </View>
-);
-
-const MovieItem = ({ movie }) => {
-  const posterUrl = `https://app.mymovies.africa/api/images/${movie.poster}`;
-
-  return (
-    <View style={styles.movieContainer}>
-      <Image
-        source={{ uri: posterUrl }}
-        style={styles.moviePoster}
-        onError={() => console.log('Error loading poster image:', posterUrl)}
-        defaultSource={defaultPosterImage}
-      />
-      <Text style={styles.movieTitle}>{movie.title}</Text>
-    </View>
-  );
-};
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#000', // Dark theme
+    backgroundColor: '#000',
   },
   loaderContainer: {
     flex: 1,
@@ -330,17 +364,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   headerContainer: {
-   
     alignItems: 'center',
     paddingVertical: 10,
     backgroundColor: '#000000',
-    
   },
-  logo:{
-    
+  logo: {
     resizeMode: 'contain',
     alignSelf: 'flex-start'
-
   },
   headerButtons: {
     flexDirection: 'row',
@@ -353,9 +383,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     borderRadius: 25,
     marginHorizontal: 10,
-    borderColor:'#008080',
-    borderWidth:2,
-    
+    borderColor: '#008080',
+    borderWidth: 2,
   },
   eventsButton: {
     backgroundColor: '#3E3E3E',
@@ -363,9 +392,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     borderRadius: 25,
     marginHorizontal: 10,
-    borderColor:'#D648D7',
-    borderWidth:2,
-
+    borderColor: '#D648D7',
+    borderWidth: 2,
   },
   buttonText: {
     color: '#fff',
@@ -385,8 +413,8 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: 0,
     left: 0,
-    rightbottom: 0,
-    backgroundColor: 'rgba(0,0,0,0.7)', // Dark overlay
+    right: 0,
+    backgroundColor: 'rgba(0,0,0,0.7)',
     padding: 10,
   },
   bannerTitle: {
@@ -417,6 +445,21 @@ const styles = StyleSheet.create({
     marginTop: 5,
     fontSize: 14,
     color: '#fff',
+    textAlign: 'center',
+    width: 120,
+  },
+  loadMoreButton: {
+    backgroundColor: '#3E3E3E',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 25,
+    alignSelf: 'center',
+    marginVertical: 20,
+  },
+  loadMoreButtonText: {
+    color: '#fff',
+    fontWeight: 'bold',
+    textAlign: 'center',
   },
   modalBackground: {
     flex: 1,
@@ -426,10 +469,10 @@ const styles = StyleSheet.create({
   },
   modalContainer: {
     width: '90%',
-    // Limit the height to 80% of the screen height
     backgroundColor: '#1E1E1E',
     borderRadius: 10,
     padding: 20,
+    maxHeight: '80%',
   },
   modalHeader: {
     flexDirection: 'row',
@@ -437,6 +480,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 20,
   },
+
   modalTitle: {
     fontSize: 24,
     fontWeight: 'bold',
