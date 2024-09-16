@@ -75,6 +75,7 @@ const App = () => {
       <Stack.Screen name="Login" component={LoginScreen} options={{ headerShown: false }} />
       <Stack.Screen name="Signup" component={SignupScreen} options={{ headerShown: false }} />
         <Stack.Screen name="Main" component={BottomTabNavigator} />
+        <Stack.Screen name="Collection" component={CollectionPage} />
         <Stack.Screen name="Payment" component={PaymentPage} />
       </Stack.Navigator>
     </NavigationContainer>

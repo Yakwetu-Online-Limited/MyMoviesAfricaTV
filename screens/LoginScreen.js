@@ -9,6 +9,7 @@ const LoginScreen = ({ navigation }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  
 
   const handleLogin = () => {
     if (email === '' || password === '') {
@@ -17,9 +18,12 @@ const LoginScreen = ({ navigation }) => {
     }
 
     signInWithEmailAndPassword(auth, email, password)
-      .then(() => {
+      .then((userCredential) => {
+        const user = userCredential.user;
+        const username = user.displayName;
+
         Alert.alert('Success', 'Logged in successfully');
-        navigation.navigate('HomeScreen');	
+        navigation.navigate('Collection', { username });	
       })
       .catch((error) => {
         Alert.alert('Error', error.message);
