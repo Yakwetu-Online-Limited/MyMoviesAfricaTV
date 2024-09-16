@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, FlatList, ActivityIndicator, StyleSheet, Image, TouchableOpacity } from 'react-native';
-import placeholderImage from '../assets/default.jpg';
+import placeholderImage from '../images/default.jpg';
+import { getArtwork } from '../utils/media';
+import Icon from 'react-native-vector-icons/MaterialIcons';
+
 
 
 const API_URL = 'https://app.mymovies.africa/api/cache';
 
-const SearchScreen = () =>  {
-
+const SearchScreen = ({ navigation }) => {
     const [movies, setMovies] = useState([]);
     const [filteredMovies, setFilteredMovies] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -46,7 +48,6 @@ const SearchScreen = () =>  {
         }
     };
 
-
     const filterMovies = () => {
         if (searchQuery.trim() === '') {
             setFilteredMovies(movies);
@@ -62,23 +63,27 @@ const SearchScreen = () =>  {
         return synopsis.length > 100 ? synopsis.substring(0, 100) + '...' : synopsis;
     };
 
-     const handlePress = () => {
-         navigation.navigate();
-     };
+    const handlePress = () => {
+        navigation.navigate('MovieDetail');
+    };
 
-    const renderItem = ({ item }) => (
-        <TouchableOpacity onPress={() => handlePress()}>
-            <View style={styles.card}>
-                <View style={styles.row}>
-                    <Image source={placeholderImage} style={styles.image} />
-                    <View style={styles.cardContent}>
-                        <Text style={styles.title}>{item.title}</Text>
-                        <Text style={styles.synopsis}>{truncateSynopsis(item.synopsis)}</Text>
+    const renderItem = ({ item }) => {
+        const posterUrl = getArtwork(item.ref)?.portrait || placeholderImage;
+
+        return (
+            <TouchableOpacity onPress={() => handlePress(item)}>
+                <View style={styles.card}>
+                    <View style={styles.row}>
+                        <Image source={{ uri: posterUrl }} style={styles.image} />
+                        <View style={styles.cardContent}>
+                            <Text style={styles.title}>{item.title}</Text>
+                            <Text style={styles.synopsis}>{truncateSynopsis(item.synopsis)}</Text>
+                        </View>
                     </View>
                 </View>
-            </View>
-        </TouchableOpacity>
-    );
+            </TouchableOpacity>
+        );
+    };
 
     if (loading) {
         return <ActivityIndicator size="large" color="purple" />;
@@ -90,15 +95,19 @@ const SearchScreen = () =>  {
 
     return (
         <View style={styles.container}>
-            <TextInput
-                style={styles.searchBar}
-                placeholder="Search Content by Title, Genre, Actors or Duration ... "
-                value={searchQuery}
-                onChangeText={setSearchQuery}
-            />
+            <View style={styles.searchBarContainer}>
+                <Icon name="search" size={20} color="#aaaaaa" style={styles.searchIcon} />
+                <TextInput
+                    style={styles.searchBar}
+                    placeholder="Search Content by Title, Genre..."
+                    placeholderTextColor="#aaaaaa"
+                    value={searchQuery}
+                    onChangeText={setSearchQuery}
+                />
+            </View>
             <FlatList
                 data={filteredMovies}
-                keyExtractor={(item) => item.id}
+                keyExtractor={(item) => item.id.toString()} // Ensure ID is a string
                 renderItem={renderItem}
             />
         </View>
@@ -109,24 +118,35 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         padding: 10,
-        backgroundColor: '#000', 
-        marginTop: 30
+        backgroundColor: '#000',
+    },
+    searchBarContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginBottom: 20, // Increased margin for better spacing
     },
     searchBar: {
+        flex: 1,
         height: 40,
         borderColor: 'grey',
         backgroundColor: 'white',
         borderWidth: 2,
-        paddingHorizontal: 8,
-        marginBottom: 10,
-        color: 'black',  
+        paddingHorizontal: 40, 
+        color: 'black',
+        borderRadius: 25,
+        fontSize: 16,
+    },
+    searchIcon: {
+        position: 'absolute',
+        left: 15,
+        zIndex: 1
     },
     card: {
-        backgroundColor: 'rgb(37, 38, 43)', 
+        backgroundColor: 'rgb(37, 38, 43)',
         borderRadius: 8,
         elevation: 3,
         marginBottom: 10,
-        overflow: 'hidden'
+        overflow: 'hidden',
     },
     row: {
         flexDirection: 'row',
@@ -136,25 +156,23 @@ const styles = StyleSheet.create({
         width: 100,
         height: 150,
         resizeMode: 'cover',
-        marginRight: 10
+        marginRight: 10,
     },
     cardContent: {
         flex: 1,
-        padding: 10
+        padding: 10,
     },
     title: {
         fontSize: 18,
         fontWeight: 'bold',
         marginBottom: 5,
-        color: '#e0e0e0'  
+        color: '#e0e0e0',
     },
     synopsis: {
         fontSize: 14,
-        color: '#555'  
-    }
+        color: '#555',
+    },
 });
-
-
 
 
 export default SearchScreen;
