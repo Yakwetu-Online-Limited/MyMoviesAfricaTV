@@ -115,7 +115,7 @@ const HomePage = () => {
 
   return (
     <ScrollView style={styles.container}>
-      <HeaderSection setModalVisible={setModalVisible} />
+      <HeaderSection setModalVisible={setModalVisible} genres={genres} />
       <BannerSection banners={banners} />
       <GenreSection genres={visibleGenres} />
       {visibleGenres.length < genres.length && (
@@ -201,7 +201,8 @@ const HomePage = () => {
   );
 };
 
-const HeaderSection = ({ setModalVisible }) => (
+// HeaderSection Component with Genre Carousel
+const HeaderSection = ({ setModalVisible, genres }) => (
   <View style={styles.headerContainer}>
     <Image source={require('../images/mymovies-africa-logo.png')} style={styles.logo} />
     <View style={styles.headerButtons}>
@@ -212,8 +213,30 @@ const HeaderSection = ({ setModalVisible }) => (
         <Text style={styles.buttonText}>Events</Text>
       </TouchableOpacity>
     </View>
+    {/* Add GenreButtonCarousel here */}
+    <GenreButtonCarousel genres={genres} />
   </View>
 );
+
+// GenreButtonCarousel Component
+const GenreButtonCarousel = ({ genres }) => {
+  return (
+    <FlatList
+      data={genres}
+      renderItem={({ item }) => (
+        <TouchableOpacity style={styles.genreButton}>
+          <Text style={styles.buttonText}>{item.name}</Text>
+        </TouchableOpacity>
+      )}
+      keyExtractor={(item) => item.id}
+      horizontal
+      showsHorizontalScrollIndicator={false}
+      style={styles.genreCarousel}
+    />
+  );
+};
+
+
 
 const BannerSection = ({ banners }) => (
   // console.log('Banners:', banners),
@@ -267,7 +290,7 @@ const GenreSection = ({ genres }) => (
 
 const MovieItem = ({ movie }) => {
   // Log the movie data
-  console.log('Movie Data:', movie);
+  // console.log('Movie Data:', movie);
 
   // Get the URL for the poster
   // const posterUrl = getArtwork(movie.poster).portrait;
@@ -278,7 +301,7 @@ const MovieItem = ({ movie }) => {
   
 
   // Log the constructed URL
-  console.log('Movie Poster URL:', posterUrl);
+  // console.log('Movie Poster URL:', posterUrl);
 
   return (
     <View style={styles.movieContainer}>
@@ -569,6 +592,21 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
   
+  },
+  genreButton: {
+    backgroundColor: '#3E3E3E',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 20,
+    marginHorizontal: 5,
+  },
+  genreButtonText: {
+    color: '#fff',
+    fontWeight: 'bold',
+  },
+  genreCarousel: {
+    marginTop: 10,
+    paddingLeft: 15,
   }
 });
 
