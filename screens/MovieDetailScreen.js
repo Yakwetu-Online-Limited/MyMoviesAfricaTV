@@ -2,8 +2,9 @@ import React, { useState, useEffect }from 'react';
 import { View, Text, StyleSheet, ActivityIndicator, ScrollView, Dimensions, Image} from 'react-native';
 import { API_URL } from '../store';
 import { getArtwork } from '../utils/media';
-import { TouchableOpacity } from 'react-native-gesture-handler';
+import { FlatList, TouchableOpacity } from 'react-native-gesture-handler';
 // import  Video  from 'react-native-video';
+import { useNavigation,  } from '@react-navigation/native';
 
 const { width } = Dimensions.get('window');
 
@@ -12,10 +13,12 @@ const MovieDetailScreen = ({route}) => {
     const [ movie, setMovie ] = useState(null);
     const [ loading, setLoading ]= useState(true);
     const [ error, setError ] = useState(null);
+    const [ similarMovies, setSimilarMovies ] = useState([]);
 
     const { movieId } = route.params;
+    const navigation = useNavigation();
 
-    // const movieId = '184'; // Static ID for testing
+    //const movieId = '184'; // Static ID for testing
 
     // Fetch the movie data from the API
     useEffect(() => {
@@ -29,6 +32,17 @@ const MovieDetailScreen = ({route}) => {
                     throw new Error ('Movie not found');
                 }
                 setMovie(movieData);
+
+                //Filter similar movies
+                const currentGenres = JSON.parse(movieData.genres);// convert genres from string to Array
+                const filteredMovies = data.content.filter(m =>
+                  // EXclude the current movie
+                  m.id !== movieId && 
+                  JSON.parse(m.genres).some (genre => currentGenres.includes(genre))
+                  //Limit to 8 movies.
+                ).slice(0,8);
+                setSimilarMovies(filteredMovies);
+
                 setLoading(false);
             } catch(error) {
                 setError(error.message); 
@@ -54,10 +68,38 @@ const MovieDetailScreen = ({route}) => {
         console.log('Redirect to:', url);
     };
 
+    const HeaderSection = ({ setModalVisible, genres, onGenreSelect }) => (
+      <View style={styles.headerContainer}>
+        <Image source={require('../images/mymovies-africa-logo.png')} style={styles.logo} />
+        <View style={styles.headerButtons}>
+          <TouchableOpacity style={styles.requestScreeningButton} onPress={() => setModalVisible(true)}>
+            <Text style={styles.buttonText}>Request Screening</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.eventsButton}>
+            <Text style={styles.buttonText}>Events</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    );
+
+    const renderSimilarMovie = ({item}) => {
+      const similarPosterUrl = getArtwork(item.ref).portrait;
+      return(
+        <TouchableOpacity 
+        onPress={()=> navigation.push ('MovieDetailScreen',{movieId: item.id }) }>
+          <Image source={{uri:similarPosterUrl}}
+        style={styles.similarMoviePoster} />
+
+        </TouchableOpacity>
+        
+      );
+    };
+
 
     return (
         <ScrollView style={styles.container}>
-
+            <HeaderSection />
+          
             <View style={styles.posterContainer}>
                 <Image source={{ uri:posterUrl }} style={styles.poster} />
             </View>
@@ -99,14 +141,24 @@ const MovieDetailScreen = ({route}) => {
             <Text style={styles.synopsis}>{movie.synopsis}</Text>
 
             <Text style={styles.title}>Watch More Like This </Text>
+
+            <FlatList
+            data={similarMovies}
+            renderItem={renderSimilarMovie}
+            keyExtractor={(item) => item.id}
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            style={styles.similarMoviesContainer}
+            />
         </ScrollView>
     );
 };  
 
 const styles = StyleSheet.create({
   container: {
-    padding: 16,
-    marginTop:40,
+    padding: 10,
+    marginTop:30,
+    flex: 1,
     backgroundColor:"black",
     color:"white",
   },
@@ -179,6 +231,59 @@ const styles = StyleSheet.create({
     height: 500,
     borderRadius: 10,
     resizeMode: 'contain',
+  },
+  headerContainer: {
+    alignItems: 'center',
+    paddingVertical: 10,
+    backgroundColor: '#000000',
+  },
+  logo: {
+    resizeMode: 'contain',
+    alignSelf: 'flex-start'
+  },
+  headerButtons: {
+    flexDirection: 'row',
+    marginTop: 0,
+    marginBottom: 10,
+    backgroundColor: '#000000',
+  },
+  requestScreeningButton: {
+    backgroundColor: '#3E3E3E',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 25,
+    marginHorizontal: 10,
+    borderColor: '#008080',
+    borderWidth: 2,
+  },
+  eventsButton: {
+    backgroundColor: '#3E3E3E',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 25,
+    marginHorizontal: 10,
+    borderColor: '#D648D7',
+    borderWidth: 2,
+  },
+  buttonText: {
+    color: '#fff',
+    fontWeight: 'bold',
+    textAlign: 'center',
+    textTransform: 'uppercase',
+  },
+  similarMoviesContainer: {
+    marginBottom: 20,
+    marginTop: 15,
+  },
+  similarMovieItem: {
+    
+  },
+  similarMoviePoster: {
+    width: 100,
+    height: 150,
+    borderRadius: 5,
+    marginRight: 10,
+    width: 100,
   }
 });
 
