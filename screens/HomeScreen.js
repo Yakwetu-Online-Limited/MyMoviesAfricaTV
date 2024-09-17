@@ -247,8 +247,8 @@ const HomePage = () => {
   );
 };
 
-// CHANGE: Updated HeaderSection to include GenreButtonCarousel
-const HeaderSection = ({ setModalVisible, genres }) => (
+//  Updated HeaderSection to include GenreButtonCarousel
+const HeaderSection = ({ setModalVisible, genres, onGenreSelect }) => (
   <View style={styles.headerContainer}>
     <Image source={require('../images/mymovies-africa-logo.png')} style={styles.logo} />
     <View style={styles.headerButtons}>
@@ -260,17 +260,20 @@ const HeaderSection = ({ setModalVisible, genres }) => (
       </TouchableOpacity>
     </View>
     {/*  Added GenreButtonCarousel */}
-    <GenreButtonCarousel genres={genres} />
+    <GenreButtonCarousel genres={genres} onGenreSelect={onGenreSelect} />
   </View>
 );
 
 // GenreButtonCarousel Component
-const GenreButtonCarousel = ({ genres }) => {
+const GenreButtonCarousel = ({ genres, onGenreSelect }) => {
   return (
     <FlatList
       data={genres}
       renderItem={({ item }) => (
-        <TouchableOpacity style={styles.genreButton}>
+        <TouchableOpacity 
+          style={styles.genreButton}
+          onPress={() => onGenreSelect(item.name)}
+        >
           <Text style={styles.buttonText}>{item.name}</Text>
         </TouchableOpacity>
       )}
@@ -281,6 +284,7 @@ const GenreButtonCarousel = ({ genres }) => {
     />
   );
 };
+
 
 
 
@@ -317,22 +321,49 @@ const BannerItem = ({ banner }) => {
 };
 
 
-const GenreSection = ({ genres }) => (
-  <View>
-    {genres.map((genre) => (
-      <View key={genre.id} style={styles.genreSection}>
-        <Text style={styles.genreTitle}>{genre.name}</Text>
-        <FlatList
-          data={genre.movies}
-          renderItem={({ item }) => <MovieItem movie={item} />}
-          keyExtractor={item => item.id}
-          horizontal
-          showsHorizontalScrollIndicator={false}
-        />
-      </View>
-    ))}
-  </View>
-);
+// const GenreSection = ({ genres, selectedGenre }) => (
+//   <View>
+//     {genres.map((genre) => (
+//       <View key={genre.id} style={styles.genreSection}>
+//         <Text style={styles.genreTitle}>{genre.name}</Text>
+//         <FlatList
+//           data={genre.movies}
+//           renderItem={({ item }) => <MovieItem movie={item} />}
+//           keyExtractor={item => item.id}
+//           horizontal
+//           showsHorizontalScrollIndicator={false}
+//         />
+//       </View>
+//     ))}
+//   </View>
+// );
+
+
+// Update the GenreSection component
+const GenreSection = ({ genres, selectedGenre }) => {
+  const filteredGenres = selectedGenre
+    ? genres.filter(genre => genre.name === selectedGenre)
+    : genres;
+
+  return (
+    <View>
+      {filteredGenres.map((genre) => (
+        <View key={genre.id} style={styles.genreSection}>
+          <Text style={styles.genreTitle}>{genre.name}</Text>
+          <FlatList
+            data={genre.movies}
+            renderItem={({ item }) => <MovieItem movie={item} />}
+            keyExtractor={item => item.id}
+            horizontal
+            showsHorizontalScrollIndicator={false}
+          />
+        </View>
+      ))}
+    </View>
+  );
+};
+
+
 
 const MovieItem = ({ movie }) => {
   // Log the movie data
