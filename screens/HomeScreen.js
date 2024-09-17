@@ -154,9 +154,16 @@ const HomePage = () => {
   return (
     <ScrollView style={styles.container}>
       {/*  Pass genres to HeaderSection for GenreButtonCarousel */}
-      <HeaderSection setModalVisible={setModalVisible} genres={genres} />
+      <HeaderSection 
+      setModalVisible={setModalVisible} 
+      genres={genres}
+      onGenreSelect={handleGenreSelect}
+       />
       <BannerSection banners={banners} />
-      <GenreSection genres={visibleGenres} />
+      <GenreSection 
+        genres={visibleGenres} 
+        selectedGenre={selectedGenre}
+      />
       {visibleGenres.length < genres.length && (
         <TouchableOpacity style={styles.loadMoreButton} onPress={() => loadMoreGenres()}>
           <Text style={styles.loadMoreButtonText}>Load More Genres</Text>
