@@ -44,7 +44,8 @@ const HomePage = () => {
       const data = await response.json();
 
       if (data && typeof data === 'object' && data.content) {
-        const formattedGenres = formatGenres(data.content);
+        // Pass both movie data and genres list to formatGenres
+        const formattedGenres = formatGenres(data.content, data.genres);
         setGenres(formattedGenres);
         loadMoreGenres(formattedGenres);
         setBanners(data.banners || []);
