@@ -4,7 +4,7 @@ import { API_URL } from '../store';
 import { getArtwork } from '../utils/media';
 import { FlatList, TouchableOpacity } from 'react-native-gesture-handler';
 // import  Video  from 'react-native-video';
-import Header from '../components/Header';
+import { useNavigation,  } from '@react-navigation/native';
 
 const { width } = Dimensions.get('window');
 
@@ -16,6 +16,7 @@ const MovieDetailScreen = ({route}) => {
     const [ similarMovies, setSimilarMovies ] = useState([]);
 
     const { movieId } = route.params;
+    const navigation = useNavigation();
 
     //const movieId = '184'; // Static ID for testing
 
@@ -78,15 +79,19 @@ const MovieDetailScreen = ({route}) => {
             <Text style={styles.buttonText}>Events</Text>
           </TouchableOpacity>
         </View>
-        {/*  Added GenreButtonCarousel */}
       </View>
     );
 
     const renderSimilarMovie = ({item}) => {
       const similarPosterUrl = getArtwork(item.ref).portrait;
       return(
-        <Image source={{uri:similarPosterUrl}}
+        <TouchableOpacity 
+        onPress={()=> navigation.push ('MovieDetailScreen',{movieId: item.id }) }>
+          <Image source={{uri:similarPosterUrl}}
         style={styles.similarMoviePoster} />
+
+        </TouchableOpacity>
+        
       );
     };
 
@@ -268,6 +273,7 @@ const styles = StyleSheet.create({
   },
   similarMoviesContainer: {
     marginBottom: 20,
+    marginTop: 15,
   },
   similarMovieItem: {
     
