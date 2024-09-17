@@ -15,6 +15,7 @@ import {
 import defaultPosterImage from '../images/default.jpg';
 import { baseURL, mediaURL } from '../components/urlStore';
 import { getArtwork } from '../components/imageUtils';
+import { useNavigation } from '@react-navigation/native';
 
 const { width } = Dimensions.get('window');
 
@@ -38,6 +39,8 @@ const HomePage = () => {
     attendees: '',
     date: '',
   });
+
+  const navigation = useNavigation();
 
   const fetchMovies = async () => {
     try {
@@ -138,6 +141,8 @@ const HomePage = () => {
     setModalVisible(false);
   };
 
+
+
   if (loading) {
     return (
       <View style={styles.loaderContainer}>
@@ -163,6 +168,7 @@ const HomePage = () => {
       <GenreSection 
         genres={visibleGenres} 
         selectedGenre={selectedGenre}
+        
       />
       {visibleGenres.length < genres.length && (
         <TouchableOpacity style={styles.loadMoreButton} onPress={() => loadMoreGenres()}>

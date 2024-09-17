@@ -13,9 +13,9 @@ const MovieDetailScreen = ({route}) => {
     const [ loading, setLoading ]= useState(true);
     const [ error, setError ] = useState(null);
 
-    //const { movieId } = route.params;
+    const { movieId } = route.params;
 
-    const movieId = '184'; // Static ID for testing
+    // const movieId = '184'; // Static ID for testing
 
     // Fetch the movie data from the API
     useEffect(() => {
@@ -36,7 +36,7 @@ const MovieDetailScreen = ({route}) => {
             }
         };
         fetchMovieData();
-    }, []);
+    }, [movieId]);
     // Render loading state.
     if (loading) {
         return <ActivityIndicator size = "large" color="#0000ff" alignItems="center" />

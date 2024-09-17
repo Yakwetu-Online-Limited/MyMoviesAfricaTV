@@ -35,7 +35,7 @@ const CollectionPage = () => {
   );
 
   
-  const walletBalance = '35.0'; // Mock wallet balance
+  const walletBalance = '0'; // Mock wallet balance
 
   const onTopUp = () => {
     // Handle top-up action here
