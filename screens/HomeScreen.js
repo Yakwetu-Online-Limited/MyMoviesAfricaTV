@@ -147,6 +147,7 @@ const HomePage = () => {
 
   return (
     <ScrollView style={styles.container}>
+      {/*  Pass genres to HeaderSection for GenreButtonCarousel */}
       <HeaderSection setModalVisible={setModalVisible} genres={genres} />
       <BannerSection banners={banners} />
       <GenreSection genres={visibleGenres} />
