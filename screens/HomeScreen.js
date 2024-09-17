@@ -599,7 +599,7 @@ const styles = StyleSheet.create({
   movieContainer: {
     marginHorizontal: 10,
     alignItems: "center",
-    padding:5,
+    padding:0,
   },
   movieContainerPressed: {
     transform: [{ scale: 0.95 }],
