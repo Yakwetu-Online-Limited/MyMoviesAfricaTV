@@ -4,6 +4,7 @@ import { API_URL } from '../store';
 import { getArtwork } from '../utils/media';
 import { TouchableOpacity } from 'react-native-gesture-handler';
 // import  Video  from 'react-native-video';
+import Header from '../components/Header';
 
 const { width } = Dimensions.get('window');
 
@@ -15,7 +16,7 @@ const MovieDetailScreen = ({route}) => {
 
     const { movieId } = route.params;
 
-    // const movieId = '184'; // Static ID for testing
+    //const movieId = '184'; // Static ID for testing
 
     // Fetch the movie data from the API
     useEffect(() => {
@@ -54,10 +55,26 @@ const MovieDetailScreen = ({route}) => {
         console.log('Redirect to:', url);
     };
 
+    const HeaderSection = ({ setModalVisible, genres, onGenreSelect }) => (
+      <View style={styles.headerContainer}>
+        <Image source={require('../images/mymovies-africa-logo.png')} style={styles.logo} />
+        <View style={styles.headerButtons}>
+          <TouchableOpacity style={styles.requestScreeningButton} onPress={() => setModalVisible(true)}>
+            <Text style={styles.buttonText}>Request Screening</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.eventsButton}>
+            <Text style={styles.buttonText}>Events</Text>
+          </TouchableOpacity>
+        </View>
+        {/*  Added GenreButtonCarousel */}
+      </View>
+    );
+
 
     return (
         <ScrollView style={styles.container}>
-
+            <HeaderSection />
+          
             <View style={styles.posterContainer}>
                 <Image source={{ uri:posterUrl }} style={styles.poster} />
             </View>
@@ -105,8 +122,9 @@ const MovieDetailScreen = ({route}) => {
 
 const styles = StyleSheet.create({
   container: {
-    padding: 16,
-    marginTop:40,
+    padding: 10,
+    marginTop:30,
+    flex: 1,
     backgroundColor:"black",
     color:"white",
   },
@@ -179,7 +197,46 @@ const styles = StyleSheet.create({
     height: 500,
     borderRadius: 10,
     resizeMode: 'contain',
-  }
+  },
+  headerContainer: {
+    alignItems: 'center',
+    paddingVertical: 10,
+    backgroundColor: '#000000',
+  },
+  logo: {
+    resizeMode: 'contain',
+    alignSelf: 'flex-start'
+  },
+  headerButtons: {
+    flexDirection: 'row',
+    marginTop: 0,
+    marginBottom: 10,
+    backgroundColor: '#000000',
+  },
+  requestScreeningButton: {
+    backgroundColor: '#3E3E3E',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 25,
+    marginHorizontal: 10,
+    borderColor: '#008080',
+    borderWidth: 2,
+  },
+  eventsButton: {
+    backgroundColor: '#3E3E3E',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 25,
+    marginHorizontal: 10,
+    borderColor: '#D648D7',
+    borderWidth: 2,
+  },
+  buttonText: {
+    color: '#fff',
+    fontWeight: 'bold',
+    textAlign: 'center',
+    textTransform: 'uppercase',
+  },
 });
 
 export default MovieDetailScreen;
