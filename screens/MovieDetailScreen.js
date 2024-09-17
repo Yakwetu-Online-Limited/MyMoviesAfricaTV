@@ -132,7 +132,7 @@ const MovieDetailScreen = ({route}) => {
                 
             <View style={styles.buttonContainer}>
 
-            <TouchableOpacity style={styles.buttonRent} onPress={() => handleRent('RENTAL')}>
+            <TouchableOpacity style={[styles.buttonRent, styles.buttonWatchNow]} onPress={() => handleRent('RENTAL')}>
                 <Text style={styles.buttonText}>
                   {isMovieFree ? 'Watch Now' : 'Rent for 7 Days'}
                   </Text>
@@ -211,6 +211,10 @@ const styles = StyleSheet.create({
     alignItems: "center", 
     
   },
+  buttonWatchNow: {
+    backgroundColor: '#f4c430',
+    borderColor: '#f4c430',
+},
   buttonOwn: {
     borderColor: '#d648d7',
     backgroundColor: 'black',
