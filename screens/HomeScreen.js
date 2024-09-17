@@ -371,7 +371,7 @@ const GenreSection = ({ genres, selectedGenre }) => {
 
 const MovieItem = ({ movie }) => {
 
-  // line to get the navigation object
+  // navigation object
   const navigation = useNavigation();
   // Log the movie data
   // console.log('Movie Data:', movie);
@@ -381,13 +381,11 @@ const MovieItem = ({ movie }) => {
 
   const posterUrl = movie.poster || (movie.ref ? getArtwork(movie.ref).portrait : null);
 
-   // Add this function to handle the press event
+   // Function to handle the press event
    const handlePress = () => {
-    navigation.navigate('movieDeatilScreen', { movie });
+    navigation.navigate('MovieDetailScreen', { movieId: movie.id });
   };
 
-
-  
 
   // Log the constructed URL
   // console.log('Movie Poster URL:', posterUrl);

@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, ActivityIndicator, ScrollView, Dimensions, Imag
 import { API_URL } from '../store';
 import { getArtwork } from '../utils/media';
 import { TouchableOpacity } from 'react-native-gesture-handler';
-import  Video  from 'react-native-video';
+// import  Video  from 'react-native-video';
 
 const { width } = Dimensions.get('window');
 
@@ -13,9 +13,9 @@ const MovieDetailScreen = ({route}) => {
     const [ loading, setLoading ]= useState(true);
     const [ error, setError ] = useState(null);
 
-    //const { movieId } = route.params;
+    const { movieId } = route.params;
 
-    const movieId = '184'; // Static ID for testing
+    // const movieId = '184'; // Static ID for testing
 
     // Fetch the movie data from the API
     useEffect(() => {
