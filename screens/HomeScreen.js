@@ -16,6 +16,7 @@ import defaultPosterImage from '../images/default.jpg';
 import { baseURL, mediaURL } from '../components/urlStore';
 import { getArtwork } from '../components/imageUtils';
 
+
 const { width } = Dimensions.get('window');
 
 const GENRES_PER_PAGE = 5;
