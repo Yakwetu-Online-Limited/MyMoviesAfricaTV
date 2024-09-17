@@ -63,9 +63,17 @@ const MovieDetailScreen = ({route}) => {
     // Fetch the movie poster using getArtwork
     const posterUrl = getArtwork(movie.ref).portrait;
 
+    const isMovieFree = movie.genres && movie.genres.includes('Watch these Movies for FREE!');
     const handleRent = (purchaseType) => {
+      if (isMovieFree) {
+        // If the movie is free, navigate directly to the player or viewer
+        navigation.navigate('Player', { movieRef: movie.ref });
+    } else {
+        // Else, continue to the payment or rental process
         const url = `https://api.mymovies.africa/api/v1/payment/gate/10/?amount=${purchaseType === 'RENTAL' ? 149 : 349}&purchase_type=${purchaseType}&ref=${movie.ref}`;
         console.log('Redirect to:', url);
+        navigation.navigate('Payment');
+    }
     };
 
     const HeaderSection = ({ setModalVisible, genres, onGenreSelect }) => (
@@ -125,7 +133,9 @@ const MovieDetailScreen = ({route}) => {
             <View style={styles.buttonContainer}>
 
             <TouchableOpacity style={styles.buttonRent} onPress={() => handleRent('RENTAL')}>
-                <Text style={styles.buttonText}>Rent for 7 Days</Text>
+                <Text style={styles.buttonText}>
+                  {isMovieFree ? 'Watch Now' : 'Rent for 7 Days'}
+                  </Text>
             </TouchableOpacity>
 
             <TouchableOpacity style={styles.buttonOwn} onPress={() => handleRent('EST')} >
