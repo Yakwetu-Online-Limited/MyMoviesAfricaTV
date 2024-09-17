@@ -12,6 +12,7 @@ import {
   Modal,
   TextInput,
 } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import defaultPosterImage from '../images/default.jpg';
 import { baseURL, mediaURL } from '../components/urlStore';
 import { getArtwork } from '../components/imageUtils';
@@ -60,6 +61,8 @@ const HomePage = () => {
       setLoading(false);
     }
   };
+
+
 
   // const formatGenres = (moviesData) => {
   //   if (!Array.isArray(moviesData)) {
@@ -367,6 +370,9 @@ const GenreSection = ({ genres, selectedGenre }) => {
 
 
 const MovieItem = ({ movie }) => {
+
+  // line to get the navigation object
+  const navigation = useNavigation();
   // Log the movie data
   // console.log('Movie Data:', movie);
 
@@ -375,6 +381,11 @@ const MovieItem = ({ movie }) => {
 
   const posterUrl = movie.poster || (movie.ref ? getArtwork(movie.ref).portrait : null);
 
+   // Add this function to handle the press event
+   const handlePress = () => {
+    navigation.navigate('movieDeatilScreen', { movie });
+  };
+
 
   
 
@@ -382,6 +393,7 @@ const MovieItem = ({ movie }) => {
   // console.log('Movie Poster URL:', posterUrl);
 
   return (
+    <TouchableOpacity onPress={handlePress}>
     <View style={styles.movieContainer}>
       <Image
         source={{ uri: posterUrl }}
@@ -392,6 +404,7 @@ const MovieItem = ({ movie }) => {
       />
       <Text style={styles.movieTitle}>{movie.title}</Text>
     </View>
+  </TouchableOpacity>
   );
 };
 
