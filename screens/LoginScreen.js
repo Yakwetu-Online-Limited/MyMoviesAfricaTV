@@ -20,10 +20,10 @@ const LoginScreen = ({ navigation }) => {
     signInWithEmailAndPassword(auth, email, password)
       .then((userCredential) => {
         const user = userCredential.user;
-        const username = user.displayName;
+        const username = user.displayName || 'Guest';
 
         Alert.alert('Success', 'Logged in successfully');
-        navigation.navigate('Collection', { username });	
+        navigation.navigate('Collection', { username: username });	
       })
       .catch((error) => {
         Alert.alert('Error', error.message);
