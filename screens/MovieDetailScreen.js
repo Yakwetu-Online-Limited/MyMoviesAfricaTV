@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, ActivityIndicator, ScrollView, Dimensions, Imag
 import { API_URL } from '../store';
 import { getArtwork } from '../utils/media';
 import { TouchableOpacity } from 'react-native-gesture-handler';
-import  Video  from 'react-native-video';
+// import  Video  from 'react-native-video';
 
 const { width } = Dimensions.get('window');
 
