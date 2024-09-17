@@ -146,6 +146,11 @@ const HomePage = () => {
     );
   }
 
+  const handleGenreSelect = (genre) => {
+    setSelectedGenre(genre);
+  };
+
+
   return (
     <ScrollView style={styles.container}>
       {/*  Pass genres to HeaderSection for GenreButtonCarousel */}
