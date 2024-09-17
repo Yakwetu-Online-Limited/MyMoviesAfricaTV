@@ -16,6 +16,8 @@ const MovieDetailScreen = ({route}) => {
     const [ similarMovies, setSimilarMovies ] = useState([]);
 
     const { movieId } = route.params;
+    console.log("Movie ID received in MovieDetailScreen: ", movieId);
+
     const navigation = useNavigation();
 
     //const movieId = '184'; // Static ID for testing

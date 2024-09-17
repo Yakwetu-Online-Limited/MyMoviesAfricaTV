@@ -4,8 +4,8 @@ import placeholderImage from '../images/default.jpg';
 import { getArtwork } from '../utils/media';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import Fuse from 'fuse.js';
+import { API_URL } from '../store';
 
-const API_URL = 'https://app.mymovies.africa/api/cache';
 
 const SearchScreen = ({ navigation }) => {
     const [movies, setMovies] = useState([]);
@@ -52,7 +52,7 @@ const SearchScreen = ({ navigation }) => {
             setRankedMovies(movies);
         } else {
             const fuse = new Fuse(movies, {
-                keys: ['title', 'genre'],
+                keys: ['title', 'genres'],
                 includeScore: true,
                 threshold: 0.3, // Adjust for fuzziness
             });
@@ -70,7 +70,8 @@ const SearchScreen = ({ navigation }) => {
     };
 
     const handlePress = (item) => {
-        navigation.navigate('MovieDetail', { movie: item });
+        console.log("Selected movie item: ", item);
+        navigation.navigate('MovieDetail', { movieId: item.id });
     };
 
     const renderItem = ({ item }) => {
@@ -130,6 +131,7 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         marginBottom: 20, // Increased margin for better spacing
+        marginTop: 40
     },
     searchBar: {
         flex: 1,
