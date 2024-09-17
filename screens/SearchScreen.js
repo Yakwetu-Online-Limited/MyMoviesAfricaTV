@@ -3,14 +3,13 @@ import { View, Text, TextInput, FlatList, ActivityIndicator, StyleSheet, Image, 
 import placeholderImage from '../images/default.jpg';
 import { getArtwork } from '../utils/media';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-
-
+import Fuse from 'fuse.js';
 
 const API_URL = 'https://app.mymovies.africa/api/cache';
 
 const SearchScreen = ({ navigation }) => {
     const [movies, setMovies] = useState([]);
-    const [filteredMovies, setFilteredMovies] = useState([]);
+    const [rankedMovies, setRankedMovies] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [searchQuery, setSearchQuery] = useState('');
@@ -20,7 +19,7 @@ const SearchScreen = ({ navigation }) => {
     }, []);
 
     useEffect(() => {
-        filterMovies();
+        rankMovies();
     }, [searchQuery, movies]);
 
     const fetchMovies = async () => {
@@ -30,14 +29,14 @@ const SearchScreen = ({ navigation }) => {
         try {
             const response = await fetch(API_URL);
             const data = await response.json();
-            console.log('API Response:', data);
+            //console.log('API Response:', data);
 
             if (data.content && Array.isArray(data.content)) {
                 setMovies(data.content);
-                setFilteredMovies(data.content);
+                setRankedMovies(data.content);
             } else {
                 setMovies([]);
-                setFilteredMovies([]);
+                setRankedMovies([]);
                 setError('Unexpected data format.');
             }
         } catch (err) {
@@ -48,14 +47,21 @@ const SearchScreen = ({ navigation }) => {
         }
     };
 
-    const filterMovies = () => {
+    const rankMovies = () => {
         if (searchQuery.trim() === '') {
-            setFilteredMovies(movies);
+            setRankedMovies(movies);
         } else {
-            const filtered = movies.filter(movie =>
-                movie.title.toLowerCase().includes(searchQuery.toLowerCase())
-            );
-            setFilteredMovies(filtered);
+            const fuse = new Fuse(movies, {
+                keys: ['title', 'genre'],
+                includeScore: true,
+                threshold: 0.3, // Adjust for fuzziness
+            });
+
+            const results = fuse.search(searchQuery);
+
+            results.sort((a, b) => a.score - b.score);
+
+            setRankedMovies(results.map(result => result.item));
         }
     };
 
@@ -63,8 +69,8 @@ const SearchScreen = ({ navigation }) => {
         return synopsis.length > 100 ? synopsis.substring(0, 100) + '...' : synopsis;
     };
 
-    const handlePress = () => {
-        navigation.navigate('MovieDetail');
+    const handlePress = (item) => {
+        navigation.navigate('MovieDetail', { movie: item });
     };
 
     const renderItem = ({ item }) => {
@@ -106,7 +112,7 @@ const SearchScreen = ({ navigation }) => {
                 />
             </View>
             <FlatList
-                data={filteredMovies}
+                data={rankedMovies}
                 keyExtractor={(item) => item.id.toString()} // Ensure ID is a string
                 renderItem={renderItem}
             />
@@ -173,6 +179,5 @@ const styles = StyleSheet.create({
         color: '#555',
     },
 });
-
 
 export default SearchScreen;
