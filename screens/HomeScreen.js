@@ -234,7 +234,7 @@ const HomePage = () => {
   );
 };
 
-// HeaderSection Component with Genre Carousel
+// CHANGE: Updated HeaderSection to include GenreButtonCarousel
 const HeaderSection = ({ setModalVisible, genres }) => (
   <View style={styles.headerContainer}>
     <Image source={require('../images/mymovies-africa-logo.png')} style={styles.logo} />
@@ -246,7 +246,7 @@ const HeaderSection = ({ setModalVisible, genres }) => (
         <Text style={styles.buttonText}>Events</Text>
       </TouchableOpacity>
     </View>
-    {/* Add GenreButtonCarousel here */}
+    {/*  Added GenreButtonCarousel */}
     <GenreButtonCarousel genres={genres} />
   </View>
 );
