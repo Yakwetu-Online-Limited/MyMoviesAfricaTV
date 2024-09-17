@@ -134,7 +134,7 @@ const MovieDetailScreen = ({route}) => {
                 
             <View style={styles.buttonContainer}>
 
-            <TouchableOpacity style={[styles.buttonRent, styles.buttonWatchNow]} onPress={() => handleRent('RENTAL')}>
+            <TouchableOpacity style={[isMovieFree ? styles.buttonWatchNow : styles.buttonRent]} onPress={() => handleRent('RENTAL')}>
                 <Text style={styles.buttonText}>
                   {isMovieFree ? 'Watch Now' : 'Rent for 7 Days'}
                   </Text>
