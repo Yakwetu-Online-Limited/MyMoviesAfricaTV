@@ -27,6 +27,7 @@ const HomePage = () => {
   const [banners, setBanners] = useState([]);
   const [loading, setLoading] = useState(true);
   const [modalVisible, setModalVisible] = useState(false);
+  const [selectedGenre, setSelectedGenre] = useState(null);
   const [requestDetails, setRequestDetails] = useState({
     organizationName: '',
     contactPersonName: '',
@@ -44,7 +45,8 @@ const HomePage = () => {
       const data = await response.json();
 
       if (data && typeof data === 'object' && data.content) {
-        const formattedGenres = formatGenres(data.content);
+        // Pass both movie data and genres list to formatGenres
+        const formattedGenres = formatGenres(data.content, data.genres);
         setGenres(formattedGenres);
         loadMoreGenres(formattedGenres);
         setBanners(data.banners || []);
@@ -58,34 +60,65 @@ const HomePage = () => {
     }
   };
 
-  const formatGenres = (moviesData) => {
-    if (!Array.isArray(moviesData)) {
-      // console.error('moviesData is not an array:', moviesData);
-      return [];
-    }
+  // const formatGenres = (moviesData) => {
+  //   if (!Array.isArray(moviesData)) {
+  //     // console.error('moviesData is not an array:', moviesData);
+  //     return [];
+  //   }
 
+  //   const genresMap = {};
+
+  //   moviesData.forEach(movie => {
+  //     try {
+  //       const movieGenres = JSON.parse(movie.genres);
+  //       movieGenres.forEach(genre => {
+  //         if (!genresMap[genre]) {
+  //           genresMap[genre] = { id: genre, name: genre, movies: [] };
+  //         }
+  //         genresMap[genre].movies.push({
+  //           id: movie.id,
+  //           title: movie.title,
+  //           poster: movie.poster || null,
+  //           ref: movie.ref || null,
+  //         });
+  //       });
+  //     } catch (err) {
+  //       console.error('Error parsing genres for movie:', movie.title, err);
+  //     }
+  //   });
+
+  //   return Object.values(genresMap);
+  // };
+
+  // CHANGE: Optimized formatGenres function
+  const formatGenres = (moviesData, genresList) => {
     const genresMap = {};
+
+    // Initialize genres from the API-provided list
+    genresList.forEach(genre => {
+      genresMap[genre] = { id: genre, name: genre, movies: [] };
+    });
 
     moviesData.forEach(movie => {
       try {
         const movieGenres = JSON.parse(movie.genres);
         movieGenres.forEach(genre => {
-          if (!genresMap[genre]) {
-            genresMap[genre] = { id: genre, name: genre, movies: [] };
+          if (genresMap[genre]) {
+            genresMap[genre].movies.push({
+              id: movie.id,
+              title: movie.title,
+              poster: movie.poster || null,
+              ref: movie.ref || null,
+            });
           }
-          genresMap[genre].movies.push({
-            id: movie.id,
-            title: movie.title,
-            poster: movie.poster || null,
-            ref: movie.ref || null,
-          });
         });
       } catch (err) {
         console.error('Error parsing genres for movie:', movie.title, err);
       }
     });
 
-    return Object.values(genresMap);
+    // Filter out genres with no movies
+    return Object.values(genresMap).filter(genre => genre.movies.length > 0);
   };
 
   const loadMoreGenres = (allGenres = genres) => {
@@ -113,11 +146,24 @@ const HomePage = () => {
     );
   }
 
+  const handleGenreSelect = (genre) => {
+    setSelectedGenre(genre);
+  };
+
+
   return (
     <ScrollView style={styles.container}>
-      <HeaderSection setModalVisible={setModalVisible} />
+      {/*  Pass genres to HeaderSection for GenreButtonCarousel */}
+      <HeaderSection 
+      setModalVisible={setModalVisible} 
+      genres={genres}
+      onGenreSelect={handleGenreSelect}
+       />
       <BannerSection banners={banners} />
-      <GenreSection genres={visibleGenres} />
+      <GenreSection 
+        genres={visibleGenres} 
+        selectedGenre={selectedGenre}
+      />
       {visibleGenres.length < genres.length && (
         <TouchableOpacity style={styles.loadMoreButton} onPress={() => loadMoreGenres()}>
           <Text style={styles.loadMoreButtonText}>Load More Genres</Text>
@@ -201,7 +247,8 @@ const HomePage = () => {
   );
 };
 
-const HeaderSection = ({ setModalVisible }) => (
+//  Updated HeaderSection to include GenreButtonCarousel
+const HeaderSection = ({ setModalVisible, genres, onGenreSelect }) => (
   <View style={styles.headerContainer}>
     <Image source={require('../images/mymovies-africa-logo.png')} style={styles.logo} />
     <View style={styles.headerButtons}>
@@ -212,8 +259,34 @@ const HeaderSection = ({ setModalVisible }) => (
         <Text style={styles.buttonText}>Events</Text>
       </TouchableOpacity>
     </View>
+    {/*  Added GenreButtonCarousel */}
+    <GenreButtonCarousel genres={genres} onGenreSelect={onGenreSelect} />
   </View>
 );
+
+// GenreButtonCarousel Component
+const GenreButtonCarousel = ({ genres, onGenreSelect }) => {
+  return (
+    <FlatList
+      data={genres}
+      renderItem={({ item }) => (
+        <TouchableOpacity 
+          style={styles.genreButton}
+          onPress={() => onGenreSelect(item.name)}
+        >
+          <Text style={styles.buttonText}>{item.name}</Text>
+        </TouchableOpacity>
+      )}
+      keyExtractor={(item) => item.id}
+      horizontal
+      showsHorizontalScrollIndicator={false}
+      style={styles.genreCarousel}
+    />
+  );
+};
+
+
+
 
 const BannerSection = ({ banners }) => (
   // console.log('Banners:', banners),
@@ -248,26 +321,53 @@ const BannerItem = ({ banner }) => {
 };
 
 
-const GenreSection = ({ genres }) => (
-  <View>
-    {genres.map((genre) => (
-      <View key={genre.id} style={styles.genreSection}>
-        <Text style={styles.genreTitle}>{genre.name}</Text>
-        <FlatList
-          data={genre.movies}
-          renderItem={({ item }) => <MovieItem movie={item} />}
-          keyExtractor={item => item.id}
-          horizontal
-          showsHorizontalScrollIndicator={false}
-        />
-      </View>
-    ))}
-  </View>
-);
+// const GenreSection = ({ genres, selectedGenre }) => (
+//   <View>
+//     {genres.map((genre) => (
+//       <View key={genre.id} style={styles.genreSection}>
+//         <Text style={styles.genreTitle}>{genre.name}</Text>
+//         <FlatList
+//           data={genre.movies}
+//           renderItem={({ item }) => <MovieItem movie={item} />}
+//           keyExtractor={item => item.id}
+//           horizontal
+//           showsHorizontalScrollIndicator={false}
+//         />
+//       </View>
+//     ))}
+//   </View>
+// );
+
+
+// Update the GenreSection component
+const GenreSection = ({ genres, selectedGenre }) => {
+  const filteredGenres = selectedGenre
+    ? genres.filter(genre => genre.name === selectedGenre)
+    : genres;
+
+  return (
+    <View>
+      {filteredGenres.map((genre) => (
+        <View key={genre.id} style={styles.genreSection}>
+          <Text style={styles.genreTitle}>{genre.name}</Text>
+          <FlatList
+            data={genre.movies}
+            renderItem={({ item }) => <MovieItem movie={item} />}
+            keyExtractor={item => item.id}
+            horizontal
+            showsHorizontalScrollIndicator={false}
+          />
+        </View>
+      ))}
+    </View>
+  );
+};
+
+
 
 const MovieItem = ({ movie }) => {
   // Log the movie data
-  console.log('Movie Data:', movie);
+  // console.log('Movie Data:', movie);
 
   // Get the URL for the poster
   // const posterUrl = getArtwork(movie.poster).portrait;
@@ -278,7 +378,7 @@ const MovieItem = ({ movie }) => {
   
 
   // Log the constructed URL
-  console.log('Movie Poster URL:', posterUrl);
+  // console.log('Movie Poster URL:', posterUrl);
 
   return (
     <View style={styles.movieContainer}>
@@ -569,6 +669,21 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
   
+  },
+  genreButton: {
+    backgroundColor: '#3E3E3E',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 20,
+    marginHorizontal: 5,
+  },
+  genreButtonText: {
+    color: '#fff',
+    fontWeight: 'bold',
+  },
+  genreCarousel: {
+    marginTop: 10,
+    paddingLeft: 15,
   }
 });
 
