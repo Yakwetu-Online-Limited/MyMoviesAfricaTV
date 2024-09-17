@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -11,14 +11,13 @@ import {
   TouchableOpacity,
   Modal,
   TextInput,
-} from 'react-native';
-import { useNavigation } from '@react-navigation/native';
-import defaultPosterImage from '../images/default.jpg';
-import { baseURL, mediaURL } from '../components/urlStore';
-import { getArtwork } from '../components/imageUtils';
+} from "react-native";
+import { useNavigation } from "@react-navigation/native";
+import defaultPosterImage from "../images/default.jpg";
+import { baseURL, mediaURL } from "../components/urlStore";
+import { getArtwork } from "../components/imageUtils";
 
-
-const { width } = Dimensions.get('window');
+const { width } = Dimensions.get("window");
 
 const GENRES_PER_PAGE = 5;
 
@@ -31,14 +30,14 @@ const HomePage = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedGenre, setSelectedGenre] = useState(null);
   const [requestDetails, setRequestDetails] = useState({
-    organizationName: '',
-    contactPersonName: '',
-    email: '',
-    phone: '',
-    location: '',
-    movie: '',
-    attendees: '',
-    date: '',
+    organizationName: "",
+    contactPersonName: "",
+    email: "",
+    phone: "",
+    location: "",
+    movie: "",
+    attendees: "",
+    date: "",
   });
 
   const fetchMovies = async () => {
@@ -46,7 +45,7 @@ const HomePage = () => {
       const response = await fetch(`${baseURL}api/cache`);
       const data = await response.json();
 
-      if (data && typeof data === 'object' && data.content) {
+      if (data && typeof data === "object" && data.content) {
         // Pass both movie data and genres list to formatGenres
         const formattedGenres = formatGenres(data.content, data.genres);
         setGenres(formattedGenres);
@@ -56,13 +55,11 @@ const HomePage = () => {
         console.error('Unexpected API response format: Missing "content" key');
       }
     } catch (error) {
-      console.error('Error fetching movie data:', error);
+      console.error("Error fetching movie data:", error);
     } finally {
       setLoading(false);
     }
   };
-
-
 
   // const formatGenres = (moviesData) => {
   //   if (!Array.isArray(moviesData)) {
@@ -99,14 +96,14 @@ const HomePage = () => {
     const genresMap = {};
 
     // Initialize genres from the API-provided list
-    genresList.forEach(genre => {
+    genresList.forEach((genre) => {
       genresMap[genre] = { id: genre, name: genre, movies: [] };
     });
 
-    moviesData.forEach(movie => {
+    moviesData.forEach((movie) => {
       try {
         const movieGenres = JSON.parse(movie.genres);
-        movieGenres.forEach(genre => {
+        movieGenres.forEach((genre) => {
           if (genresMap[genre]) {
             genresMap[genre].movies.push({
               id: movie.id,
@@ -117,12 +114,12 @@ const HomePage = () => {
           }
         });
       } catch (err) {
-        console.error('Error parsing genres for movie:', movie.title, err);
+        console.error("Error parsing genres for movie:", movie.title, err);
       }
     });
 
     // Filter out genres with no movies
-    return Object.values(genresMap).filter(genre => genre.movies.length > 0);
+    return Object.values(genresMap).filter((genre) => genre.movies.length > 0);
   };
 
   const loadMoreGenres = (allGenres = genres) => {
@@ -138,7 +135,7 @@ const HomePage = () => {
   }, []);
 
   const handleRequestScreening = () => {
-    console.log('Screening request submitted:', requestDetails);
+    console.log("Screening request submitted:", requestDetails);
     setModalVisible(false);
   };
 
@@ -154,22 +151,21 @@ const HomePage = () => {
     setSelectedGenre(genre);
   };
 
-
   return (
     <ScrollView style={styles.container}>
       {/*  Pass genres to HeaderSection for GenreButtonCarousel */}
-      <HeaderSection 
-      setModalVisible={setModalVisible} 
-      genres={genres}
-      onGenreSelect={handleGenreSelect}
-       />
-      <BannerSection banners={banners} />
-      <GenreSection 
-        genres={visibleGenres} 
-        selectedGenre={selectedGenre}
+      <HeaderSection
+        setModalVisible={setModalVisible}
+        genres={genres}
+        onGenreSelect={handleGenreSelect}
       />
+      <BannerSection banners={banners} />
+      <GenreSection genres={visibleGenres} selectedGenre={selectedGenre} />
       {visibleGenres.length < genres.length && (
-        <TouchableOpacity style={styles.loadMoreButton} onPress={() => loadMoreGenres()}>
+        <TouchableOpacity
+          style={styles.loadMoreButton}
+          onPress={() => loadMoreGenres()}
+        >
           <Text style={styles.loadMoreButtonText}>Load More Genres</Text>
         </TouchableOpacity>
       )}
@@ -193,54 +189,79 @@ const HomePage = () => {
               <InputField
                 label="Organization Name"
                 value={requestDetails.organizationName}
-                onChangeText={(text) => setRequestDetails({ ...requestDetails, organizationName: text })}
+                onChangeText={(text) =>
+                  setRequestDetails({
+                    ...requestDetails,
+                    organizationName: text,
+                  })
+                }
                 placeholder="Enter organization name"
                 required
               />
               <InputField
                 label="Contact Person Name"
                 value={requestDetails.contactPersonName}
-                onChangeText={(text) => setRequestDetails({ ...requestDetails, contactPersonName: text })}
+                onChangeText={(text) =>
+                  setRequestDetails({
+                    ...requestDetails,
+                    contactPersonName: text,
+                  })
+                }
                 placeholder="Enter full name"
                 required
               />
               <InputField
                 label="Email"
                 value={requestDetails.email}
-                onChangeText={(text) => setRequestDetails({ ...requestDetails, email: text })}
+                onChangeText={(text) =>
+                  setRequestDetails({ ...requestDetails, email: text })
+                }
                 placeholder="Enter email address"
                 keyboardType="email-address"
                 required
               />
               <PhoneInputField
                 value={requestDetails.phone}
-                onChangeText={(text) => setRequestDetails({ ...requestDetails, phone: text })}
+                onChangeText={(text) =>
+                  setRequestDetails({ ...requestDetails, phone: text })
+                }
               />
               <LocationInputField
                 value={requestDetails.location}
-                onChangeText={(text) => setRequestDetails({ ...requestDetails, location: text })}
+                onChangeText={(text) =>
+                  setRequestDetails({ ...requestDetails, location: text })
+                }
               />
               <SelectField
                 label="Movie to Screen"
                 value={requestDetails.movie}
-                onPress={() => {/* Implement movie selection */}}
+                onPress={() => {
+                  /* Implement movie selection */
+                }}
                 placeholder="Select Movie"
                 required
               />
               <SelectField
                 label="Number of Attendees"
                 value={requestDetails.attendees}
-                onPress={() => {/* Implement attendee selection */}}
+                onPress={() => {
+                  /* Implement attendee selection */
+                }}
                 placeholder="Select Attendee Tier"
               />
               <InputField
                 label="Date of the Screening"
                 value={requestDetails.date}
-                onChangeText={(text) => setRequestDetails({ ...requestDetails, date: text })}
+                onChangeText={(text) =>
+                  setRequestDetails({ ...requestDetails, date: text })
+                }
                 placeholder="Select screening date"
                 required
               />
-              <TouchableOpacity style={styles.submitButton} onPress={handleRequestScreening}>
+              <TouchableOpacity
+                style={styles.submitButton}
+                onPress={handleRequestScreening}
+              >
                 <Text style={styles.submitButtonText}>Request Screening</Text>
               </TouchableOpacity>
             </ScrollView>
@@ -252,11 +273,22 @@ const HomePage = () => {
 };
 
 //  Updated HeaderSection to include GenreButtonCarousel
-const HeaderSection = ({ setModalVisible, genres, onGenreSelect }) => (
+const HeaderSection = ({
+  setModalVisible,
+  genres,
+  onGenreSelect,
+  selectedGenre,
+}) => (
   <View style={styles.headerContainer}>
-    <Image source={require('../images/mymovies-africa-logo.png')} style={styles.logo} />
+    <Image
+      source={require("../images/mymovies-africa-logo.png")}
+      style={styles.logo}
+    />
     <View style={styles.headerButtons}>
-      <TouchableOpacity style={styles.requestScreeningButton} onPress={() => setModalVisible(true)}>
+      <TouchableOpacity
+        style={styles.requestScreeningButton}
+        onPress={() => setModalVisible(true)}
+      >
         <Text style={styles.buttonText}>Request Screening</Text>
       </TouchableOpacity>
       <TouchableOpacity style={styles.eventsButton}>
@@ -264,21 +296,28 @@ const HeaderSection = ({ setModalVisible, genres, onGenreSelect }) => (
       </TouchableOpacity>
     </View>
     {/*  Added GenreButtonCarousel */}
-    <GenreButtonCarousel genres={genres} onGenreSelect={onGenreSelect} />
+    <GenreButtonCarousel
+      genres={genres}
+      onGenreSelect={onGenreSelect}
+      selectedGenre={selectedGenre}
+    />
   </View>
 );
 
 // GenreButtonCarousel Component
-const GenreButtonCarousel = ({ genres, onGenreSelect }) => {
+const GenreButtonCarousel = ({ genres, onGenreSelect, selectedGenre }) => {
   return (
     <FlatList
       data={genres}
       renderItem={({ item }) => (
-        <TouchableOpacity 
-          style={styles.genreButton}
+        <TouchableOpacity
+          style={[
+            styles.genreButton,
+            selectedGenre === item.name && styles.genreButtonSelected,
+          ]}
           onPress={() => onGenreSelect(item.name)}
         >
-          <Text style={styles.buttonText}>{item.name}</Text>
+          <Text style={styles.genreButtonText}>{item.name}</Text>
         </TouchableOpacity>
       )}
       keyExtractor={(item) => item.id}
@@ -289,16 +328,13 @@ const GenreButtonCarousel = ({ genres, onGenreSelect }) => {
   );
 };
 
-
-
-
 const BannerSection = ({ banners }) => (
   // console.log('Banners:', banners),
   // Debug: Log the banners data
   <FlatList
     data={banners}
     renderItem={({ item }) => <BannerItem banner={item} />}
-    keyExtractor={item => item.ref}
+    keyExtractor={(item) => item.ref}
     horizontal
     pagingEnabled
     showsHorizontalScrollIndicator={false}
@@ -314,8 +350,8 @@ const BannerItem = ({ banner }) => {
       <Image
         source={{ uri: bannerUrl }}
         style={styles.bannerImage}
-        onError={() => console.log('Error loading banner image:', bannerUrl)}  // Logs error
-        defaultSource={defaultPosterImage}  // Fallback image
+        onError={() => console.log("Error loading banner image:", bannerUrl)} // Logs error
+        defaultSource={defaultPosterImage} // Fallback image
       />
       <View style={styles.bannerOverlay}>
         <Text style={styles.bannerTitle}>{banner.title}</Text>
@@ -323,7 +359,6 @@ const BannerItem = ({ banner }) => {
     </View>
   );
 };
-
 
 // const GenreSection = ({ genres, selectedGenre }) => (
 //   <View>
@@ -342,11 +377,10 @@ const BannerItem = ({ banner }) => {
 //   </View>
 // );
 
-
 // Update the GenreSection component
 const GenreSection = ({ genres, selectedGenre }) => {
   const filteredGenres = selectedGenre
-    ? genres.filter(genre => genre.name === selectedGenre)
+    ? genres.filter((genre) => genre.name === selectedGenre)
     : genres;
 
   return (
@@ -357,7 +391,7 @@ const GenreSection = ({ genres, selectedGenre }) => {
           <FlatList
             data={genre.movies}
             renderItem={({ item }) => <MovieItem movie={item} />}
-            keyExtractor={item => item.id}
+            keyExtractor={(item) => item.id}
             horizontal
             showsHorizontalScrollIndicator={false}
           />
@@ -367,49 +401,62 @@ const GenreSection = ({ genres, selectedGenre }) => {
   );
 };
 
-
-
 const MovieItem = ({ movie }) => {
-
   // navigation object
   const navigation = useNavigation();
+  const [isPressed, setIsPressed] = useState(false);
   // Log the movie data
   // console.log('Movie Data:', movie);
 
   // Get the URL for the poster
   // const posterUrl = getArtwork(movie.poster).portrait;
 
-  const posterUrl = movie.poster || (movie.ref ? getArtwork(movie.ref).portrait : null);
+  const posterUrl =
+    movie.poster || (movie.ref ? getArtwork(movie.ref).portrait : null);
 
-   // Function to handle the press event
-   const handlePress = () => {
-    navigation.navigate('MovieDetailScreen', { movieId: movie.id });
+  // Function to handle the press event
+  const handlePress = () => {
+    navigation.navigate("MovieDetailScreen", { movieId: movie.id });
   };
-
 
   // Log the constructed URL
   // console.log('Movie Poster URL:', posterUrl);
 
   return (
-    <TouchableOpacity onPress={handlePress}>
-    <View style={styles.movieContainer}>
-      <Image
-        source={{ uri: posterUrl }}
-        style={styles.moviePoster}
-        onError={(error) => {
-          console.log('Error loading poster image:', error.nativeEvent.error);
-        }}
-      />
-      <Text style={styles.movieTitle}>{movie.title}</Text>
-    </View>
-  </TouchableOpacity>
+    <TouchableOpacity
+      onPress={handlePress}
+      onPressIn={() => setIsPressed(true)}
+      onPressOut={() => setIsPressed(false)}
+      style={[styles.movieContainer, isPressed && styles.movieContainerPressed]}
+    >
+      <View style={styles.movieContainer}>
+        <Image
+          source={{ uri: posterUrl }}
+          style={[styles.moviePoster, isPressed && styles.moviePosterPressed]}
+          onError={(error) => {
+            console.log("Error loading poster image:", error.nativeEvent.error);
+          }}
+        />
+        <Text style={styles.movieTitle}>{movie.title}</Text>
+      </View>
+    </TouchableOpacity>
   );
 };
 
-
-const InputField = ({ label, value, onChangeText, placeholder, required, errorMessage, keyboardType }) => (
+const InputField = ({
+  label,
+  value,
+  onChangeText,
+  placeholder,
+  required,
+  errorMessage,
+  keyboardType,
+}) => (
   <View style={styles.inputGroup}>
-    <Text style={styles.label}>{label}{required && <Text style={styles.asterisk}>*</Text>}</Text>
+    <Text style={styles.label}>
+      {label}
+      {required && <Text style={styles.asterisk}>*</Text>}
+    </Text>
     <TextInput
       style={styles.input}
       value={value}
@@ -441,7 +488,9 @@ const PhoneInputField = ({ value, onChangeText }) => (
 
 const LocationInputField = ({ value, onChangeText }) => (
   <View style={styles.inputGroup}>
-    <Text style={styles.label}>Location of the Screening: <Text style={styles.asterisk}>*</Text></Text>
+    <Text style={styles.label}>
+      Location of the Screening: <Text style={styles.asterisk}>*</Text>
+    </Text>
     <View style={styles.locationInputContainer}>
       <TextInput
         style={[styles.input, styles.locationInput]}
@@ -457,7 +506,10 @@ const LocationInputField = ({ value, onChangeText }) => (
 
 const SelectField = ({ label, value, onPress, placeholder, required }) => (
   <View style={styles.inputGroup}>
-    <Text style={styles.label}>{label}{required && <Text style={styles.asterisk}>*</Text>}</Text>
+    <Text style={styles.label}>
+      {label}
+      {required && <Text style={styles.asterisk}>*</Text>}
+    </Text>
     <TouchableOpacity style={styles.selectContainer} onPress={onPress}>
       <Text style={styles.selectText}>{value || placeholder}</Text>
       <Text style={styles.selectIcon}>▼</Text>
@@ -468,139 +520,146 @@ const SelectField = ({ label, value, onPress, placeholder, required }) => (
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#000',
+    backgroundColor: "#000",
   },
   loaderContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   headerContainer: {
-    alignItems: 'center',
+    alignItems: "center",
     paddingVertical: 10,
-    backgroundColor: '#000000',
+    backgroundColor: "#000000",
   },
   logo: {
-    resizeMode: 'contain',
-    alignSelf: 'flex-start'
+    resizeMode: "contain",
+    alignSelf: "flex-start",
   },
   headerButtons: {
-    flexDirection: 'row',
+    flexDirection: "row",
     marginTop: 10,
-    backgroundColor: '#000000',
+    backgroundColor: "#000000",
   },
   requestScreeningButton: {
-    backgroundColor: '#3E3E3E',
+    backgroundColor: "#3E3E3E",
     paddingVertical: 10,
     paddingHorizontal: 20,
     borderRadius: 25,
     marginHorizontal: 10,
-    borderColor: '#008080',
+    borderColor: "#008080",
     borderWidth: 2,
   },
   eventsButton: {
-    backgroundColor: '#3E3E3E',
+    backgroundColor: "#3E3E3E",
     paddingVertical: 10,
     paddingHorizontal: 20,
     borderRadius: 25,
     marginHorizontal: 10,
-    borderColor: '#D648D7',
+    borderColor: "#D648D7",
     borderWidth: 2,
   },
   buttonText: {
-    color: '#fff',
-    fontWeight: 'bold',
-    textAlign: 'center',
-    textTransform: 'uppercase',
+    color: "#fff",
+    fontWeight: "bold",
+    textAlign: "center",
+    textTransform: "uppercase",
   },
   bannerContainer: {
     width: width,
     height: 200,
   },
   bannerImage: {
-    width: '100%',
-    height: '100%',
+    width: "100%",
+    height: "100%",
   },
   bannerOverlay: {
-    position: 'absolute',
+    position: "absolute",
     bottom: 0,
     left: 0,
     right: 0,
-    backgroundColor: 'rgba(0,0,0,0.7)',
+    backgroundColor: "rgba(0,0,0,0.7)",
     padding: 10,
   },
   bannerTitle: {
-    color: 'white',
+    color: "white",
     fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   genreSection: {
     marginVertical: 15,
   },
   genreTitle: {
     fontSize: 18,
-    fontWeight: 'bold',
-    color: 'white',
+    fontWeight: "bold",
+    color: "white",
     marginHorizontal: 15,
     marginBottom: 5,
   },
   movieContainer: {
     marginHorizontal: 10,
-    alignItems: 'center',
+    alignItems: "center",
+    padding:5,
+  },
+  movieContainerPressed: {
+    transform: [{ scale: 0.95 }],
   },
   moviePoster: {
     width: 120,
     height: 180,
     borderRadius: 10,
   },
+  moviePosterPressed: {
+    transform: [{ scale: 0.9 }],
+  },
   movieTitle: {
     marginTop: 5,
     fontSize: 14,
-    color: '#fff',
-    textAlign: 'center',
+    color: "#fff",
+    textAlign: "center",
     width: 120,
   },
   loadMoreButton: {
-    backgroundColor: '#3E3E3E',
+    backgroundColor: "#3E3E3E",
     paddingVertical: 10,
     paddingHorizontal: 20,
     borderRadius: 25,
-    alignSelf: 'center',
+    alignSelf: "center",
     marginVertical: 20,
   },
   loadMoreButtonText: {
-    color: '#fff',
-    fontWeight: 'bold',
-    textAlign: 'center',
+    color: "#fff",
+    fontWeight: "bold",
+    textAlign: "center",
   },
   modalBackground: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    justifyContent: "center",
+    alignItems: "center",
   },
   modalContainer: {
-    width: '90%',
-    backgroundColor: '#1E1E1E',
+    width: "90%",
+    backgroundColor: "#1E1E1E",
     borderRadius: 10,
     padding: 20,
-    maxHeight: '80%',
+    maxHeight: "80%",
   },
   modalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     marginBottom: 20,
   },
 
   modalTitle: {
     fontSize: 24,
-    fontWeight: 'bold',
-    color: '#FFFFFF',
+    fontWeight: "bold",
+    color: "#FFFFFF",
   },
   closeButton: {
     fontSize: 24,
-    color: '#FFFFFF',
+    color: "#FFFFFF",
   },
   formContainer: {
     flexGrow: 1,
@@ -610,31 +669,31 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 16,
-    color: '#FFFFFF',
+    color: "#FFFFFF",
     marginBottom: 5,
   },
   asterisk: {
-    color: 'red',
+    color: "red",
   },
   input: {
-    backgroundColor: '#2C2C2C',
+    backgroundColor: "#2C2C2C",
     borderRadius: 5,
     padding: 10,
-    color: '#FFFFFF',
+    color: "#FFFFFF",
   },
   errorText: {
-    color: 'red',
+    color: "red",
     fontSize: 12,
     marginTop: 5,
   },
   phoneInputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#2C2C2C',
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#2C2C2C",
     borderRadius: 5,
   },
   countryCode: {
-    color: '#FFFFFF',
+    color: "#FFFFFF",
     marginRight: 10,
     paddingLeft: 10,
   },
@@ -642,9 +701,9 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   locationInputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#2C2C2C',
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#2C2C2C",
     borderRadius: 5,
   },
   locationInput: {
@@ -655,48 +714,55 @@ const styles = StyleSheet.create({
     fontSize: 20,
   },
   selectContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    backgroundColor: '#2C2C2C',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    backgroundColor: "#2C2C2C",
     borderRadius: 5,
-    padding: 10,
+    
   },
   selectText: {
-    color: '#999',
+    color: "#999",
   },
   selectIcon: {
-    color: '#999',
+    color: "#999",
     fontSize: 16,
   },
   submitButton: {
-    backgroundColor: '#8E44AD',
+    backgroundColor: "#8E44AD",
     borderRadius: 5,
     padding: 15,
-    alignItems: 'center',
+    alignItems: "center",
     marginTop: 20,
   },
   submitButtonText: {
-    color: '#FFFFFF',
+    color: "#FFFFFF",
     fontSize: 18,
-    fontWeight: 'bold',
-  
+    fontWeight: "bold",
   },
   genreButton: {
-    backgroundColor: '#3E3E3E',
+    backgroundColor: "#3E3E3E",
     paddingVertical: 10,
     paddingHorizontal: 20,
     borderRadius: 20,
     marginHorizontal: 5,
+    borderColor: "orange",
+  },
+  genreButtonPressed: {
+    transform: [{ scale: 0.95 }],
   },
   genreButtonText: {
-    color: '#fff',
-    fontWeight: 'bold',
+    color: "#fff",
+    fontWeight: "bold",
+  },
+  genreButtonText: {
+    color: "#fff",
+    fontWeight: "bold",
   },
   genreCarousel: {
     marginTop: 10,
     paddingLeft: 15,
-  }
+  },
 });
 
 export default HomePage;
