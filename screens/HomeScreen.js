@@ -59,34 +59,65 @@ const HomePage = () => {
     }
   };
 
-  const formatGenres = (moviesData) => {
-    if (!Array.isArray(moviesData)) {
-      // console.error('moviesData is not an array:', moviesData);
-      return [];
-    }
+  // const formatGenres = (moviesData) => {
+  //   if (!Array.isArray(moviesData)) {
+  //     // console.error('moviesData is not an array:', moviesData);
+  //     return [];
+  //   }
 
+  //   const genresMap = {};
+
+  //   moviesData.forEach(movie => {
+  //     try {
+  //       const movieGenres = JSON.parse(movie.genres);
+  //       movieGenres.forEach(genre => {
+  //         if (!genresMap[genre]) {
+  //           genresMap[genre] = { id: genre, name: genre, movies: [] };
+  //         }
+  //         genresMap[genre].movies.push({
+  //           id: movie.id,
+  //           title: movie.title,
+  //           poster: movie.poster || null,
+  //           ref: movie.ref || null,
+  //         });
+  //       });
+  //     } catch (err) {
+  //       console.error('Error parsing genres for movie:', movie.title, err);
+  //     }
+  //   });
+
+  //   return Object.values(genresMap);
+  // };
+
+  // CHANGE: Optimized formatGenres function
+  const formatGenres = (moviesData, genresList) => {
     const genresMap = {};
+
+    // Initialize genres from the API-provided list
+    genresList.forEach(genre => {
+      genresMap[genre] = { id: genre, name: genre, movies: [] };
+    });
 
     moviesData.forEach(movie => {
       try {
         const movieGenres = JSON.parse(movie.genres);
         movieGenres.forEach(genre => {
-          if (!genresMap[genre]) {
-            genresMap[genre] = { id: genre, name: genre, movies: [] };
+          if (genresMap[genre]) {
+            genresMap[genre].movies.push({
+              id: movie.id,
+              title: movie.title,
+              poster: movie.poster || null,
+              ref: movie.ref || null,
+            });
           }
-          genresMap[genre].movies.push({
-            id: movie.id,
-            title: movie.title,
-            poster: movie.poster || null,
-            ref: movie.ref || null,
-          });
         });
       } catch (err) {
         console.error('Error parsing genres for movie:', movie.title, err);
       }
     });
 
-    return Object.values(genresMap);
+    // Filter out genres with no movies
+    return Object.values(genresMap).filter(genre => genre.movies.length > 0);
   };
 
   const loadMoreGenres = (allGenres = genres) => {
