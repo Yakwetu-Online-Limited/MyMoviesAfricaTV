@@ -27,6 +27,7 @@ const HomePage = () => {
   const [banners, setBanners] = useState([]);
   const [loading, setLoading] = useState(true);
   const [modalVisible, setModalVisible] = useState(false);
+  const [selectedGenre, setSelectedGenre] = useState(null);
   const [requestDetails, setRequestDetails] = useState({
     organizationName: '',
     contactPersonName: '',
