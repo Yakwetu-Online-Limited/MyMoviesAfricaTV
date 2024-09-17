@@ -10,7 +10,7 @@ import PaymentPage from './screens/PaymentScreen';
 import SearchPage from './screens/SearchScreen';
 import LoginScreen from './screens/LoginScreen';
 import SignupScreen from './screens/SignupScreen';
-import MovieDetailScreen from './screens/MovieDetailScreen';
+
 
 // Placeholder screens for future implementation
 

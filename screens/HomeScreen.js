@@ -424,7 +424,7 @@ const MovieItem = ({ movie }) => {
 
   // Function to handle the press event
   const handlePress = () => {
-    navigation.navigate("MovieDetailScreen", { movieId: movie.id });
+    navigation.navigate("MovieDetail", { movieId: movie.id });
   };
 
   // Log the constructed URL
