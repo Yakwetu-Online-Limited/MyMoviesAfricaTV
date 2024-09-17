@@ -3,7 +3,8 @@ import { View, Text, Image, StyleSheet, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 
 const Header = ({ userName, walletBalance, onTopUp}) => {
-
+  console.log('Header received userName:', userName);
+  
   const navigation = useNavigation();
   return (
     <View style={styles.container}>
@@ -19,7 +20,7 @@ const Header = ({ userName, walletBalance, onTopUp}) => {
           <Text style={styles.topUpText}>Top Up</Text>
         </TouchableOpacity>
         <View style={styles.userInfo}>
-          <Text style={styles.userName}>{userName}</Text>
+          <Text style={styles.userName}>{userName || 'Guest'}</Text>
           <Text style={styles.walletBalance}>Wallet Balance: {walletBalance}</Text>
         </View>
       </View>
