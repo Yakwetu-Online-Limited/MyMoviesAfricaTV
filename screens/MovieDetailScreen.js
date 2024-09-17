@@ -2,7 +2,7 @@ import React, { useState, useEffect }from 'react';
 import { View, Text, StyleSheet, ActivityIndicator, ScrollView, Dimensions, Image} from 'react-native';
 import { API_URL } from '../store';
 import { getArtwork } from '../utils/media';
-import { TouchableOpacity } from 'react-native-gesture-handler';
+import { FlatList, TouchableOpacity } from 'react-native-gesture-handler';
 // import  Video  from 'react-native-video';
 import Header from '../components/Header';
 
@@ -13,6 +13,7 @@ const MovieDetailScreen = ({route}) => {
     const [ movie, setMovie ] = useState(null);
     const [ loading, setLoading ]= useState(true);
     const [ error, setError ] = useState(null);
+    const [ similarMovies, setSimilarMovies ] = useState([]);
 
     const { movieId } = route.params;
 
@@ -30,6 +31,17 @@ const MovieDetailScreen = ({route}) => {
                     throw new Error ('Movie not found');
                 }
                 setMovie(movieData);
+
+                //Filter similar movies
+                const currentGenres = JSON.parse(movieData.genres);// convert genres from string to Array
+                const filteredMovies = data.content.filter(m =>
+                  // EXclude the current movie
+                  m.id !== movieId && 
+                  JSON.parse(m.genres).some (genre => currentGenres.includes(genre))
+                  //Limit to 8 movies.
+                ).slice(0,8);
+                setSimilarMovies(filteredMovies);
+
                 setLoading(false);
             } catch(error) {
                 setError(error.message); 
@@ -69,6 +81,14 @@ const MovieDetailScreen = ({route}) => {
         {/*  Added GenreButtonCarousel */}
       </View>
     );
+
+    const renderSimilarMovie = ({item}) => {
+      const similarPosterUrl = getArtwork(item.ref).portrait;
+      return(
+        <Image source={{uri:similarPosterUrl}}
+        style={styles.similarMoviePoster} />
+      );
+    };
 
 
     return (
@@ -116,6 +136,15 @@ const MovieDetailScreen = ({route}) => {
             <Text style={styles.synopsis}>{movie.synopsis}</Text>
 
             <Text style={styles.title}>Watch More Like This </Text>
+
+            <FlatList
+            data={similarMovies}
+            renderItem={renderSimilarMovie}
+            keyExtractor={(item) => item.id}
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            style={styles.similarMoviesContainer}
+            />
         </ScrollView>
     );
 };  
@@ -237,6 +266,19 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     textTransform: 'uppercase',
   },
+  similarMoviesContainer: {
+    marginBottom: 20,
+  },
+  similarMovieItem: {
+    
+  },
+  similarMoviePoster: {
+    width: 100,
+    height: 150,
+    borderRadius: 5,
+    marginRight: 10,
+    width: 100,
+  }
 });
 
 export default MovieDetailScreen;
