@@ -1,83 +1,97 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, Image } from 'react-native';
 import { Button, Card } from '@rneui/themed';
 
 const MembershipScreen = () => {
+    // Step 1: Add state for button presses
+    const [topUpPressed, setTopUpPressed] = useState(false);
+    const [updateAccountPressed, setUpdateAccountPressed] = useState(false);
+
+    // Step 2: Create handler functions for button presses
+    const handleTopUpPress = () => {
+        setTopUpPressed(true);
+        // Simulate button press duration
+        setTimeout(() => setTopUpPressed(false), 200);
+    };
+
+    const handleUpdateAccountPress = () => {
+        setUpdateAccountPressed(true);
+        // Simulate button press duration
+        setTimeout(() => setUpdateAccountPressed(false), 200);
+    };
+
     return (
         <SafeAreaView style={styles.safeArea}>
             {/* header section */}
             <View style={styles.header}>
-                <View >
+                <Image 
+                    source={require('../assets/mymovies-africa-logo.png')}
+                    style={styles.logoImage}
+                />
+                <TouchableOpacity>
                     <Image 
-                        source = {require('../assets/mymovies-africa-logo.png')}
-                        style={styles.logoImage}
+                        source={require('../assets/default.jpg')}
+                        style={styles.logoutImage}
                     />
-                </View>
-
-                {/* logging out */}
-                <View>
-                    <TouchableOpacity>
-                        <Image 
-                            source={require('../assets/default.jpg')}
-                            style={styles.logoutImage}
-                        />
-                    </TouchableOpacity>
-                </View>
+                </TouchableOpacity>
             </View>
 
-            {/* container containing the body container */}
-            <Card containerStyle={{backgroundColor: '#000000', margin: 10}}>
-                <Card.Title style={{color: 'white'}}>
-                    <Image source= {require('../assets/default.jpg')} style={{width: 50, height: 50, borderRdius: 50}}/>
-                    <Text style={{color: 'white', fontWeight: 'bold'}}>Account</Text>
-                </Card.Title>
+            {/* Card container */}
+            <View style={styles.cardContainer}>
+                <Card containerStyle={styles.card}>
+                    <Card.Title style={styles.cardTitle}>
+                        <Image source={require('../assets/default.jpg')} style={styles.titleImage}/>
+                        <Text style={styles.titleText}>Account</Text>
+                    </Card.Title>
 
-                <Card.Divider/>
+                    <Card.Divider/>
 
-                <View containerStyle={{padding: 10}}>
-                    <Card.Image source={require('../assets/default.jpg')} style ={styles.profileImage}/>
-                    <View>
-                        <Text style={{color: 'white'}}>Ryan Munge</Text>
-                        <Text style={{color: 'white'}}>ryanmunge@gmail.com</Text> 
-                        <Text style={{color: 'white'}}>+254701449264</Text>
-                        <Text style={{color: 'white', fontWeight: 'bold', textDecorationLine: 'underline'}}>Wallet Balance</Text>
-                        <Text style={{color: 'white'}}>KSH 0</Text>
+                    <View style={styles.cardContent}>
+                        <Card.Image source={require('../assets/default.jpg')} style={styles.profileImage}/>
+                        <View style={styles.userInfo}>
+                            <Text style={styles.text}>Ryan Munge</Text>
+                            <Text style={styles.text}>ryanmunge@gmail.com</Text> 
+                            <Text style={styles.text}>+254701449264</Text>
+                            <Text style={[styles.text, styles.boldUnderline]}>Wallet Balance</Text>
+                            <Text style={styles.text}>KSH 0</Text>
+                        </View>
+
+                        {/* Step 3: Update Button components with onPress handlers and dynamic styles */}
+                        <Button
+                            title="Top Up"
+                            buttonStyle={[
+                                styles.button,
+                                topUpPressed && styles.buttonPressed
+                            ]}
+                            type="outline"
+                            titleStyle={[
+                                styles.buttonText,
+                                topUpPressed && styles.buttonTextPressed
+                            ]}
+                            containerStyle={styles.buttonContainer}
+                            onPress={handleTopUpPress}
+                        />
+
+                        <Button
+                            title="Update Account"
+                            buttonStyle={[
+                                styles.button,
+                                updateAccountPressed && styles.buttonPressed
+                            ]}
+                            type="outline"
+                            titleStyle={[
+                                styles.buttonText,
+                                updateAccountPressed && styles.buttonTextPressed
+                            ]}
+                            containerStyle={styles.buttonContainer}
+                            onPress={handleUpdateAccountPress}
+                        />
                     </View>
-
-                    <Button
-                        title="Top Up"
-                        buttonStyle={{
-                            borderColor: 'rgba(78, 116, 289, 1)',
-                        }}
-                        type="outline"
-                        titleStyle={{ color: 'rgba(78, 116, 289, 1)' }}
-                        containerStyle={{
-                            width: 200,
-                            marginHorizontal: 50,
-                            marginVertical: 10,
-                        }}
-                    />
-
-                    <Button
-                        title="Update Account"
-                        buttonStyle={{
-                            borderColor: 'rgba(78, 116, 289, 1)',
-                        }}
-                        type="outline"
-                        titleStyle={{ color: 'rgba(78, 116, 289, 1)' }}
-                        containerStyle={{
-                            width: 200,
-                            marginHorizontal: 50,
-                            marginVertical: 10,
-                        }}
-                    />
-                </View>
-
-            </Card>
+                </Card>
+            </View>
         </SafeAreaView>
     );
 };
-
 
 const styles = StyleSheet.create({
     safeArea: {
@@ -85,27 +99,89 @@ const styles = StyleSheet.create({
         backgroundColor: '#000000',
     },
     header: {
-        flex: 1,
         flexDirection: 'row',
         justifyContent: 'space-between',
-        padding: 10,
+        alignItems: 'center',
+        padding: 15,
     },
     logoImage: {
-        width: 400,
-        height: 60,
+        width: 180,
+        height: 36,
+        resizeMode: 'contain',
     },
     logoutImage: {
         width: 50,
-        height: 50, 
+        height: 50,
+        borderRadius: 25,
+    },
+    cardContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        paddingHorizontal: 10,
+    },
+    card: {
+        backgroundColor: '#000000',
+        borderRadius: 10,
+        padding: 20,
+        marginVertical: 20,
+    },
+    cardTitle: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginBottom: 15,
+    },
+    titleImage: {
+        width: 40,
+        height: 40,
+        borderRadius: 20,
+        marginRight: 15,
+    },
+    titleText: {
+        color: 'white',
+        fontWeight: 'bold',
+        fontSize: 22,
+    },
+    cardContent: {
+        alignItems: 'center',
     },
     profileImage: {
-        borderRadius: 100,
-    }
-
-
-    })         
-
-
-
+        width: 120,
+        height: 120,
+        borderRadius: 60,
+        marginBottom: 20,
+    },
+    userInfo: {
+        alignItems: 'center',
+        marginBottom: 20,
+    },
+    text: {
+        color: 'white',
+        marginBottom: 8,
+        fontSize: 16,
+    },
+    boldUnderline: {
+        fontWeight: 'bold',
+        textDecorationLine: 'underline',
+    },
+    buttonContainer: {
+        width: '100%',
+        marginVertical: 10,
+    },
+    button: {
+        borderColor: 'rgba(78, 116, 289, 1)',
+        borderWidth: 2,
+        borderRadius: 8,
+    },
+    buttonPressed: {
+        backgroundColor: 'rgba(78, 116, 289, 1)',
+    },
+    buttonText: {
+        color: 'rgba(78, 116, 289, 1)',
+        fontSize: 16,
+    },
+    buttonTextPressed: {
+        color: 'white',
+    },
+});
 
 export default MembershipScreen;
