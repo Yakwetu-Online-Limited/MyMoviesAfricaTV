@@ -93,6 +93,7 @@ const MovieDetailScreen = ({route}) => {
           rentDuration: rentDuration,
           poste: getArtwork(movie.ref).portrait,
         });
+        console.log('Full API response:', response);
         console.log('Movie added to collection:', response.data);
       } catch (error) {
         console.error('Error adding movie to collection:', error);
