@@ -15,11 +15,18 @@ const CollectionPage = () => {
 
   // Fetch user's collection from API
   useEffect(() => {
-    // Assuming the API endpoint is `/api/cache`
-    axios.get('https://app.mymovies.africa/api/cache')
-      .then(response => setCollection(response.data))
-      .catch(error => console.error("Error fetching collection: ", error));
+    const fetchCollection = async () => {
+      try {
+        const response = await axios.get('https://app.mymovies.africa/api/cache');
+        setCollection(response.data);
+      } catch (error) {
+        console.error("Error fetching collection: ", error);
+      }
+    };
+    
+    fetchCollection();
   }, []);
+  
 
   const renderMovieItem = ({ item }) => (
     <TouchableOpacity style={styles.movieItem}>

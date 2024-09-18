@@ -539,6 +539,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingVertical: 10,
     backgroundColor: "#000000",
+    marginTop: 35
   },
   logo: {
     resizeMode: "contain",

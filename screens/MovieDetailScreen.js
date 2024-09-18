@@ -5,6 +5,7 @@ import { getArtwork } from '../utils/media';
 import { FlatList, TouchableOpacity } from 'react-native-gesture-handler';
 // import  Video  from 'react-native-video';
 import { useNavigation,  } from '@react-navigation/native';
+import axios from 'axios';
 
 const { width } = Dimensions.get('window');
 
@@ -66,18 +67,37 @@ const MovieDetailScreen = ({route}) => {
     const posterUrl = getArtwork(movie.ref).portrait;
 
     const isMovieFree = movie.genres && movie.genres.includes('Watch these Movies for FREE!');
-    const handleRent = (purchaseType) => {
+    const handleRent = async (purchaseType) => {
       if (isMovieFree) {
-        // If the movie is free, navigate directly to the player or viewer
-        navigation.navigate('Player', { movieRef: movie.ref });
-    } else {
+        try {
+          // Add movie to the collection with rent duration
+          await addMovieToCollection(movie, 7); // Rent for 7 days
+          // Navigate to the player
+          navigation.navigate('Player', { movieRef: movie.ref });
+        } catch (error) {
+          console.error('Error adding movie to collection:', error);
+        }
+      } else {
         // Else, continue to the payment or rental process
         const url = `https://api.mymovies.africa/api/v1/payment/gate/10/?amount=${purchaseType === 'RENTAL' ? 149 : 349}&purchase_type=${purchaseType}&ref=${movie.ref}`;
         console.log('Redirect to:', url);
         navigation.navigate('Payment');
-    }
+      }
     };
 
+    const addMovieToCollection = async (movie, rentDuration) => {
+      try {
+        const response = await axios.post('https://api.mymovies.africa/api/collection', {
+          movieId: movie.id,
+          title: movie.title,
+          rentDuration: rentDuration,
+          poste: getArtwork(movie.ref).portrait,
+        });
+        console.log('Movie added to collection:', response.data);
+      } catch (error) {
+        console.error('Error adding movie to collection:', error);
+      }
+    };
     const HeaderSection = ({ setModalVisible, genres, onGenreSelect }) => (
       <View style={styles.headerContainer}>
         <Image source={require('../images/mymovies-africa-logo.png')} style={styles.logo} />
@@ -216,6 +236,12 @@ const styles = StyleSheet.create({
   buttonWatchNow: {
     backgroundColor: '#f4c430',
     borderColor: '#f4c430',
+    borderWidth: 2,
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 50,
+    marginTop: 16,
+    alignItems: "center",
 },
   buttonOwn: {
     borderColor: '#d648d7',
