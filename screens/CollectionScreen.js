@@ -2,17 +2,31 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, FlatList, Image, StyleSheet, TouchableOpacity } from 'react-native';
 import Header from '../components/Header';
 import axios from 'axios';
+import { useRoute } from '@react-navigation/native';
+
 
 const CollectionPage = () => {
   const [collection, setCollection] = useState([]);
+  const route = useRoute();
+  const userName = route.params?.username || 'Guest';
+
+  console.log('Received route params:', route.params); // Debugging log
+  console.log('Received userName in CollectionPage:', userName); 
 
   // Fetch user's collection from API
   useEffect(() => {
-    // Assuming the API endpoint is `/api/cache`
-    axios.get('https://app.mymovies.africa/api/cache')
-      .then(response => setCollection(response.data))
-      .catch(error => console.error("Error fetching collection: ", error));
+    const fetchCollection = async () => {
+      try {
+        const response = await axios.get('https://app.mymovies.africa/api/cache');
+        setCollection(response.data);
+      } catch (error) {
+        console.error("Error fetching collection: ", error);
+      }
+    };
+    
+    fetchCollection();
   }, []);
+  
 
   const renderMovieItem = ({ item }) => (
     <TouchableOpacity style={styles.movieItem}>
@@ -27,8 +41,8 @@ const CollectionPage = () => {
     </TouchableOpacity>
   );
 
-  const userName = 'Ryan Munge'; // Mock user details
-  const walletBalance = '35.0'; // Mock wallet balance
+  
+  const walletBalance = '0'; // Mock wallet balance
 
   const onTopUp = () => {
     // Handle top-up action here
@@ -39,7 +53,7 @@ const CollectionPage = () => {
     <View style={styles.container}>
       {/* Add the Header Component */}
       <Header 
-        userName={userName}
+        userName={userName || 'Guest'}
         walletBalance={walletBalance}
         onTopUp={onTopUp}
       />
