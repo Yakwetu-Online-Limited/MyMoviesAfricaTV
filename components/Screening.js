@@ -14,6 +14,7 @@ import PhoneInput from 'react-native-phone-number-input';
 import { Picker } from '@react-native-picker/picker';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import MapView, { Marker } from 'react-native-maps';
+import { useNavigation } from '@react-navigation/native';
 
 const { width, height } = Dimensions.get('window');
 
@@ -37,21 +38,46 @@ const Screening = () => {
     latitudeDelta: 0.0922,
     longitudeDelta: 0.0421,
   });
-
-  const mapRef = useRef(null);
-
   const movies = [
     'WHERE THE RIVER DIVIDES (Dholuo): KES 149 per Attendee',
     'ACT OF LOVE : KES 149 Per Attendee',
     'WHERE THE RIVER DIVIDES (English): KES 149 per Attendee',
     'WHERE THE RIVER DIVIDES (Kiswahili): KES 149 per Attendee'
   ];
-
   const attendeesOptions = ['6-20 People', '21-100 People', '101-200 People', '201+ People'];
-
-  // Handle request and reset form
+  const [errors, setErrors] = useState({});  // Manage form errors
+  const navigation = useNavigation();  // Navigation hook
+  
   const handleRequestScreening = useCallback(() => {
-    console.log("Screening request submitted:", requestDetails);
+    // Validation logic
+    const errors = {};
+
+    if (!requestDetails.organizationName) {
+      errors.organizationName = 'Organization name is required';
+    }
+    if (!requestDetails.contactPersonName) {
+      errors.contactPersonName = 'Contact person name is required';
+    }
+    if (!requestDetails.email) {
+      errors.email = 'Email is required';
+    }
+    if (!requestDetails.phone) {
+      errors.phone = 'Phone number is required';
+    }
+    if (!requestDetails.location) {
+      errors.location = 'Location is required';
+    }
+    if (!requestDetails.movie) {
+      errors.movie = 'Movie selection is required';
+    }
+    if (!requestDetails.attendees) {
+      errors.attendees = 'Number of attendees is required';
+    }
+
+    if (Object.keys(errors).length > 0) {
+      setErrors(errors);  // Set error messages
+      return;  // Prevent form submission
+    }
 
     // Reset the form after submission
     setRequestDetails({
@@ -65,28 +91,16 @@ const Screening = () => {
       date: new Date(),
     });
 
+    setErrors({});  // Clear any previous errors
     setModalVisible(false); // Close the modal
-  }, [requestDetails]);
+
+    // Navigate to the PaymentScreen
+    navigation.navigate("PaymentScreen");
+  }, [requestDetails, navigation]);
 
   const handleInputChange = useCallback((field, value) => {
     setRequestDetails(prev => ({ ...prev, [field]: value }));
   }, []);
-
-  const handleDateChange = useCallback((event, selectedDate) => {
-    const currentDate = selectedDate || requestDetails.date;
-    setShowDatePicker(Platform.OS === 'ios');
-    handleInputChange('date', currentDate);
-  }, [handleInputChange, requestDetails.date]);
-
-  const handleMapPress = useCallback((event) => {
-    const { coordinate } = event.nativeEvent;
-    setMapRegion(prev => ({
-      ...prev,
-      latitude: coordinate.latitude,
-      longitude: coordinate.longitude,
-    }));
-    handleInputChange('location', `${coordinate.latitude}, ${coordinate.longitude}`);
-  }, [handleInputChange]);
 
   return (
     <>
@@ -120,6 +134,10 @@ const Screening = () => {
                 placeholder="Enter organization name"
                 required
               />
+              {errors.organizationName && (
+                <Text style={styles.errorText}>{errors.organizationName}</Text>
+              )}
+
               <InputField
                 label="Contact Person Name"
                 value={requestDetails.contactPersonName}
@@ -127,6 +145,10 @@ const Screening = () => {
                 placeholder="Enter full name"
                 required
               />
+              {errors.contactPersonName && (
+                <Text style={styles.errorText}>{errors.contactPersonName}</Text>
+              )}
+
               <InputField
                 label="Email"
                 value={requestDetails.email}
@@ -135,15 +157,27 @@ const Screening = () => {
                 keyboardType="email-address"
                 required
               />
+              {errors.email && (
+                <Text style={styles.errorText}>{errors.email}</Text>
+              )}
+
               <PhoneInputField
                 value={requestDetails.phone}
                 onChangeText={(text) => handleInputChange('phone', text)}
               />
+              {errors.phone && (
+                <Text style={styles.errorText}>{errors.phone}</Text>
+              )}
+
               <LocationInputField
                 value={requestDetails.location}
                 onChangeText={(text) => handleInputChange('location', text)}
                 onPressMap={() => setShowMap(true)}
               />
+              {errors.location && (
+                <Text style={styles.errorText}>{errors.location}</Text>
+              )}
+
               <SelectField
                 label="Movie to Screen"
                 value={requestDetails.movie}
@@ -152,6 +186,10 @@ const Screening = () => {
                 options={movies}
                 required
               />
+              {errors.movie && (
+                <Text style={styles.errorText}>{errors.movie}</Text>
+              )}
+
               <SelectField
                 label="Number of Attendees"
                 value={requestDetails.attendees}
@@ -160,12 +198,17 @@ const Screening = () => {
                 options={attendeesOptions}
                 required
               />
+              {errors.attendees && (
+                <Text style={styles.errorText}>{errors.attendees}</Text>
+              )}
+
               <DateInputField
                 label="Date of the Screening"
                 value={requestDetails.date}
                 onPress={() => setShowDatePicker(true)}
                 required
               />
+
               <TouchableOpacity
                 style={styles.submitButton}
                 onPress={handleRequestScreening}
@@ -176,47 +219,9 @@ const Screening = () => {
           </View>
         </View>
       </Modal>
-
-      {showDatePicker && (
-        <DateTimePicker
-          testID="dateTimePicker"
-          value={requestDetails.date}
-          mode="date"
-          is24Hour={true}
-          display="default"
-          onChange={handleDateChange}
-          minimumDate={new Date()}
-        />
-      )}
-
-      <Modal
-        visible={showMap}
-        transparent={true}
-        animationType="slide"
-        onRequestClose={() => setShowMap(false)}
-      >
-        <View style={styles.mapContainer}>
-          <MapView
-            ref={mapRef}
-            style={styles.map}
-            region={mapRegion}
-            onPress={handleMapPress}
-            provider="google"
-          >
-            <Marker coordinate={mapRegion} />
-          </MapView>
-          <TouchableOpacity
-            style={styles.closeMapButton}
-            onPress={() => setShowMap(false)}
-          >
-            <Text style={styles.closeMapButtonText}>Confirm Location</Text>
-          </TouchableOpacity>
-        </View>
-      </Modal>
     </>
   );
 };
-
 
 const InputField = React.memo(({ label, value, onChangeText, placeholder, required, keyboardType }) => (
   <View style={styles.inputGroup}>
@@ -447,6 +452,12 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: "bold",
   },
+  errorText: {
+    color: "red",
+    fontSize: 12,
+    marginTop: -10,
+    marginBottom: 10,
+  }
 });
 
 export default React.memo(Screening); 
