@@ -16,6 +16,7 @@ import { useNavigation } from "@react-navigation/native";
 import defaultPosterImage from "../images/default.jpg";
 import { baseURL, mediaURL } from "../components/urlStore";
 import { getArtwork } from "../components/imageUtils";
+import { eventsData } from "../events";
 
 const { width } = Dimensions.get("window");
 
@@ -29,6 +30,7 @@ const HomePage = () => {
   const [loading, setLoading] = useState(true);
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedGenre, setSelectedGenre] = useState(null);
+  
   const [requestDetails, setRequestDetails] = useState({
     organizationName: "",
     contactPersonName: "",
