@@ -180,8 +180,9 @@ const HomePage = () => {
       {/*  Pass genres to HeaderSection for GenreButtonCarousel */}
       <HeaderSection
         setModalVisible={setModalVisible}
-        onEventPress={() => handleEventPress(eventsData[1])} // Pass the first event as an example
-        // onEventPress={() => setEventModalVisible(true)}
+        // onEventPress={() => handleEventPress(eventsData[1])} // Pass the first event as an example
+        onEventPress={handleEventPress}
+        currentEvents={currentEvents}
         genres={genres}
         onGenreSelect={handleGenreSelect}
       />
