@@ -165,6 +165,7 @@ const HomePage = () => {
       {/*  Pass genres to HeaderSection for GenreButtonCarousel */}
       <HeaderSection
         setModalVisible={setModalVisible}
+        onEventPress={() => setEventModalVisible(true)}
         genres={genres}
         onGenreSelect={handleGenreSelect}
       />
