@@ -165,7 +165,8 @@ const HomePage = () => {
       {/*  Pass genres to HeaderSection for GenreButtonCarousel */}
       <HeaderSection
         setModalVisible={setModalVisible}
-        onEventPress={() => setEventModalVisible(true)}
+        onEventPress={() => handleEventPress(eventsData[0])} // Pass the first event as an example
+        // onEventPress={() => setEventModalVisible(true)}
         genres={genres}
         onGenreSelect={handleGenreSelect}
       />
@@ -297,6 +298,7 @@ const HomePage = () => {
 //  Updated HeaderSection to include GenreButtonCarousel
 const HeaderSection = ({
   setModalVisible,
+  onEventPress,
   genres,
   onGenreSelect,
   selectedGenre,
@@ -313,7 +315,7 @@ const HeaderSection = ({
       >
         <Text style={styles.buttonText}>Request Screening</Text>
       </TouchableOpacity>
-      <TouchableOpacity style={styles.eventsButton}>
+      <TouchableOpacity style={styles.eventsButton} onPress={onEventPress}>
         <Text style={styles.buttonText}>Events</Text>
       </TouchableOpacity>
     </View>
@@ -828,6 +830,38 @@ const styles = StyleSheet.create({
   genreCarousel: {
     marginTop: 10,
     paddingLeft: 15,
+  },
+  eventDetailsContainer: {
+    padding: 20,
+  },
+  eventArtwork: {
+    width: '100%',
+    height: 200,
+    resizeMode: 'cover',
+    borderRadius: 10,
+    marginBottom: 15,
+  },
+  eventTitle: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
+    marginBottom: 10,
+  },
+  eventDescription: {
+    fontSize: 16,
+    color: '#CCCCCC',
+    marginBottom: 15,
+  },
+  eventLinkButton: {
+    backgroundColor: '#8E44AD',
+    borderRadius: 5,
+    padding: 10,
+    alignItems: 'center',
+  },
+  eventLinkButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: 'bold',
   },
 });
 
