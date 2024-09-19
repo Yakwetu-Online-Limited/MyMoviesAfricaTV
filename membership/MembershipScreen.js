@@ -1,20 +1,23 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, Image } from 'react-native';
 import { Button, Card } from '@rneui/themed';
+import { useNavigation } from '@react-navigation/native';
 
 const MembershipScreen = () => {
-    // Step 1: Add state for button presses
+    const navigation = useNavigation();
+
+    // Add state for button presses
     const [topUpPressed, setTopUpPressed] = useState(false);
     const [updateAccountPressed, setUpdateAccountPressed] = useState(false);
 
-    // Step 2: Create handler functions for button presses
+    // : Create handler functions for button presses
     const handleTopUpPress = () => {
         setTopUpPressed(true);
         // Simulate button press duration
         setTimeout(() => setTopUpPressed(false), 200);
     };
 
-    const handleUpdateAccountPress = () => {
+    const handleUpdateAccountPress = ({ navigation }) => {
         setUpdateAccountPressed(true);
         // Simulate button press duration
         setTimeout(() => setUpdateAccountPressed(false), 200);
@@ -84,7 +87,7 @@ const MembershipScreen = () => {
                                 updateAccountPressed && styles.buttonTextPressed
                             ]}
                             containerStyle={styles.buttonContainer}
-                            onPress={handleUpdateAccountPress}
+                            onPress={() => navigation.navigate('UpdateAccountForm')}
                         />
                     </View>
                 </Card>
