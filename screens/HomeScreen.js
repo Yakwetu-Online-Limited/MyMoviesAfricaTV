@@ -30,7 +30,8 @@ const HomePage = () => {
   const [loading, setLoading] = useState(true);
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedGenre, setSelectedGenre] = useState(null);
-  
+   const [eventModalVisible, setEventModalVisible] = useState(false);
+  const [selectedEvent, setSelectedEvent] = useState(null);
   const [requestDetails, setRequestDetails] = useState({
     organizationName: "",
     contactPersonName: "",
