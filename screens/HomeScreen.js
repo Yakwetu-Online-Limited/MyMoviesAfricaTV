@@ -346,7 +346,7 @@ const HeaderSection = ({
 );
 
 // /New EventDetailsModal component
-const EventDetailsModal = ({ visible, event, onClose }) => {
+const EventDetailsModal = ({ visible, event, onClose,currentEvents }) => {
   if (!event) return null;
 
   return (
