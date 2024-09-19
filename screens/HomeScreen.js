@@ -138,7 +138,19 @@ const HomePage = () => {
 
   useEffect(() => {
     fetchMovies();
+    
   }, []);
+
+
+  const updateCurrentEvents = () => {
+    const now = new Date();
+    const filteredEvents = eventsData.filter(event => {
+      const endDate = new Date(event.endDate);
+      return endDate > now;
+    });
+    setCurrentEvents(filteredEvents);
+  };
+
 
   const handleRequestScreening = () => {
     console.log("Screening request submitted:", requestDetails);
