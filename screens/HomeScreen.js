@@ -138,7 +138,7 @@ const HomePage = () => {
 
   useEffect(() => {
     fetchMovies();
-    
+    updateCurrentEvents();
   }, []);
 
 
