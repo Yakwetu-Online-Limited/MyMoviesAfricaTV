@@ -34,7 +34,6 @@ const HomePage = () => {
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [currentEvents, setCurrentEvents] = useState([]);
 
- 
   const [requestDetails, setRequestDetails] = useState({
     organizationName: "",
     contactPersonName: "",
@@ -141,16 +140,14 @@ const HomePage = () => {
     updateCurrentEvents();
   }, []);
 
-
   const updateCurrentEvents = () => {
     const now = new Date();
-    const filteredEvents = eventsData.filter(event => {
+    const filteredEvents = eventsData.filter((event) => {
       const endDate = new Date(event.endDate);
       return endDate > now;
     });
     setCurrentEvents(filteredEvents);
   };
-
 
   const handleRequestScreening = () => {
     console.log("Screening request submitted:", requestDetails);
@@ -168,7 +165,6 @@ const HomePage = () => {
   const handleGenreSelect = (genre) => {
     setSelectedGenre(genre);
   };
-
 
   const handleEventPress = (event) => {
     setSelectedEvent(event);
@@ -296,20 +292,15 @@ const HomePage = () => {
         </View>
       </Modal>
 
-
-       {/*  Event Details Modal */}
+      {/*  Event Details Modal */}
       <EventDetailsModal
         visible={eventModalVisible}
         event={selectedEvent}
         onClose={() => setEventModalVisible(false)}
       />
-
-
     </ScrollView>
   );
 };
-
-
 
 //  Updated HeaderSection to include GenreButtonCarousel
 const HeaderSection = ({
@@ -318,6 +309,7 @@ const HeaderSection = ({
   genres,
   onGenreSelect,
   selectedGenre,
+  currentEvents,
 }) => (
   <View style={styles.headerContainer}>
     <Image
@@ -331,9 +323,18 @@ const HeaderSection = ({
       >
         <Text style={styles.buttonText}>Request Screening</Text>
       </TouchableOpacity>
-      <TouchableOpacity style={styles.eventsButton} onPress={onEventPress}>
-        <Text style={styles.buttonText}>Events</Text>
-      </TouchableOpacity>
+      {/* // Check if there are any current events */}
+      {currentEvents.length > 0 && (
+        // Create a button for the events section
+        <TouchableOpacity
+          style={styles.eventsButton}
+          // Handle press on the button, triggering the first event in the list
+          onPress={() => onEventPress(currentEvents[0])}
+        >
+          {/* // Display the number of events in the button text */}
+          <Text style={styles.buttonText}>Events ({currentEvents.length})</Text>
+        </TouchableOpacity>
+      )}
     </View>
     {/*  Added GenreButtonCarousel */}
     <GenreButtonCarousel
@@ -343,7 +344,6 @@ const HeaderSection = ({
     />
   </View>
 );
-
 
 // /New EventDetailsModal component
 const EventDetailsModal = ({ visible, event, onClose }) => {
@@ -386,7 +386,6 @@ const EventDetailsModal = ({ visible, event, onClose }) => {
     </Modal>
   );
 };
-
 
 // GenreButtonCarousel Component
 const GenreButtonCarousel = ({ genres, onGenreSelect, selectedGenre }) => {
@@ -683,7 +682,7 @@ const styles = StyleSheet.create({
   movieContainer: {
     marginHorizontal: 10,
     alignItems: "center",
-    padding:0,
+    padding: 0,
   },
   movieContainerPressed: {
     transform: [{ scale: 0.95 }],
@@ -803,7 +802,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     backgroundColor: "#2C2C2C",
     borderRadius: 5,
-    
   },
   selectText: {
     color: "#999",
@@ -851,33 +849,33 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   eventArtwork: {
-    width: '100%',
+    width: "100%",
     height: 200,
-    resizeMode: 'cover',
+    resizeMode: "cover",
     borderRadius: 10,
     marginBottom: 15,
   },
   eventTitle: {
     fontSize: 22,
-    fontWeight: 'bold',
-    color: '#FFFFFF',
+    fontWeight: "bold",
+    color: "#FFFFFF",
     marginBottom: 10,
   },
   eventDescription: {
     fontSize: 16,
-    color: '#CCCCCC',
+    color: "#CCCCCC",
     marginBottom: 15,
   },
   eventLinkButton: {
-    backgroundColor: '#8E44AD',
+    backgroundColor: "#8E44AD",
     borderRadius: 5,
     padding: 10,
-    alignItems: 'center',
+    alignItems: "center",
   },
   eventLinkButtonText: {
-    color: '#FFFFFF',
+    color: "#FFFFFF",
     fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
 });
 
