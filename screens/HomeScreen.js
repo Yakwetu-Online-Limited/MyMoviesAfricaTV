@@ -31,7 +31,7 @@ const HomePage = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedGenre, setSelectedGenre] = useState(null);
   const [eventModalVisible, setEventModalVisible] = useState(false);
-  const [selectedEvent, setSelectedEvent] = useState(null);
+  const [selectedEvents, setSelectedEvents] = useState([]);
   const [currentEvents, setCurrentEvents] = useState([]);
 
   const [requestDetails, setRequestDetails] = useState({
@@ -166,10 +166,11 @@ const HomePage = () => {
     setSelectedGenre(genre);
   };
 
-  const handleEventPress = (event) => {
-    setSelectedEvent(event);
-    setEventModalVisible(true);
-  };
+  // Update the handleEventPress function:
+const handleEventPress = () => {
+  setSelectedEvents(currentEvents);
+  setEventModalVisible(true);
+};
 
   return (
     <ScrollView style={styles.container}>
@@ -295,7 +296,7 @@ const HomePage = () => {
       {/*  Event Details Modal */}
       <EventDetailsModal
         visible={eventModalVisible}
-        event={selectedEvent}
+        events={selectedEvents}
         onClose={() => setEventModalVisible(false)}
       />
     </ScrollView>
@@ -310,6 +311,8 @@ const HeaderSection = ({
   onGenreSelect,
   selectedGenre,
   currentEvents,
+ 
+ 
 }) => (
   <View style={styles.headerContainer}>
     <Image
@@ -325,16 +328,13 @@ const HeaderSection = ({
       </TouchableOpacity>
       {/* // Check if there are any current events */}
       {currentEvents.length > 0 && (
-        // Create a button for the events section
-        <TouchableOpacity
-          style={styles.eventsButton}
-          // Handle press on the button, triggering the first event in the list
-          onPress={() => onEventPress(currentEvents[0])}
-        >
-          {/* // Display the number of events in the button text */}
-          <Text style={styles.buttonText}>Events ({currentEvents.length})</Text>
-        </TouchableOpacity>
-      )}
+    <TouchableOpacity
+      style={styles.eventsButton}
+      onPress={onEventPress}
+    >
+      <Text style={styles.buttonText}>Events ({currentEvents.length})</Text>
+    </TouchableOpacity>
+  )}
     </View>
     {/*  Added GenreButtonCarousel */}
     <GenreButtonCarousel
@@ -345,9 +345,25 @@ const HeaderSection = ({
   </View>
 );
 
-// /New EventDetailsModal component
-const EventDetailsModal = ({ visible, event, onClose,currentEvents }) => {
-  if (!event) return null;
+//  EventDetailsModal component
+const EventDetailsModal = ({ visible, events, onClose }) => {
+  const [currentEventIndex, setCurrentEventIndex] = useState(0);
+  
+  if (!events || events.length === 0) return null;
+  
+  const currentEvent = events[currentEventIndex];
+
+  const goToPreviousEvent = () => {
+    setCurrentEventIndex((prevIndex) => 
+      prevIndex > 0 ? prevIndex - 1 : events.length - 1
+    );
+  };
+
+  const goToNextEvent = () => {
+    setCurrentEventIndex((prevIndex) => 
+      prevIndex < events.length - 1 ? prevIndex + 1 : 0
+    );
+  };
 
   return (
     <Modal
@@ -366,26 +382,37 @@ const EventDetailsModal = ({ visible, event, onClose,currentEvents }) => {
           </View>
           <ScrollView style={styles.eventDetailsContainer}>
             <Image
-              source={event.artwork || defaultPosterImage}
+              source={currentEvent.artwork || defaultPosterImage}
               style={styles.eventArtwork}
             />
-            <Text style={styles.eventTitle}>{event.title}</Text>
-            <Text style={styles.eventDescription}>{event.description}</Text>
+            <Text style={styles.eventTitle}>{currentEvent.title}</Text>
+            <Text style={styles.eventDescription}>{currentEvent.description}</Text>
             <TouchableOpacity
               style={styles.eventLinkButton}
               onPress={() => {
-                // Handle link press (e.g., open in browser or navigate)
-                console.log("Event link pressed:", event.link);
+                console.log("Event link pressed:", currentEvent.link);
               }}
             >
               <Text style={styles.eventLinkButtonText}>Learn More</Text>
             </TouchableOpacity>
           </ScrollView>
+          <View style={styles.navigationContainer}>
+            <TouchableOpacity onPress={goToPreviousEvent} style={styles.navButton}>
+              <Text style={styles.navButtonText}>Previous</Text>
+            </TouchableOpacity>
+            <Text style={styles.eventCounter}>
+              {currentEventIndex + 1} / {events.length}
+            </Text>
+            <TouchableOpacity onPress={goToNextEvent} style={styles.navButton}>
+              <Text style={styles.navButtonText}>Next</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </View>
     </Modal>
   );
 };
+
 
 // GenreButtonCarousel Component
 const GenreButtonCarousel = ({ genres, onGenreSelect, selectedGenre }) => {
@@ -877,6 +904,33 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "bold",
   },
+  navButton: {
+    padding: 10,
+  },
+  navButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  eventCounter: {
+    color: '#FFFFFF',
+    fontSize: 16,
+  },
+  navigationContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 15,
+    paddingHorizontal: 20,
+    borderTopWidth: 1,
+    borderTopColor: '#333',
+  },
+  // navigationContainer: {
+  //   flex: 'row',
+  //   justifyContent: "space-between",
+  //   alignItems: "center",
+  //   paddingVertical: 10,
+  // },
 });
 
 export default HomePage;

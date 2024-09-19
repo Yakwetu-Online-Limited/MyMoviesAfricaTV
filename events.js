@@ -42,6 +42,15 @@ export const eventsData = [
       description:
         "INFLUENCED: A popular Influencer couple - Ben (George Waweru) and Kay (Ciku Waithaka), confront a pivotal Shoot that reveals Cracks in their Relationship. As the Camera captures their Struggle, their Perfect image Shatters. TEKA: Amani (Nick Olwah), drowning in debt to a ruthless Loan Shark, makes a drastic decision to kidnap Hope (Amina Hussein) - a social media Influencer hiding her own painful struggles behind a facade of luxury. What follows is a heart-wrenching journey where both strangers open up about their traumas, finding unexpected solace and connection in eachother's stories.",
       artwork: wwkSepPoster || null,
+      endDate: '2024-11-30T23:59:00',
+      link: 'd9f374f2fd5667af?title=Anthology%20for%20#WeWatchKenyan%20-%20September%202024',
+    },
+
+    {
+      title: 'Anthology for #WeWatchKenyan - September 2024',
+      description:
+        "INFLUENCED: A popular Influencer couple - Ben (George Waweru) and Kay (Ciku Waithaka), confront a pivotal Shoot that reveals Cracks in their Relationship. As the Camera captures their Struggle, their Perfect image Shatters. TEKA: Amani (Nick Olwah), drowning in debt to a ruthless Loan Shark, makes a drastic decision to kidnap Hope (Amina Hussein) - a social media Influencer hiding her own painful struggles behind a facade of luxury. What follows is a heart-wrenching journey where both strangers open up about their traumas, finding unexpected solace and connection in eachother's stories.",
+      artwork: wwkSepPoster || null,
       endDate: '2024-09-07T23:59:00',
       link: 'd9f374f2fd5667af?title=Anthology%20for%20#WeWatchKenyan%20-%20September%202024',
     },
