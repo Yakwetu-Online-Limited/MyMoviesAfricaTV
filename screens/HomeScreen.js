@@ -32,6 +32,9 @@ const HomePage = () => {
   const [selectedGenre, setSelectedGenre] = useState(null);
   const [eventModalVisible, setEventModalVisible] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState(null);
+  const [currentEvents, setCurrentEvents] = useState([]);
+
+ 
   const [requestDetails, setRequestDetails] = useState({
     organizationName: "",
     contactPersonName: "",
@@ -165,7 +168,7 @@ const HomePage = () => {
       {/*  Pass genres to HeaderSection for GenreButtonCarousel */}
       <HeaderSection
         setModalVisible={setModalVisible}
-        onEventPress={() => handleEventPress(eventsData[0])} // Pass the first event as an example
+        onEventPress={() => handleEventPress(eventsData[1])} // Pass the first event as an example
         // onEventPress={() => setEventModalVisible(true)}
         genres={genres}
         onGenreSelect={handleGenreSelect}
@@ -343,7 +346,7 @@ const EventDetailsModal = ({ visible, event, onClose }) => {
       <View style={styles.modalBackground}>
         <View style={styles.modalContainer}>
           <View style={styles.modalHeader}>
-            <Text style={styles.modalTitle}>Event Details</Text>
+            <Text style={styles.modalTitle}>MyMovies.Africa™ Events</Text>
             <TouchableOpacity onPress={onClose}>
               <Text style={styles.closeButton}>✕</Text>
             </TouchableOpacity>
