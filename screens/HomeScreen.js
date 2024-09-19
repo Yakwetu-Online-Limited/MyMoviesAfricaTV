@@ -365,6 +365,11 @@ const EventDetailsModal = ({ visible, events, onClose }) => {
     );
   };
 
+  const truncateDescription = (text, maxLength) => {
+    if (text.length <= maxLength) return text;
+    return text.substr(0, maxLength) + '...';
+  };
+
   return (
     <Modal
       visible={visible}
@@ -386,7 +391,9 @@ const EventDetailsModal = ({ visible, events, onClose }) => {
               style={styles.eventArtwork}
             />
             <Text style={styles.eventTitle}>{currentEvent.title}</Text>
-            <Text style={styles.eventDescription}>{currentEvent.description}</Text>
+            <Text style={styles.eventDescription}>
+              {truncateDescription(currentEvent.description, 150)}
+            </Text>
             <TouchableOpacity
               style={styles.eventLinkButton}
               onPress={() => {
@@ -892,6 +899,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: "#CCCCCC",
     marginBottom: 15,
+    lineHeight: 24,
   },
   eventLinkButton: {
     backgroundColor: "#8E44AD",
