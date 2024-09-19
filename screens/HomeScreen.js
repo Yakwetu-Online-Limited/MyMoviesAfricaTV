@@ -278,9 +278,21 @@ const HomePage = () => {
           </View>
         </View>
       </Modal>
+
+
+       {/*  Event Details Modal */}
+      <EventDetailsModal
+        visible={eventModalVisible}
+        event={selectedEvent}
+        onClose={() => setEventModalVisible(false)}
+      />
+
+
     </ScrollView>
   );
 };
+
+
 
 //  Updated HeaderSection to include GenreButtonCarousel
 const HeaderSection = ({
@@ -313,6 +325,50 @@ const HeaderSection = ({
     />
   </View>
 );
+
+
+// /New EventDetailsModal component
+const EventDetailsModal = ({ visible, event, onClose }) => {
+  if (!event) return null;
+
+  return (
+    <Modal
+      visible={visible}
+      transparent={true}
+      animationType="slide"
+      onRequestClose={onClose}
+    >
+      <View style={styles.modalBackground}>
+        <View style={styles.modalContainer}>
+          <View style={styles.modalHeader}>
+            <Text style={styles.modalTitle}>Event Details</Text>
+            <TouchableOpacity onPress={onClose}>
+              <Text style={styles.closeButton}>✕</Text>
+            </TouchableOpacity>
+          </View>
+          <ScrollView style={styles.eventDetailsContainer}>
+            <Image
+              source={event.artwork || defaultPosterImage}
+              style={styles.eventArtwork}
+            />
+            <Text style={styles.eventTitle}>{event.title}</Text>
+            <Text style={styles.eventDescription}>{event.description}</Text>
+            <TouchableOpacity
+              style={styles.eventLinkButton}
+              onPress={() => {
+                // Handle link press (e.g., open in browser or navigate)
+                console.log("Event link pressed:", event.link);
+              }}
+            >
+              <Text style={styles.eventLinkButtonText}>Learn More</Text>
+            </TouchableOpacity>
+          </ScrollView>
+        </View>
+      </View>
+    </Modal>
+  );
+};
+
 
 // GenreButtonCarousel Component
 const GenreButtonCarousel = ({ genres, onGenreSelect, selectedGenre }) => {
