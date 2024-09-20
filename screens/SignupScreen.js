@@ -1,53 +1,80 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, Image, Switch } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, Image, ActivityIndicator, Switch } from 'react-native';
 import PhoneInput from 'react-native-phone-input';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-import { auth } from '../firebase'; 
-import { createUserWithEmailAndPassword } from 'firebase/auth';
 
 const SignupScreen = ({ navigation }) => {
-  const [fullName, setFullName] = useState('');
+  // State Declarations
+  const [displayName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
-  const [password, setPassword] = useState('');
+  const [password, setPassword] = useState(''); 
   const [showPassword, setShowPassword] = useState(false);
   const [isPrivacyChecked, setIsPrivacyChecked] = useState(false);
-
   const [isLoading, setIsLoading] = useState(false);
-  const handleSignup = () => {
-    if (fullName === '' || email === '' || phoneNumber === '' || password === '' || !isPrivacyChecked) {
-      Alert.alert('Error', 'Please fill in all fields and agree to the Privacy Policy');
+
+  // Email Validation Helper Function
+  const validateEmail = (email) => {
+    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailPattern.test(email);
+  };
+
+  // Signup Handler
+  const handleSignup = async () => {
+    // Check if all required fields are filled
+    if (!displayName || !validateEmail(email) || !phoneNumber || !password || !isPrivacyChecked) {
+      Alert.alert('Error', 'Please fill in all fields with valid information and agree to the Privacy Policy.');
       return;
     }
 
     setIsLoading(true);
 
-    createUserWithEmailAndPassword(auth, email, password)
-      .then((userCredential) => {
-        // User created successfully, you can save additional information (like fullName, phoneNumber) here.
-        Alert.alert('Success', 'Account created successfully');
-        navigation.navigate('Home', {username: fullName});
-      })
-      .catch((error) => {
-        setIsLoading(false);
-        let errorMessage = 'An error occurred.';
-        if(error.code === 'auth/email-already-in-use'){
-          errorMessage = 'Email already in use';
-        } else if(error.code === 'auth/invalid-email'){
-          errorMessage = 'Please enter a valid email address';
-        } else if (error.code === 'auth/weak-password'){
-          errorMessage = 'Password should be at least 6 characters';
-        }  else if (error.code === 'auth/operation-not-allowed') {
-          errorMessage = 'Authentication method is not enabled';
-        }
-        Alert.alert('Error', error.message);
+    // Prepare Form Data
+    const formData = {
+      email: email,
+      name: displayName,
+      phone: phoneNumber,
+      ref: 'app',
+      isHidden: '0',
+      reason: 'Signup',
+      transactionType: 'RENTAL',
+      birthday: '',
+      affiliateCode: '',
+    };
+
+    try {
+      // API Call to Signup Endpoint
+      console.log('Form Data:', formData);
+      const response = await fetch('https://api.mymovies.africa/api/v1/users/createAccount', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData),
       });
+      
+      console.log('Response:', response);
+      const data = await response.json();
+      console.log('Data:', data);
+      setIsLoading(false);
+
+      // Handle Response
+      if (!data || !data.uid) {
+        const errorMessage = data.message || 'Failed to create account. Please try again.';
+        Alert.alert('Error', errorMessage);
+      } else {
+        Alert.alert('Success', 'Account created successfully');
+        navigation.navigate('Home');
+      }
+    } catch (error) {
+      setIsLoading(false);
+      Alert.alert('Error', 'An error occurred. Please try again.');
+      console.error('Error:', error);
+    }
   };
 
+  // JSX Structure
   return (
     <View style={styles.container}>
       <Image source={require('../assets/logo.webp')} style={styles.logo} />
-
       <Text style={styles.headerText}>
         Sign-up now to Enjoy the latest Movies from Africa available to #RentFor2Days, #RentFor7Days or #OwnForLife!
       </Text>
@@ -58,10 +85,9 @@ const SignupScreen = ({ navigation }) => {
           style={styles.input}
           placeholder="Full name"
           placeholderTextColor="#888"
-          value={fullName}
+          value={displayName}
           onChangeText={setFullName}
         />
-        {fullName === '' && <Text style={styles.errorText}>Full name is required</Text>}
       </View>
 
       {/* Email Input */}
@@ -75,19 +101,23 @@ const SignupScreen = ({ navigation }) => {
           keyboardType="email-address"
           autoCapitalize="none"
         />
-        <Text style={styles.errorText}>Enter a valid Email</Text>
+        {email !== '' && !validateEmail(email) && (
+          <Text style={styles.errorText}>Enter a valid Email</Text>
+        )}
       </View>
 
       {/* Phone Number Input */}
       <View style={styles.inputContainer}>
         <PhoneInput
           style={styles.phoneInput}
-          textStyle={{ color: '#fff' }} 
-          initialCountry="ke" 
+          textStyle={{ color: '#fff' }}
+          initialCountry="ke"
           value={phoneNumber}
           onChangePhoneNumber={setPhoneNumber}
         />
-        <Text style={styles.errorText}>Enter a valid phone number</Text>
+        {phoneNumber !== '' && phoneNumber.length < 10 && (
+          <Text style={styles.errorText}>Enter a valid phone number</Text>
+        )}
       </View>
 
       {/* Password Input */}
@@ -106,7 +136,9 @@ const SignupScreen = ({ navigation }) => {
             <Icon name={showPassword ? 'visibility' : 'visibility-off'} size={24} color="#888" />
           </TouchableOpacity>
         </View>
-        <Text style={styles.errorText}>Password should be more than 6 characters</Text>
+        {password !== '' && password.length < 6 && (
+          <Text style={styles.errorText}>Password should be at least 6 characters</Text>
+        )}
       </View>
 
       {/* Privacy Policy Checkbox */}
@@ -122,7 +154,11 @@ const SignupScreen = ({ navigation }) => {
 
       {/* Create Account Button */}
       <TouchableOpacity style={styles.signupButton} onPress={handleSignup}>
-        <Text style={styles.signupButtonText}>Create Account</Text>
+        {isLoading ? (
+          <ActivityIndicator size="small" color="#fff" />
+        ) : (
+          <Text style={styles.signupButtonText}>Create Account</Text>
+        )}
       </TouchableOpacity>
 
       <Text style={styles.orText}>OR</Text>
@@ -135,6 +171,7 @@ const SignupScreen = ({ navigation }) => {
   );
 };
 
+// Styles
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -143,8 +180,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   logo: {
-    alignSelf: 'center', 
-    marginBottom: 20, 
+    alignSelf: 'center',
+    marginBottom: 20,
   },
   headerText: {
     color: '#fff',
@@ -172,18 +209,18 @@ const styles = StyleSheet.create({
     borderColor: '#888',
   },
   passwordContainer: {
-    flexDirection: 'row', 
-    alignItems: 'center', 
+    flexDirection: 'row',
+    alignItems: 'center',
     backgroundColor: '#1e1e1e',
     borderRadius: 5,
     borderWidth: 1,
     borderColor: '#888',
-    paddingHorizontal: 10, 
+    paddingHorizontal: 10,
   },
   passwordInput: {
     flex: 1,
     color: '#fff',
-    paddingVertical: 10, 
+    paddingVertical: 10,
   },
   errorText: {
     color: '#ff4d4d',
@@ -195,18 +232,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 20,
   },
-  checkbox: {
-    marginRight: 10,
-  },
   checkboxLabel: {
     color: '#ffcc00',
+    marginLeft: 10,
   },
   signupButton: {
     borderRadius: 5,
     borderWidth: 1,
     borderColor: '#90EE90',
     padding: 15,
-    borderRadius: 5,
     alignItems: 'center',
     marginTop: 20,
   },
