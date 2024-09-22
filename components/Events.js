@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -8,18 +8,32 @@ import {
   Image,
   StyleSheet,
   Dimensions,
+  FlatList,
 } from 'react-native';
 import defaultPosterImage from "../images/default.jpg";
+import { getArtwork } from "../components/imageUtils";
 
 const { width } = Dimensions.get("window");
 
-const Events = ({ currentEvents }) => {
+const Events = ({ currentEvents, genres }) => {
   const [eventModalVisible, setEventModalVisible] = useState(false);
-  const [selectedEvents, setSelectedEvents] = useState([]);
+  const [selectedEvent, setSelectedEvent] = useState(null);
+  const [newReleases, setNewReleases] = useState([]);
+
+  useEffect(() => {
+    if (genres && genres.length > 0) {
+      const allMovies = genres.flatMap(genre => genre.movies);
+      const sortedMovies = allMovies.sort((a, b) => new Date(b.releaseDate) - new Date(a.releaseDate));
+      setNewReleases(sortedMovies.slice(0, 5)); // Get the 5 most recent releases
+    }
+  }, [genres]);
 
   const handleEventPress = () => {
-    setSelectedEvents(currentEvents);
     setEventModalVisible(true);
+  };
+
+  const handleLearnMore = (event) => {
+    setSelectedEvent(event);
   };
 
   return (
@@ -35,14 +49,24 @@ const Events = ({ currentEvents }) => {
 
       <EventDetailsModal
         visible={eventModalVisible}
-        events={selectedEvents}
+        events={currentEvents}
         onClose={() => setEventModalVisible(false)}
+        onLearnMore={handleLearnMore}
       />
+
+      {selectedEvent && (
+        <EventLearnMoreModal
+          visible={!!selectedEvent}
+          event={selectedEvent}
+          onClose={() => setSelectedEvent(null)}
+          newReleases={newReleases}
+        />
+      )}
     </>
   );
 };
 
-const EventDetailsModal = ({ visible, events, onClose }) => {
+const EventDetailsModal = ({ visible, events, onClose, onLearnMore }) => {
   const [currentEventIndex, setCurrentEventIndex] = useState(0);
   
   if (!events || events.length === 0) return null;
@@ -92,9 +116,7 @@ const EventDetailsModal = ({ visible, events, onClose }) => {
             </Text>
             <TouchableOpacity
               style={styles.eventLinkButton}
-              onPress={() => {
-                console.log("Event link pressed:", currentEvent.link);
-              }}
+              onPress={() => onLearnMore(currentEvent)}
             >
               <Text style={styles.eventLinkButtonText}>Learn More</Text>
             </TouchableOpacity>
@@ -113,6 +135,58 @@ const EventDetailsModal = ({ visible, events, onClose }) => {
         </View>
       </View>
     </Modal>
+  );
+};
+
+const EventLearnMoreModal = ({ visible, event, onClose, newReleases }) => {
+  return (
+    <Modal
+      visible={visible}
+      transparent={true}
+      animationType="slide"
+      onRequestClose={onClose}
+    >
+      <View style={styles.modalBackground}>
+        <View style={styles.modalContainer}>
+          <View style={styles.modalHeader}>
+            <Text style={styles.modalTitle}>{event.title}</Text>
+            <TouchableOpacity onPress={onClose}>
+              <Text style={styles.closeButton}>✕</Text>
+            </TouchableOpacity>
+          </View>
+          <ScrollView style={styles.eventDetailsContainer}>
+            <Image
+              source={event.artwork || defaultPosterImage}
+              style={styles.eventArtwork}
+            />
+            <Text style={styles.eventDescription}>{event.description}</Text>
+            <Text style={styles.newReleasesTitle}>New Releases</Text>
+            <FlatList
+              data={newReleases}
+              renderItem={({ item }) => <MovieItem movie={item} />}
+              keyExtractor={(item) => item.id}
+              horizontal
+              showsHorizontalScrollIndicator={false}
+            />
+          </ScrollView>
+        </View>
+      </View>
+    </Modal>
+  );
+};
+
+const MovieItem = ({ movie }) => {
+  const posterUrl = movie.poster || (movie.ref ? getArtwork(movie.ref).portrait : null);
+
+  return (
+    <View style={styles.movieContainer}>
+      <Image
+        source={{ uri: posterUrl }}
+        style={styles.moviePoster}
+        defaultSource={defaultPosterImage}
+      />
+      <Text style={styles.movieTitle}>{movie.title}</Text>
+    </View>
   );
 };
 
@@ -213,6 +287,29 @@ const styles = StyleSheet.create({
   eventCounter: {
     color: '#FFFFFF',
     fontSize: 16,
+  },
+  newReleasesTitle: {
+    fontSize: 20,
+    fontWeight: "bold",
+    color: "#FFFFFF",
+    marginTop: 20,
+    marginBottom: 10,
+  },
+  movieContainer: {
+    marginRight: 15,
+    alignItems: "center",
+  },
+  moviePoster: {
+    width: 120,
+    height: 180,
+    borderRadius: 10,
+  },
+  movieTitle: {
+    marginTop: 5,
+    fontSize: 14,
+    color: "#FFFFFF",
+    textAlign: "center",
+    width: 120,
   },
 });
 
