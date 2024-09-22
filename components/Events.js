@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -9,7 +9,8 @@ import {
   StyleSheet,
   Dimensions,
   FlatList,
-} from 'react-native';
+} from "react-native";
+import { useNavigation } from "@react-navigation/native";
 import defaultPosterImage from "../images/default.jpg";
 import { getArtwork } from "../components/imageUtils";
 
@@ -22,8 +23,10 @@ const Events = ({ currentEvents, genres }) => {
 
   useEffect(() => {
     if (genres && genres.length > 0) {
-      const allMovies = genres.flatMap(genre => genre.movies);
-      const sortedMovies = allMovies.sort((a, b) => new Date(b.releaseDate) - new Date(a.releaseDate));
+      const allMovies = genres.flatMap((genre) => genre.movies);
+      const sortedMovies = allMovies.sort(
+        (a, b) => new Date(b.releaseDate) - new Date(a.releaseDate)
+      );
       setNewReleases(sortedMovies.slice(0, 5)); // Get the 5 most recent releases
     }
   }, [genres]);
@@ -68,26 +71,26 @@ const Events = ({ currentEvents, genres }) => {
 
 const EventDetailsModal = ({ visible, events, onClose, onLearnMore }) => {
   const [currentEventIndex, setCurrentEventIndex] = useState(0);
-  
+
   if (!events || events.length === 0) return null;
-  
+
   const currentEvent = events[currentEventIndex];
 
   const goToPreviousEvent = () => {
-    setCurrentEventIndex((prevIndex) => 
+    setCurrentEventIndex((prevIndex) =>
       prevIndex > 0 ? prevIndex - 1 : events.length - 1
     );
   };
 
   const goToNextEvent = () => {
-    setCurrentEventIndex((prevIndex) => 
+    setCurrentEventIndex((prevIndex) =>
       prevIndex < events.length - 1 ? prevIndex + 1 : 0
     );
   };
 
   const truncateDescription = (text, maxLength) => {
     if (text.length <= maxLength) return text;
-    return text.substr(0, maxLength) + '...';
+    return text.substr(0, maxLength) + "...";
   };
 
   return (
@@ -122,7 +125,10 @@ const EventDetailsModal = ({ visible, events, onClose, onLearnMore }) => {
             </TouchableOpacity>
           </ScrollView>
           <View style={styles.navigationContainer}>
-            <TouchableOpacity onPress={goToPreviousEvent} style={styles.navButton}>
+            <TouchableOpacity
+              onPress={goToPreviousEvent}
+              style={styles.navButton}
+            >
               <Text style={styles.navButtonText}>Previous</Text>
             </TouchableOpacity>
             <Text style={styles.eventCounter}>
@@ -164,7 +170,12 @@ const EventLearnMoreModal = ({ visible, event, onClose, newReleases }) => {
             <View style={styles.newReleasesContainer}>
               <FlatList
                 data={newReleases}
-                renderItem={({ item }) => <MovieItem movie={item} />}
+                renderItem={({ item }) => (
+                  <MovieItem
+                    movie={item}
+                    onPress={(movie) => console.log("Movie pressed:", movie)}
+                  />
+                )}
                 keyExtractor={(item) => item.id}
                 horizontal
                 showsHorizontalScrollIndicator={false}
@@ -177,18 +188,27 @@ const EventLearnMoreModal = ({ visible, event, onClose, newReleases }) => {
   );
 };
 
-const MovieItem = ({ movie }) => {
-  const posterUrl = movie.poster || (movie.ref ? getArtwork(movie.ref).portrait : null);
+const MovieItem = ({ movie, onPress }) => {
+  const navigation = useNavigation();
+  const posterUrl =
+    movie.poster || (movie.ref ? getArtwork(movie.ref).portrait : null);
 
   return (
-    <View style={styles.movieContainer}>
-      <Image
-        source={{ uri: posterUrl }}
-        style={styles.moviePoster}
-        defaultSource={defaultPosterImage}
-      />
-      <Text style={styles.movieTitle}>{movie.title}</Text>
-    </View>
+    // <TouchableOpacity onPress={() => onPress(movie)}>
+    <TouchableOpacity
+    // onPress={navigation.navigate("MovieDetailScreen", { movieId: movie.id })}
+    onPress={() => navigation.navigate("MovieDetailScreen", { movieId: movie.id })}
+    //   onPress={() => navigation.navigate("MovieDetailScreen", { movie })}
+    >
+      <View style={styles.movieContainer}>
+        <Image
+          source={{ uri: posterUrl }}
+          style={styles.moviePoster}
+          defaultSource={defaultPosterImage}
+        />
+        <Text style={styles.movieTitle}>{movie.title}</Text>
+      </View>
+    </TouchableOpacity>
   );
 };
 
@@ -270,24 +290,24 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
   navigationContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     paddingVertical: 15,
     paddingHorizontal: 20,
     borderTopWidth: 1,
-    borderTopColor: '#333',
+    borderTopColor: "#333",
   },
   navButton: {
     padding: 10,
   },
   navButtonText: {
-    color: '#FFFFFF',
+    color: "#FFFFFF",
     fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   eventCounter: {
-    color: '#FFFFFF',
+    color: "#FFFFFF",
     fontSize: 16,
   },
   newReleasesTitle: {
