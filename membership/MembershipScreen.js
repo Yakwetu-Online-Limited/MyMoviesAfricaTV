@@ -15,6 +15,7 @@ const MembershipScreen = () => {
         setTopUpPressed(true);
         // Simulate button press duration
         setTimeout(() => setTopUpPressed(false), 200);
+        navigation.navigate('Payment');
     };
 
     const handleUpdateAccountPress = ({ navigation }) => {
