@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   View,
   Text,
@@ -10,7 +10,7 @@ import {
   Dimensions,
   FlatList,
 } from "react-native";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import defaultPosterImage from "../images/default.jpg";
 import { getArtwork } from "../components/imageUtils";
 
@@ -21,6 +21,8 @@ const Events = ({ currentEvents, genres }) => {
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [newReleases, setNewReleases] = useState([]);
 
+  const navigation = useNavigation();
+
   useEffect(() => {
     if (genres && genres.length > 0) {
       const allMovies = genres.flatMap((genre) => genre.movies);
@@ -30,6 +32,14 @@ const Events = ({ currentEvents, genres }) => {
       setNewReleases(sortedMovies.slice(0, 5)); // Get the 5 most recent releases
     }
   }, [genres]);
+
+  // Reset the modal visibility and selected event on screen focus
+  useFocusEffect(
+    useCallback(() => {
+      setEventModalVisible(false);
+      setSelectedEvent(null);
+    }, [])
+  );
 
   const handleEventPress = () => {
     setEventModalVisible(true);
@@ -68,6 +78,7 @@ const Events = ({ currentEvents, genres }) => {
     </>
   );
 };
+
 
 const EventDetailsModal = ({ visible, events, onClose, onLearnMore }) => {
   const [currentEventIndex, setCurrentEventIndex] = useState(0);
