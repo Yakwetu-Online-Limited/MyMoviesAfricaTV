@@ -78,8 +78,6 @@ const Events = ({ currentEvents, genres }) => {
     </>
   );
 };
-
-
 const EventDetailsModal = ({ visible, events, onClose, onLearnMore }) => {
   const [currentEventIndex, setCurrentEventIndex] = useState(0);
 

@@ -49,9 +49,23 @@ const Screening = () => {
 
   const attendeesOptions = ['6-20 People', '21-100 People', '101-200 People', '201+ People'];
 
+  // Handle request and reset form
   const handleRequestScreening = useCallback(() => {
     console.log("Screening request submitted:", requestDetails);
-    setModalVisible(false);
+
+    // Reset the form after submission
+    setRequestDetails({
+      organizationName: "",
+      contactPersonName: "",
+      email: "",
+      phone: "",
+      location: "",
+      movie: "",
+      attendees: "",
+      date: new Date(),
+    });
+
+    setModalVisible(false); // Close the modal
   }, [requestDetails]);
 
   const handleInputChange = useCallback((field, value) => {
@@ -202,6 +216,7 @@ const Screening = () => {
     </>
   );
 };
+
 
 const InputField = React.memo(({ label, value, onChangeText, placeholder, required, keyboardType }) => (
   <View style={styles.inputGroup}>
@@ -434,4 +449,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default React.memo(Screening);
+export default React.memo(Screening); 
