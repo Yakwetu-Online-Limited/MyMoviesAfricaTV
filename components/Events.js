@@ -161,13 +161,15 @@ const EventLearnMoreModal = ({ visible, event, onClose, newReleases }) => {
             />
             <Text style={styles.eventDescription}>{event.description}</Text>
             <Text style={styles.newReleasesTitle}>New Releases</Text>
-            <FlatList
-              data={newReleases}
-              renderItem={({ item }) => <MovieItem movie={item} />}
-              keyExtractor={(item) => item.id}
-              horizontal
-              showsHorizontalScrollIndicator={false}
-            />
+            <View style={styles.newReleasesContainer}>
+              <FlatList
+                data={newReleases}
+                renderItem={({ item }) => <MovieItem movie={item} />}
+                keyExtractor={(item) => item.id}
+                horizontal
+                showsHorizontalScrollIndicator={false}
+              />
+            </View>
           </ScrollView>
         </View>
       </View>
@@ -289,27 +291,34 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   newReleasesTitle: {
-    fontSize: 20,
+    fontSize: 22,
     fontWeight: "bold",
     color: "#FFFFFF",
-    marginTop: 20,
-    marginBottom: 10,
+    marginTop: 30,
+    marginBottom: 15,
+    textTransform: "uppercase",
+    letterSpacing: 1,
+  },
+  newReleasesContainer: {
+    marginBottom: 30,
   },
   movieContainer: {
     marginRight: 15,
     alignItems: "center",
+    width: 130,
   },
   moviePoster: {
-    width: 120,
-    height: 180,
+    width: 130,
+    height: 195,
     borderRadius: 10,
+    marginBottom: 8,
   },
   movieTitle: {
-    marginTop: 5,
     fontSize: 14,
     color: "#FFFFFF",
     textAlign: "center",
-    width: 120,
+    width: 130,
+    fontWeight: "600",
   },
 });
 

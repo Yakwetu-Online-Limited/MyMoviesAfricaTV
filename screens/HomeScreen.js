@@ -146,8 +146,8 @@ const HeaderSection = ({
     />
     <View style={styles.headerButtons}>
       <Screening />
-      {/* <Events currentEvents={currentEvents} genres={genres} /> */}
-      <Events currentEvents={currentEvents} />
+      <Events currentEvents={currentEvents} genres={genres} />
+      {/* <Events currentEvents={currentEvents} /> */}
     </View>
     <GenreButtonCarousel
       genres={genres}
