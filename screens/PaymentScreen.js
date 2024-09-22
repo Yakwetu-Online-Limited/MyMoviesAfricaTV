@@ -10,8 +10,9 @@ const PaymentPage = () => {
   const [paymentOptions, setPaymentOptions] = useState([]);
   const navigation = useNavigation();
   const route = useRoute();
-  const { id, ref, purchase_type } = route.params; // Assuming you're passing id, ref, and purchase_type as route params
+  // const { id, ref, purchase_type } = route.params; // passing id, ref, and purchase_type as route params
 
+  console.log('Passed route params:', route);
   useEffect(() => {
     fetchPaymentOptions();
   }, []);
@@ -19,11 +20,11 @@ const PaymentPage = () => {
   // Fetch payment options from the API
   const fetchPaymentOptions = async () => {
     try {
-      const response = await axios.get(`https://api.mymovies.africa/api/v1/payment/gate/${id}`, {
+      const response = await axios.get(`https://api.mymovies.africa/api/v1/payment/gate/${10911}`, {
         params: {
-          amount,
-          purchase_type,
-          ref,
+          amount: 300,
+          purchase_type: "RENTAL",
+          ref: 'f23879c9f04ad9b0'
         },
       });
       setPaymentOptions(response.data.paymentOptions || []);
@@ -100,6 +101,51 @@ const PaymentPage = () => {
         value={amount}
         onChangeText={(text) => setAmount(text)}
       />
+
+<View style={styles.paymentOption}>
+        <RadioButton
+          value="mpesa"
+          status={paymentMethod === 'mpesa' ? 'checked' : 'unchecked'}
+          onPress={() => setPaymentMethod('mpesa')}
+          color="#4CAF50"
+        />
+        <Image
+          
+          source={require('../assets/mpesa-logo.png')}
+          style={styles.paymentImage}
+        />
+      </View>
+
+      {/* Bonga Option */}
+      <View style={styles.paymentOption}>
+        <RadioButton
+          value="bonga"
+          status={paymentMethod === 'bonga' ? 'checked' : 'unchecked'}
+          onPress={() => setPaymentMethod('bonga')}
+          color="#FF3D00"
+        />
+        <Image
+          
+          source={require('../assets/bonga-logo.png')}
+          style={styles.paymentImage}
+        />
+      </View>
+
+      {/* VISA Option */}
+      <View style={styles.paymentOption}>
+        <RadioButton
+          value="visa"
+          status={paymentMethod === 'visa' ? 'checked' : 'unchecked'}
+          onPress={() => setPaymentMethod('visa')}
+          color="#1A73E8"
+        />
+        <Image
+          
+          source={require('../assets/visa-logo.png')}
+          style={styles.paymentImage}
+        />
+      </View>
+
 
       {/* Next Button */}
       <TouchableOpacity style={styles.nextButton} onPress={handleNextPress}>
