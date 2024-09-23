@@ -4,6 +4,7 @@ import PhoneInput from 'react-native-phone-input';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { auth } from '../firebase'; 
 import { createUserWithEmailAndPassword } from 'firebase/auth';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const SignupScreen = ({ navigation }) => {
   const [fullName, setFullName] = useState('');
@@ -23,8 +24,8 @@ const SignupScreen = ({ navigation }) => {
     setIsLoading(true);
   
     try {
-      await createUserWithEmailAndPassword(auth, email, password);
-      console.log('Firebase user created');
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      console.log('Firebase user created', userCredential);
 
       const formData = new URLSearchParams({
         email: email,
@@ -50,7 +51,11 @@ const SignupScreen = ({ navigation }) => {
       console.log('Response headers:', response.headers);
 
       const responseText = await response.text();
-      console.log('Raw response:', responseText);
+      console.log(response.status, responseText); 
+
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
 
       // Extract JSON from the response
       const jsonMatch = responseText.match(/\{.*\}/);
@@ -74,8 +79,14 @@ const SignupScreen = ({ navigation }) => {
       }
   
       if (data.status === true) {
+        console.log('API response contains uid:', data.userId);
         Alert.alert('Success', 'Account created successfully');
-        navigation.navigate('Home');
+
+        // Store the uid in AsyncStorage
+        await AsyncStorage.setItem('userId', String(data.userId));
+        console.log('UserId stored in AsyncStorage successfully:', data.userId);
+
+        navigation.navigate('Home', { userId: data.userId, username: fullName });
       } else {
         console.error('Server error:', data);
         Alert.alert('Error', data.message || 'An error occurred while creating the account.');
