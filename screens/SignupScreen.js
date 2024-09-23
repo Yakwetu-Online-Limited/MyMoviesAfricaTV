@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, Image, Switch, ActivityIndicator } from 'react-native';
 import PhoneInput from 'react-native-phone-input';
 import Icon from 'react-native-vector-icons/MaterialIcons';
+import { auth } from '../firebase'; 
+import { createUserWithEmailAndPassword } from 'firebase/auth';
 
 const SignupScreen = ({ navigation }) => {
   const [fullName, setFullName] = useState('');
@@ -21,6 +23,9 @@ const SignupScreen = ({ navigation }) => {
     setIsLoading(true);
   
     try {
+      await createUserWithEmailAndPassword(auth, email, password);
+      console.log('Firebase user created');
+
       const formData = new URLSearchParams({
         email: email,
         name: fullName,
