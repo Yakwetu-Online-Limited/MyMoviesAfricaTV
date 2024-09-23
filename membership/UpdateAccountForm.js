@@ -4,14 +4,23 @@ import { Button, Card } from '@rneui/themed';
 import { Formik } from 'formik';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import PhoneInput from 'react-native-phone-number-input';
+import * as Yup from 'yup';
+
+const validationSchema = Yup.object().shape({
+  name: Yup.string().required('Name is required'),
+  email: Yup.string().email('Invalid email').required('Email is required'),
+  phoneNumber: Yup.string()
+    .matches(/^\+?[1-9]\d{1,14}$/, 'Phone number is not valid')
+    .required('Phone number is required')
+    .min(10, 'Phone number is not valid'),
+  birthday: Yup.date().required('Birthday is required'),
+});
 
 const UpdateAccountForm = () => {
-    // State to control the visibility of the date picker
     const [showDatePicker, setShowDatePicker] = useState(false);
 
-    // Function to handle form submission
     const handleSubmit = (values) => {
-        console.log(values); // Replace with actual submit logic
+        console.log(values);
         Alert.alert(
             "Success",
             "Account updated successfully!",
@@ -29,28 +38,35 @@ const UpdateAccountForm = () => {
                         phoneNumber: '',  
                         birthday: new Date()
                     }}
+                    validationSchema={validationSchema}
                     onSubmit={handleSubmit}
                 >
-                   {(props) => (
+                   {({ handleChange, handleSubmit, values, errors, touched, setFieldValue, isValid }) => (
                        <View>
                            <Text style={styles.inputLabel}>Name</Text>
                            <TextInput
                                style={styles.input}
                                placeholder="Enter your name"
-                               onChangeText={props.handleChange('name')}
-                               value={props.values.name}
+                               onChangeText={handleChange('name')}
+                               value={values.name}
                                placeholderTextColor="#999"
                            />
+                           {errors.name && (
+                               <Text style={styles.errorText}>{errors.name}</Text>
+                           )}
 
                            <Text style={styles.inputLabel}>Email</Text>
                            <TextInput
                                style={styles.input}
                                placeholder="Enter your email"
-                               onChangeText={props.handleChange('email')}
-                               value={props.values.email}
+                               onChangeText={handleChange('email')}
+                               value={values.email}
                                keyboardType="email-address"
                                placeholderTextColor="#999"
                            />
+                           {errors.email && (
+                               <Text style={styles.errorText}>{errors.email}</Text>
+                           )}
 
                            <Text style={styles.inputLabel}>Phone Number</Text>
                            <PhoneInput
@@ -59,40 +75,49 @@ const UpdateAccountForm = () => {
                                textInputStyle={styles.phoneInputText}
                                codeTextStyle={styles.phoneInputCodeText}
                                placeholder="Enter your phone number"
-                               defaultValue={props.values.phoneNumber}
+                               defaultValue={values.phoneNumber}
                                defaultCode="KE"
                                layout="first"
                                onChangeFormattedText={(text) => {
-                                   props.setFieldValue('phoneNumber', text);
+                                   setFieldValue('phoneNumber', text);
                                }}
                                withDarkTheme
                                withShadow
                            />
+                           {errors.phoneNumber && (
+                               <Text style={styles.errorText}>{errors.phoneNumber}</Text>
+                           )}
 
                            <Text style={styles.inputLabel}>Birthday</Text>
                            <Button
-                               title={props.values.birthday.toDateString()}
+                               title={values.birthday.toDateString()}
                                onPress={() => setShowDatePicker(true)}
                                buttonStyle={styles.dateButton}
                            />
                            {showDatePicker && (
                                <DateTimePicker
-                                   value={props.values.birthday}
+                                   value={values.birthday}
                                    mode="date"
                                    display="default"
                                    onChange={(event, selectedDate) => {
                                        setShowDatePicker(Platform.OS === 'ios');
                                        if (selectedDate) {
-                                           props.setFieldValue('birthday', selectedDate);
+                                           setFieldValue('birthday', selectedDate);
                                        }
                                    }}
                                />
                            )}
+                           { errors.birthday && (
+                               <Text style={styles.errorText}>{errors.birthday}</Text>
+                           )}
 
                            <Button
                                title="Update Account"
-                               onPress={props.handleSubmit}
+                               onPress={handleSubmit}
                                buttonStyle={styles.submitButton}
+                               titleStyle={styles.submitButtonTitle}
+                               type="outline"
+                               disabled={!isValid}
                            />
                        </View>
                    )}
@@ -125,19 +150,20 @@ const styles = StyleSheet.create({
         borderColor: '#ccc',
         borderRadius: 5,
         padding: 10,
-        marginBottom: 15,
+        marginBottom: 5,
         color: '#ffffff',
+        backgroundColor: '#1a1a1a', 
     },
     phoneInputContainer: {
         width: '100%',
         height: 50,
-        marginBottom: 15,
+        marginBottom: 5,
+        backgroundColor: '#1a1a1a', 
     },
     phoneInputTextContainer: {
-        backgroundColor: '#000000',
+        backgroundColor: '#1a1a1a', 
         borderLeftWidth: 1,
         borderLeftColor: '#ccc',
-        margin: 0.5,
     },
     phoneInputText: {
         color: '#ffffff',
@@ -146,14 +172,23 @@ const styles = StyleSheet.create({
         color: '#ffffff',
     },
     dateButton: {
-        backgroundColor: '#333333',
+        backgroundColor: '#1a1a1a', // Slightly lighter than black
         borderRadius: 5,
-        marginBottom: 15,
+        marginBottom: 5,
     },
     submitButton: {
-        backgroundColor: 'rgba(78, 116, 289, 1)', 
+        borderColor: 'rgba(78, 116, 289, 1)',
         borderRadius: 10,
-        marginTop: 10,
+        marginTop: 20,
+    },
+    submitButtonTitle: {
+        color: 'rgba(78, 116, 289, 1)',
+    },
+    errorText: {
+        color: '#FF6B6B',
+        fontSize: 14,
+        marginBottom: 10,
+        fontWeight: 'bold',
     },
 });
 
