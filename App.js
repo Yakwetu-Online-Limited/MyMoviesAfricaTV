@@ -20,7 +20,10 @@ const ProfilePage = () => <></>;
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
 
-const BottomTabNavigator = () => {
+const BottomTabNavigator = ({ route }) => {
+  const { userId, username } = route.params || {};
+  console.log('BottomTabNavigator params:', route.params); 
+
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
@@ -52,6 +55,7 @@ const BottomTabNavigator = () => {
         name="Home"
         component={HomePage}
         options={{ headerShown: false }} 
+        initialParams={{ userId, username }}
       />
       <Tab.Screen
         name="Search"
@@ -62,6 +66,7 @@ const BottomTabNavigator = () => {
         name="Collection"
         component={CollectionPage}
         options={{ headerShown: false }} 
+        initialParams={{ userId, username }}
       />
       <Tab.Screen
         name="Profile"
