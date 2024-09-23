@@ -2,8 +2,9 @@ import React from 'react';
 import { View, Text, Image, StyleSheet, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 
-const Header = ({ userName, walletBalance, onTopUp}) => {
+const Header = ({ userName, walletBalance, userId, onTopUp}) => {
   console.log('Header received userName:', userName);
+  console.log('Header received userId:', userId);
   
   const navigation = useNavigation();
   return (
@@ -16,7 +17,13 @@ const Header = ({ userName, walletBalance, onTopUp}) => {
         
       </View>
       <View style={styles.userContainer}>
-        <TouchableOpacity onPress={() => navigation.navigate('Payment')} style={styles.topUpButton}>
+        <TouchableOpacity onPress={() => {
+    console.log('Navigating to Payment with userId:', userId);
+    navigation.navigate('Payment', {
+      id: userId,
+      purchase_type: 'TOPUP',
+    });
+  }}  style={styles.topUpButton}>
           <Text style={styles.topUpText}>Top Up</Text>
         </TouchableOpacity>
         <View style={styles.userInfo}>
