@@ -8,10 +8,14 @@ import { useRoute } from '@react-navigation/native';
 const CollectionPage = () => {
   const [collection, setCollection] = useState([]);
   const route = useRoute();
-  const userName = route.params?.username || 'Guest';
+  const { userId, username } = route.params || {};
+   route.params?.username || 'Guest';
+  
 
-  console.log('Received route params:', route.params); // Debugging log
-  console.log('Received userName in CollectionPage:', userName); 
+  console.log('Received route params:', route.params); 
+  console.log('Received userName in CollectionPage:', username); 
+  console.log('Received userId:', userId); 
+
 
   // Fetch user's collection from API
   useEffect(() => {
@@ -53,7 +57,8 @@ const CollectionPage = () => {
     <View style={styles.container}>
       {/* Add the Header Component */}
       <Header 
-        userName={userName || 'Guest'}
+        userName={username}
+        userId={userId}
         walletBalance={walletBalance}
         onTopUp={onTopUp}
       />
