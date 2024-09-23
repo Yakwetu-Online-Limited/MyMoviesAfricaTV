@@ -123,10 +123,11 @@ const styles = StyleSheet.create({
         paddingHorizontal: 10,
     },
     card: {
-        backgroundColor: '#000000',
+        backgroundColor: '#190028',
         borderRadius: 10,
         padding: 20,
         marginVertical: 20,
+        borderWidth: 0,// the white lining of the card
     },
     cardTitle: {
         flexDirection: 'row',
@@ -171,16 +172,17 @@ const styles = StyleSheet.create({
         marginVertical: 10,
     },
     button: {
-        borderColor: 'rgba(78, 116, 289, 1)',
+        borderColor: '#9370DB',
         borderWidth: 2,
         borderRadius: 8,
     },
     buttonPressed: {
-        backgroundColor: 'rgba(78, 116, 289, 1)',
+        backgroundColor: '#9370DB',
     },
     buttonText: {
-        color: 'rgba(78, 116, 289, 1)',
+        color: '#ffffff',
         fontSize: 16,
+        fontWeight: 'bold',
     },
     buttonTextPressed: {
         color: 'white',

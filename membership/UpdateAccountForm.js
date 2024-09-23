@@ -172,17 +172,17 @@ const styles = StyleSheet.create({
         color: '#ffffff',
     },
     dateButton: {
-        backgroundColor: '#1a1a1a', // Slightly lighter than black
+        backgroundColor: '#1a1a1a', 
         borderRadius: 5,
         marginBottom: 5,
     },
     submitButton: {
-        borderColor: 'rgba(78, 116, 289, 1)',
+        borderColor: '#9370DB',
         borderRadius: 10,
         marginTop: 20,
     },
     submitButtonTitle: {
-        color: 'rgba(78, 116, 289, 1)',
+        color: '#9370DB',
     },
     errorText: {
         color: '#FF6B6B',
