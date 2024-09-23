@@ -1,6 +1,6 @@
 import React, { useState, useEffect }from 'react';
 import { View, Text, StyleSheet, ActivityIndicator, ScrollView, Dimensions, Image} from 'react-native';
-import { API_URL } from '../store';
+import { API_URL, paymentUrl } from '../store';
 import { getArtwork } from '../utils/media';
 import { FlatList, TouchableOpacity } from 'react-native-gesture-handler';
 // import  Video  from 'react-native-video';
@@ -63,9 +63,24 @@ const MovieDetailScreen = ({route}) => {
     // Fetch the movie poster using getArtwork
     const posterUrl = getArtwork(movie.ref).portrait;
 
-    const handleRent = (purchaseType) => {
-        const url = `https://api.mymovies.africa/api/v1/payment/gate/10/?amount=${purchaseType === 'RENTAL' ? 149 : 349}&purchase_type=${purchaseType}&ref=${movie.ref}`;
+    const isMovieFree = movie.genres && movie.genres.includes('Watch these Movies for FREE!');
+    const handleRent = async (purchaseType) => {
+      if(isMovieFree){
+        try{
+          //Add movie to the collection with rent duration
+          await addMovieToCollection(movie, 7 );//Rent for 7 days
+          // Navigate to the player
+          navigation.navigate('Player',{movieRef: movie.ref})
+        }catch(error){
+          console.error('Error adding movie to collection: ', error);
+        }
+      } else {
+        // Else, continue to the payment or rental process
+        const url = (paymentUrl);
         console.log('Redirect to:', url);
+        navigation.navigate('Payment');
+      }
+        
     };
 
     const HeaderSection = ({ setModalVisible, genres, onGenreSelect }) => (
@@ -104,7 +119,7 @@ const MovieDetailScreen = ({route}) => {
                 <Image source={{ uri:posterUrl }} style={styles.poster} />
             </View>
 
-            {/* Display movie tariler if available 
+            {/* Display movie trailer if available 
 
             {movie.trailer_url ? (
                 <Video source={{ uri: movie.trailer_url }}
@@ -124,12 +139,14 @@ const MovieDetailScreen = ({route}) => {
                 
             <View style={styles.buttonContainer}>
 
-            <TouchableOpacity style={styles.buttonRent} onPress={() => handleRent('RENTAL')}>
-                <Text style={styles.buttonText}>Rent for 7 Days</Text>
+            <TouchableOpacity style={[isMovieFree ? styles.watchNowButton : styles.rentButton]} onPress={() => handleRent('RENTAL')}>
+                <Text style={styles.buttonText}>
+                  {isMovieFree ? 'Watch Now' : 'Rent for 7 Days'}
+                </Text>
             </TouchableOpacity>
 
-            <TouchableOpacity style={styles.buttonOwn} onPress={() => handleRent('EST')} >
-                <Text style={styles.buttonText}>Own for Life</Text>
+            <TouchableOpacity style={styles.ownButton} onPress={() => handleRent('EST')} >
+                <Text style={styles.buttonText}>Own for Life </Text>
             </TouchableOpacity>
 
             </View>
@@ -190,7 +207,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-evenly",
     marginBottom: 20,
   },
-  buttonRent:{
+  rentButton:{
     backgroundColor: 'grey',
     borderColor: '#008080',
     borderWidth: 2,
@@ -201,7 +218,7 @@ const styles = StyleSheet.create({
     alignItems: "center", 
     
   },
-  buttonOwn: {
+  ownButton: {
     borderColor: '#d648d7',
     backgroundColor: 'black',
     borderWidth:2,
@@ -211,6 +228,16 @@ const styles = StyleSheet.create({
     marginTop: 16,
     alignItems: "center", 
 
+  },
+  watchNowButton: {
+    backgroundColor: '#f4c430',
+    borderColor: '#f4c430',
+    borderWidth: 2,
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 50,
+    marginTop: 16,
+    alignItems: "center", 
   },
   buttonText: {
     color: "#fff",
@@ -274,9 +301,6 @@ const styles = StyleSheet.create({
   similarMoviesContainer: {
     marginBottom: 20,
     marginTop: 15,
-  },
-  similarMovieItem: {
-    
   },
   similarMoviePoster: {
     width: 100,
