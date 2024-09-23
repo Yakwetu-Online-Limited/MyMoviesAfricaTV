@@ -269,9 +269,11 @@ const PhoneInputField = React.memo(({ value, onChangeText }) => (
       defaultValue={value}
       defaultCode="KE"
       onChangeFormattedText={onChangeText}
-      containerStyle={styles.phoneInputContainer}
-      textContainerStyle={styles.phoneTextContainer}
-      textInputStyle={styles.phoneTextInput}
+      containerStyle={styles.phoneInputContainer}  
+      textContainerStyle={styles.phoneTextContainer}  
+      textInputStyle={styles.input} 
+      codeTextStyle={styles.phoneCodeText}  
+      textInputProps={{ placeholderTextColor: "#999" }}  
     />
   </View>
 ));
@@ -373,17 +375,43 @@ const styles = StyleSheet.create({
     backgroundColor: "#2C2C2C",
     borderRadius: 5,
     padding: 10,
-    color: "#FFFFFF",
+    color: "#999",
   },
+  // Match the phone input container styling with other input fields
   phoneInputContainer: {
     backgroundColor: "#2C2C2C",
     borderRadius: 5,
+    padding: 0,  // Ensure padding matches other input fields
+    borderWidth: 0,
   },
   phoneTextContainer: {
-    backgroundColor: "#2C2C2C",
+    backgroundColor: "#2C2C2C",  // Same background as input fields
+    borderRadius: 5,
   },
   phoneTextInput: {
+    color: "#999",
+  },
+  phoneCodeText: {
+    color: "#999",  // Set the country code color to whitish-gray
+    fontSize: 16,  // Match the font size with input fields
+  },
+  submitButton: {
+    backgroundColor: "#8E44AD",
+    borderRadius: 5,
+    padding: 15,
+    alignItems: "center",
+    marginTop: 20,
+  },
+  submitButtonText: {
     color: "#FFFFFF",
+    fontSize: 18,
+    fontWeight: "bold",
+  },
+  errorText: {
+    color: "red",
+    fontSize: 12,
+    marginTop: -10,
+    marginBottom: 10,
   },
   locationInputContainer: {
     flexDirection: "row",
@@ -451,12 +479,6 @@ const styles = StyleSheet.create({
     color: "#FFFFFF",
     fontSize: 18,
     fontWeight: "bold",
-  },
-  errorText: {
-    color: "red",
-    fontSize: 12,
-    marginTop: -10,
-    marginBottom: 10,
   }
 });
 
