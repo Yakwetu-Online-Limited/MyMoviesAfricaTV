@@ -5,6 +5,9 @@ import { getArtwork } from '../utils/media';
 import { FlatList, TouchableOpacity } from 'react-native-gesture-handler';
 // import  Video  from 'react-native-video';
 import { useNavigation,  } from '@react-navigation/native';
+import { Button, Modal } from 'react-native-paper';
+//import { white } from 'react-native-paper/lib/typescript/styles/themes/v2/colors';
+//import { transparent } from 'react-native-paper/lib/typescript/styles/themes/v2/colors';
 
 const { width } = Dimensions.get('window');
 
@@ -14,6 +17,9 @@ const MovieDetailScreen = ({route}) => {
     const [ loading, setLoading ]= useState(true);
     const [ error, setError ] = useState(null);
     const [ similarMovies, setSimilarMovies ] = useState([]);
+    const [ modalVisible, setModalVisible ] = useState(false);
+    const [ rentalPrice, setRentalPrice ] = useState(null);
+    const [ ownPrice, setOwnPrice ] = useState (null);
 
     const { movieId } = route.params;
     const navigation = useNavigation();
@@ -29,17 +35,29 @@ const MovieDetailScreen = ({route}) => {
                 const data = await response.json();
                 const movieData = data.content.find(movie => movie.id === movieId);
                 if (!movieData) {
+
                     throw new Error ('Movie not found');
+
                 }
                 setMovie(movieData);
+
+                // Set rental and purchase prices from the API response
+                const rentalPriceData = JSON.parse(movieData.rental_price)?.kenya;
+                const estPriceData = JSON.parse(movieData.est_price)?.kenya;
+
+                // Set the rental and own prices
+                setRentalPrice(movieData.rental_price.kenya);
+                setOwnPrice(movieData.est_price.Kenya);
 
                 //Filter similar movies
                 const currentGenres = JSON.parse(movieData.genres);// convert genres from string to Array
                 const filteredMovies = data.content.filter(m =>
                   // EXclude the current movie
+
                   m.id !== movieId && 
                   JSON.parse(m.genres).some (genre => currentGenres.includes(genre))
                   //Limit to 8 movies.
+
                 ).slice(0,8);
                 setSimilarMovies(filteredMovies);
 
@@ -67,21 +85,31 @@ const MovieDetailScreen = ({route}) => {
     const handleRent = async (purchaseType) => {
       if(isMovieFree){
         try{
+
           //Add movie to the collection with rent duration
           await addMovieToCollection(movie, 7 );//Rent for 7 days
           // Navigate to the player
           navigation.navigate('Player',{movieRef: movie.ref})
+
         }catch(error){
           console.error('Error adding movie to collection: ', error);
         }
+
       } else {
-        // Else, continue to the payment or rental process
-        const url = (paymentUrl);
-        console.log('Redirect to:', url);
-        navigation.navigate('Payment');
-      }
+        // Fetch the price and display modal
         
+        setModalVisible(true); // Show modal for payment   
+      }   
     };
+
+    
+  
+    const handlePayment = () => {
+       // Close the modal and navigate to payment page
+       setModalVisible(false);
+       navigation.navigate('Payment'); // Pass relevant params
+    };
+    
 
     const HeaderSection = ({ setModalVisible, genres, onGenreSelect }) => (
       <View style={styles.headerContainer}>
@@ -141,15 +169,37 @@ const MovieDetailScreen = ({route}) => {
 
             <TouchableOpacity style={[isMovieFree ? styles.watchNowButton : styles.rentButton]} onPress={() => handleRent('RENTAL')}>
                 <Text style={styles.buttonText}>
-                  {isMovieFree ? 'Watch Now' : 'Rent for 7 Days'}
+                  {isMovieFree ? 'Watch Now' : `Rent For 7 Days KSH. ${rentalPrice}`}
                 </Text>
             </TouchableOpacity>
 
             <TouchableOpacity style={styles.ownButton} onPress={() => handleRent('EST')} >
-                <Text style={styles.buttonText}>Own for Life </Text>
+                <Text style={styles.buttonText}>{`Own for Life KSH. ${ownPrice}`}</Text>
             </TouchableOpacity>
-
             </View>
+
+           {/* Modal for Payment Confirmation */}
+           <Modal
+                visible={modalVisible}
+                transparent={true}
+                animationType="slide"
+                onRequestClose={() => setModalVisible(false)}
+            >
+                <View style={styles.modalContainer}>
+                    <View style={styles.modalContent}>
+                        <Text style={styles.modalTitle}>Payment Details</Text>
+                        <Text style={styles.modalMessage}>
+                            {isMovieFree ? `The price is KSH. ${rentalPrice}`: 'loading...'}
+                        </Text>
+                        <TouchableOpacity style={styles.modalButton} onPress={handlePayment}>
+                            <Text style={styles.modalButtonText}>Top Up Now</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity style={styles.modalButton} onPress={() => setModalVisible(false)}>
+                            <Text style={styles.modalButtonText}>Cancel</Text>
+                        </TouchableOpacity>
+                    </View>
+                </View>
+            </Modal>
 
             <Text style={styles.title}>{movie.title}</Text>
             <Text style={styles.meta}>{movie.year} | {movie.duration} minutes | {movie.classification}</Text>
@@ -206,6 +256,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-evenly",
     marginBottom: 20,
+   
   },
   rentButton:{
     backgroundColor: 'grey',
@@ -216,6 +267,7 @@ const styles = StyleSheet.create({
     borderRadius: 50,
     marginTop: 16,
     alignItems: "center", 
+    width: 160,
     
   },
   ownButton: {
@@ -227,6 +279,7 @@ const styles = StyleSheet.create({
     borderRadius: 50,
     marginTop: 16,
     alignItems: "center", 
+    width: 160,
 
   },
   watchNowButton: {
@@ -238,11 +291,33 @@ const styles = StyleSheet.create({
     borderRadius: 50,
     marginTop: 16,
     alignItems: "center", 
+    
   },
   buttonText: {
     color: "#fff",
     fontSize: 16,
-    fontWeight: "bold"
+    fontWeight: "bold",
+    
+  },
+  modalView: {
+    margin: 20,
+    backgroundColor: "white",
+    borderRadius: 10,
+    padding: 35,
+    alignItems: "center",
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
+
+  },
+  modalText: {
+    marginBottom: 15,
+    textAlign: "center",
+    fontSize: 18,
+    fontWeight: 'bold',
+
   },
   video: {
     width: "100%",
