@@ -33,6 +33,12 @@ const HomePage = () => {
 
   const navigation = useNavigation();
 
+  const route = useRoute();
+  const { userId } = route.params || {};
+
+  console.log('Received route params:', route.params);  
+  console.log('Received userId in HomeScreen:', userId);
+
   const fetchMovies = async () => {
     try {
       const response = await fetch(`${baseURL}api/cache`);

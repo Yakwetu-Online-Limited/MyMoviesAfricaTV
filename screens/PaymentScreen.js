@@ -1,36 +1,71 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView, Alert, TextInput } from 'react-native';
 import { RadioButton } from 'react-native-paper';
-import { useNavigation, useRoute } from '@react-navigation/native'; // Import useNavigation and useRoute
+import { useNavigation, useRoute } from '@react-navigation/native'; 
 import axios from 'axios';
 
 const PaymentPage = () => {
+  const navigation = useNavigation();
+  const route = useRoute();
+  const { userId, purchase_type, ref } = route.params; // Get route params including ref
+
   const [paymentMethod, setPaymentMethod] = useState('');
   const [amount, setAmount] = useState('');
   const [paymentOptions, setPaymentOptions] = useState([]);
-  const navigation = useNavigation();
-  const route = useRoute();
-  // const { id, ref, purchase_type } = route.params; // passing id, ref, and purchase_type as route params
 
   console.log('Passed route params:', route);
+
   useEffect(() => {
-    fetchPaymentOptions();
-  }, []);
+    if (userId) {
+      fetchPaymentOptions(userId, purchase_type, ref);
+    } else {
+      console.error('No userId provided to PaymentScreen');
+    }
+  }, [userId, purchase_type, ref]);
 
   // Fetch payment options from the API
-  const fetchPaymentOptions = async () => {
+  const fetchPaymentOptions = async (userId, purchaseType, ref) => {
     try {
-      const response = await axios.get(`https://api.mymovies.africa/api/v1/payment/gate/${10911}`, {
+      const response = await axios.get(`https://api.mymovies.africa/api/v1/payment/gate/${userId}`, {
         params: {
-          amount: 300,
-          purchase_type: "RENTAL",
-          ref: 'f23879c9f04ad9b0'
+          amount,
+          purchase_type: purchaseType,
+          ref,
         },
       });
+      console.log('Payment options:', response.data);
       setPaymentOptions(response.data.paymentOptions || []);
     } catch (error) {
       console.error('Error fetching payment options:', error);
       Alert.alert('Error', 'Failed to load payment options.');
+    }
+  };
+
+  // Function to process Mpesa payment
+  const processMpesaPayment = async () => {
+    try {
+      // First, generate the OAuth token
+      const tokenResponse = await axios.get('http://192.168.100.86:3000/mpesa/token');
+      const token = tokenResponse.data.access_token;
+
+      // Call the STK push endpoint
+      const stkPushResponse = await axios.post('http://192.168.100.86:3000/mpesa/stkpush', {
+        phone: '254701449264', // Example phone number
+        amount: amount,
+      }, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+
+      if (stkPushResponse.data.ResponseCode === '0') {
+        Alert.alert('Success', 'Payment initiated successfully.');
+      } else {
+        Alert.alert('Error', 'Payment initiation failed.');
+      }
+    } catch (error) {
+      console.error('Mpesa Payment Error:', error);
+      Alert.alert('Payment Error', 'Failed to initiate Mpesa payment.');
     }
   };
 
@@ -40,17 +75,19 @@ const PaymentPage = () => {
         Alert.alert('Amount required', 'Please enter the amount to top up.');
         return;
       }
-
       console.log(`Selected Payment Method: ${paymentMethod}`);
+      if (paymentMethod === 'mpesa') {
+        processMpesaPayment(); // Call the function here
+        return;
+      }
       processPayment(paymentMethod);
     } else {
-      alert('Please select a payment method.');
+      Alert.alert('Payment Method Required', 'Please select a payment method.');
     }
   };
 
   const processPayment = async (method) => {
     try {
-      let response;
       const transactionParams = {
         method,
         amount: parseInt(amount),
@@ -58,8 +95,7 @@ const PaymentPage = () => {
         purchase_type,
       };
 
-      // Replace this with the actual API logic for different methods
-      response = await axios.post(`https://api.mymovies.africa/api/v1/payment/`, transactionParams);
+      const response = await axios.post(`https://api.mymovies.africa/api/v1/payment/`, transactionParams);
 
       if (response.status === 200) {
         Alert.alert('Payment Successful', `Your payment of Ksh ${amount} has been processed successfully.`);
@@ -102,7 +138,8 @@ const PaymentPage = () => {
         onChangeText={(text) => setAmount(text)}
       />
 
-<View style={styles.paymentOption}>
+      {/* Predefined Payment Options */}
+      <View style={styles.paymentOption}>
         <RadioButton
           value="mpesa"
           status={paymentMethod === 'mpesa' ? 'checked' : 'unchecked'}
@@ -110,13 +147,11 @@ const PaymentPage = () => {
           color="#4CAF50"
         />
         <Image
-          
           source={require('../assets/mpesa-logo.png')}
           style={styles.paymentImage}
         />
       </View>
 
-      {/* Bonga Option */}
       <View style={styles.paymentOption}>
         <RadioButton
           value="bonga"
@@ -125,13 +160,11 @@ const PaymentPage = () => {
           color="#FF3D00"
         />
         <Image
-          
           source={require('../assets/bonga-logo.png')}
           style={styles.paymentImage}
         />
       </View>
 
-      {/* VISA Option */}
       <View style={styles.paymentOption}>
         <RadioButton
           value="visa"
@@ -140,12 +173,10 @@ const PaymentPage = () => {
           color="#1A73E8"
         />
         <Image
-          
           source={require('../assets/visa-logo.png')}
           style={styles.paymentImage}
         />
       </View>
-
 
       {/* Next Button */}
       <TouchableOpacity style={styles.nextButton} onPress={handleNextPress}>
