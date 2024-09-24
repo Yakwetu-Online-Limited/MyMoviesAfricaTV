@@ -3,11 +3,9 @@ import { View, Text, StyleSheet, ActivityIndicator, ScrollView, Dimensions, Imag
 import { API_URL, paymentUrl } from '../store';
 import { getArtwork } from '../utils/media';
 import { FlatList, TouchableOpacity } from 'react-native-gesture-handler';
-// import  Video  from 'react-native-video';
 import { useNavigation,  } from '@react-navigation/native';
 import { Button, Modal } from 'react-native-paper';
-//import { white } from 'react-native-paper/lib/typescript/styles/themes/v2/colors';
-//import { transparent } from 'react-native-paper/lib/typescript/styles/themes/v2/colors';
+
 
 const { width } = Dimensions.get('window');
 
@@ -82,33 +80,22 @@ const MovieDetailScreen = ({route}) => {
     // Fetch the movie poster using getArtwork
     const posterUrl = getArtwork(movie.ref).portrait;
 
+    // Check if the movie is free
     const isMovieFree = movie.genres && movie.genres.includes('Watch these Movies for FREE!');
-    const handleRent = async (purchaseType) => {
-      if(isMovieFree){
-        try{
 
-          //Add movie to the collection with rent duration
-          await addMovieToCollection(movie, 7 );//Rent for 7 days
-          // Navigate to the player
-          navigation.navigate('Player',{movieRef: movie.ref})
-
-        }catch(error){
-          console.error('Error adding movie to collection: ', error);
-        }
-
-      } else {
-        // Fetch the price and display modal
-        
-        setModalVisible(true); // Show modal for payment   
-      }   
+    const handleRentOrOwn = (type) => {
+        setPurchaseType(type);  // Store the purchase type (rent or own)
+        setModalVisible(true);  // Show modal for payment details
     };
 
-    
-  
+    // Handle payment after the user clicks "Top Up Now"
     const handlePayment = () => {
-       // Close the modal and navigate to payment page
-       setModalVisible(false);
-       navigation.navigate('Payment'); // Pass relevant params
+      setModalVisible(false);  // Close the modal
+      navigation.navigate('Payment', {
+          movieId: movie.id,
+          purchaseType: purchaseType,
+          price: purchaseType === 'rent' ? rentalPrice : ownPrice
+      });
     };
     
 
@@ -168,13 +155,13 @@ const MovieDetailScreen = ({route}) => {
                 
             <View style={styles.buttonContainer}>
 
-            <TouchableOpacity style={[isMovieFree ? styles.watchNowButton : styles.rentButton]} onPress={() => handleRent('RENTAL')}>
+            <TouchableOpacity style={[isMovieFree ? styles.watchNowButton : styles.rentButton]} onPress={() => handleRentOrOwn('rent')}>
                 <Text style={styles.buttonText}>
                   {isMovieFree ? 'Watch Now' : `Rent For 7 Days KSH. ${rentalPrice}`}
                 </Text>
             </TouchableOpacity>
 
-            <TouchableOpacity style={styles.ownButton} onPress={() => handleRent('EST')} >
+            <TouchableOpacity style={styles.ownButton} onPress={() => handleRentOrOwn('own')} >
                 <Text style={styles.buttonText}>{`Own for Life KSH. ${ownPrice}`}</Text>
             </TouchableOpacity>
             </View>
@@ -190,18 +177,20 @@ const MovieDetailScreen = ({route}) => {
                     <View style={styles.modalContent}>
                         <Text style={styles.modalTitle}>Payment Details</Text>
                         <Text style={styles.modalMessage}>
-                            {isMovieFree ? `The price is KSH. ${rentalPrice}`: 'loading...'}
+                            {purchaseType === 'rent' && rentalPrice
+                                ? `Rent this movie for KSH. ${rentalPrice}`
+                                : purchaseType === 'own' && ownPrice
+                                    ? `Own this movie for KSH. ${ownPrice}`
+                                    : 'Loading price...'}
                         </Text>
                         <View style={styles.paymentButtons}>
-                        <TouchableOpacity style={styles.topUpButton} onPress={handlePayment}>
-                            <Text style={styles.modalButtonText}>Top Up Now</Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity style={styles.cancelButton} onPress={() => setModalVisible(false)}>
-                            <Text style={styles.modalButtonText}>Cancel</Text>
-                        </TouchableOpacity>
-
+                            <TouchableOpacity style={styles.topUpButton} onPress={handlePayment}>
+                                <Text style={styles.modalButtonText}>Top Up Now</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity style={styles.cancelButton} onPress={() => setModalVisible(false)}>
+                                <Text style={styles.modalButtonText}>Cancel</Text>
+                            </TouchableOpacity>
                         </View>
-                        
                     </View>
                 </View>
             </Modal>
