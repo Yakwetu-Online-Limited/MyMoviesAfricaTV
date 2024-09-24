@@ -20,6 +20,7 @@ const MovieDetailScreen = ({route}) => {
     const [ modalVisible, setModalVisible ] = useState(false);
     const [ rentalPrice, setRentalPrice ] = useState(null);
     const [ ownPrice, setOwnPrice ] = useState (null);
+    const [ purchaseType, setPurchaseType ] = useState (null);
 
     const { movieId } = route.params;
     const navigation = useNavigation();
@@ -46,8 +47,8 @@ const MovieDetailScreen = ({route}) => {
                 const estPriceData = JSON.parse(movieData.est_price)?.kenya;
 
                 // Set the rental and own prices
-                setRentalPrice(movieData.rental_price.kenya);
-                setOwnPrice(movieData.est_price.Kenya);
+                setRentalPrice(rentalPriceData);
+                setOwnPrice(estPriceData);
 
                 //Filter similar movies
                 const currentGenres = JSON.parse(movieData.genres);// convert genres from string to Array
@@ -191,12 +192,16 @@ const MovieDetailScreen = ({route}) => {
                         <Text style={styles.modalMessage}>
                             {isMovieFree ? `The price is KSH. ${rentalPrice}`: 'loading...'}
                         </Text>
-                        <TouchableOpacity style={styles.modalButton} onPress={handlePayment}>
+                        <View style={styles.paymentButtons}>
+                        <TouchableOpacity style={styles.topUpButton} onPress={handlePayment}>
                             <Text style={styles.modalButtonText}>Top Up Now</Text>
                         </TouchableOpacity>
-                        <TouchableOpacity style={styles.modalButton} onPress={() => setModalVisible(false)}>
+                        <TouchableOpacity style={styles.cancelButton} onPress={() => setModalVisible(false)}>
                             <Text style={styles.modalButtonText}>Cancel</Text>
                         </TouchableOpacity>
+
+                        </View>
+                        
                     </View>
                 </View>
             </Modal>
@@ -299,26 +304,67 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     
   },
-  modalView: {
-    margin: 20,
-    backgroundColor: "white",
+  modalContainer:{
+    flex: '1',
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    color: 'white',
+  },
+  modalContent: {
+    flex: 1,
+    backgroundColor: "#fff",
+    padding: 30,
     borderRadius: 10,
-    padding: 35,
     alignItems: "center",
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
+    width: '80%',
     elevation: 5,
 
-  },
-  modalText: {
-    marginBottom: 15,
-    textAlign: "center",
-    fontSize: 18,
-    fontWeight: 'bold',
 
   },
+  modalTitle: {
+    fontSize: 18,
+    color: '#333',
+    textAlign: 'center',
+    marginBottom: 20,
+  },
+  modalMessage: {
+    fontSize: 16,
+    marginVertical: 10,
+    color: '#666',
+    textAlign: 'center',
+    marginBottom: '20',
+  },
+  paymentButtons: {
+    flexDirection: "row",
+    justifyContent: "space-evenly",
+    marginBottom: 20,
+    
+  },
+
+  topUpButton: {
+    backgroundColor: '#008080',
+    padding: 12,
+    borderRadius: 5,
+    width: '100%',
+    marginTop: 10,
+    marginVertical: 10,
+    paddingHorizontal: 5,
+  },
+  cancelButton: {
+    backgroundColor: '#e74c3c',
+    padding: 12,
+    borderRadius: 5,
+    marginTop: 10,
+    marginVertical: 10,
+    marginLeft: 10,
+    width: '100%',
+  },
+  modalButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: 'bold',
+},
   video: {
     width: "100%",
     height: 200,
