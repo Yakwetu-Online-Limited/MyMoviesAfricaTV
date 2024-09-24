@@ -10,12 +10,14 @@ import PaymentPage from './screens/PaymentScreen';
 import SearchPage from './screens/SearchScreen';
 import LoginScreen from './screens/LoginScreen';
 import SignupScreen from './screens/SignupScreen';
+import MembershipScreen from './membership/MembershipScreen';
+import UpdateAccountForm from './membership/UpdateAccountForm';
 
 
 // Placeholder screens for future implementation
 
 
-const ProfilePage = () => <></>;
+
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -70,7 +72,7 @@ const BottomTabNavigator = ({ route }) => {
       />
       <Tab.Screen
         name="Profile"
-        component={ProfilePage}
+        component={MembershipScreen}
         options={{ headerShown: false }} 
       />
     </Tab.Navigator>
@@ -92,6 +94,14 @@ const App = () => {
           component={MovieDetailScreen}
           options={{ title: 'Movie Details' }}
       />
+      <Stack.Screen
+          name="Membership"
+          component={MembershipScreen}
+        />
+        <Stack.Screen
+          name="UpdateAccountForm"
+          component={UpdateAccountForm} 
+        />
       </Stack.Navigator>
     </NavigationContainer>
   );
