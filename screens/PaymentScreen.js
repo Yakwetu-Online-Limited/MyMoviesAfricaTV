@@ -3,12 +3,11 @@ import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView, Alert, Tex
 import { RadioButton } from 'react-native-paper';
 import { useNavigation, useRoute } from '@react-navigation/native'; 
 import axios from 'axios';
-import MpesaPayment from '../components/Payment';
 
 const PaymentPage = () => {
   const navigation = useNavigation();
   const route = useRoute();
-  const { id, purchase_type, ref } = route.params; // Get route params including ref
+  const { userId, purchase_type, ref } = route.params; // Get route params including ref
 
   const [paymentMethod, setPaymentMethod] = useState('');
   const [amount, setAmount] = useState('');
@@ -17,12 +16,12 @@ const PaymentPage = () => {
   console.log('Passed route params:', route);
 
   useEffect(() => {
-    if (id) {
-      fetchPaymentOptions(id, purchase_type, ref);
+    if (userId) {
+      fetchPaymentOptions(userId, purchase_type, ref);
     } else {
       console.error('No userId provided to PaymentScreen');
     }
-  }, [id, purchase_type, ref]);
+  }, [userId, purchase_type, ref]);
 
   // Fetch payment options from the API
   const fetchPaymentOptions = async (userId, purchaseType, ref) => {
@@ -42,6 +41,34 @@ const PaymentPage = () => {
     }
   };
 
+  // Function to process Mpesa payment
+  const processMpesaPayment = async () => {
+    try {
+      // First, generate the OAuth token
+      const tokenResponse = await axios.get('http://192.168.100.86:3000/mpesa/token');
+      const token = tokenResponse.data.access_token;
+
+      // Call the STK push endpoint
+      const stkPushResponse = await axios.post('http://192.168.100.86:3000/mpesa/stkpush', {
+        phone: '254701449264', // Example phone number
+        amount: amount,
+      }, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+
+      if (stkPushResponse.data.ResponseCode === '0') {
+        Alert.alert('Success', 'Payment initiated successfully.');
+      } else {
+        Alert.alert('Error', 'Payment initiation failed.');
+      }
+    } catch (error) {
+      console.error('Mpesa Payment Error:', error);
+      Alert.alert('Payment Error', 'Failed to initiate Mpesa payment.');
+    }
+  };
+
   const handleNextPress = () => {
     if (paymentMethod) {
       if (!amount) {
@@ -50,7 +77,8 @@ const PaymentPage = () => {
       }
       console.log(`Selected Payment Method: ${paymentMethod}`);
       if (paymentMethod === 'mpesa') {
-        return; 
+        processMpesaPayment(); // Call the function here
+        return;
       }
       processPayment(paymentMethod);
     } else {
@@ -149,20 +177,6 @@ const PaymentPage = () => {
           style={styles.paymentImage}
         />
       </View>
-
-      {/* M-Pesa Payment Logic */}
-      {paymentMethod === 'mpesa' && (
-        <MpesaPayment
-          amount={amount}
-          reference={ref} // Make sure ref is defined
-          onSuccess={(response) => {
-            console.log('M-Pesa Payment Success:', response);
-          }}
-          onFailure={(response) => {
-            console.error('M-Pesa Payment Failed:', response);
-          }}
-        />
-      )}
 
       {/* Next Button */}
       <TouchableOpacity style={styles.nextButton} onPress={handleNextPress}>

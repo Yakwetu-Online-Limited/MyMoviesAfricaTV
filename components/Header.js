@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, Image, StyleSheet, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 
@@ -7,6 +7,8 @@ const Header = ({ userName, walletBalance, userId, onTopUp}) => {
   console.log('Header received userId:', userId);
   
   const navigation = useNavigation();
+
+
   return (
     <View style={styles.container}>
       <View style={styles.logoContainer}>

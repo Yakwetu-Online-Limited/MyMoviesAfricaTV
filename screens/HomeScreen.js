@@ -16,6 +16,7 @@ import { useNavigation } from "@react-navigation/native";
 import defaultPosterImage from "../images/default.jpg";
 import { baseURL, mediaURL } from "../components/urlStore";
 import { getArtwork } from "../components/imageUtils";
+import { useRoute } from '@react-navigation/native';
 
 const { width } = Dimensions.get("window");
 
@@ -41,6 +42,12 @@ const HomePage = () => {
   });
 
   const navigation = useNavigation();
+
+  const route = useRoute();
+  const { userId } = route.params || {};
+
+  console.log('Received route params:', route.params);  
+  console.log('Received userId in HomeScreen:', userId);
 
   const fetchMovies = async () => {
     try {

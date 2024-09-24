@@ -16,8 +16,9 @@ const MovieDetailScreen = ({route}) => {
     const [ error, setError ] = useState(null);
     const [ similarMovies, setSimilarMovies ] = useState([]);
 
-    const { movieId } = route.params;
+    const { movieId, storedUserId } = route.params;
     console.log("Movie ID received in MovieDetailScreen: ", movieId);
+    console.log("User ID received in MovieDetailScreen: ", storedUserId);
 
     const navigation = useNavigation();
 
@@ -81,7 +82,12 @@ const MovieDetailScreen = ({route}) => {
         // Else, continue to the payment or rental process
         const url = `https://api.mymovies.africa/api/v1/payment/gate/10/?amount=${purchaseType === 'RENTAL' ? 149 : 349}&purchase_type=${purchaseType}&ref=${movie.ref}`;
         console.log('Redirect to:', url);
-        navigation.navigate('Payment');
+        navigation.navigate('Payment', { 
+          userId: storedUserId,  // Ensure storedUserId is defined and holds the correct value
+          movieRef: movie.ref,
+          amount: purchaseType === 'RENTAL' ? 149 : 349,
+          purchaseType 
+        });
       }
     };
 
