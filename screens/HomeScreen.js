@@ -17,6 +17,7 @@ import { getArtwork } from "../components/imageUtils";
 import { eventsData } from "../events";
 import Events from "../components/Events";
 import Screening from "../components/Screening";
+import { useRoute } from '@react-navigation/native';
 
 const { width } = Dimensions.get("window");
 
@@ -199,7 +200,7 @@ const BannerItem = ({ banner }) => {
   );
 };
 
-const GenreSection = ({ genres, selectedGenre }) => {
+const GenreSection = ({ genres, selectedGenre, userId }) => {
   const filteredGenres = selectedGenre
     ? genres.filter((genre) => genre.name === selectedGenre)
     : genres;
@@ -211,7 +212,7 @@ const GenreSection = ({ genres, selectedGenre }) => {
           <Text style={styles.genreTitle}>{genre.name}</Text>
           <FlatList
             data={genre.movies}
-            renderItem={({ item }) => <MovieItem movie={item} />}
+            renderItem={({ item }) => <MovieItem movie={item} userId={userId} />}
             keyExtractor={(item) => item.id}
             horizontal
             showsHorizontalScrollIndicator={false}
@@ -222,15 +223,15 @@ const GenreSection = ({ genres, selectedGenre }) => {
   );
 };
 
-const MovieItem = ({ movie }) => {
+const MovieItem = ({ movie, userId }) => {
   const navigation = useNavigation();
   const [isPressed, setIsPressed] = useState(false);
 
   const posterUrl =
     movie.poster || (movie.ref ? getArtwork(movie.ref).portrait : null);
 
-  const handlePress = () => {
-    navigation.navigate("MovieDetail", { movieId: movie.id });
+  const handlePress = (userId) => {
+    navigation.navigate("MovieDetail", { movieId: movie.id, userId });
   };
 
   return (
