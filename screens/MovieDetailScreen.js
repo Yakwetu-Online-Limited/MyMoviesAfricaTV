@@ -7,6 +7,7 @@ import { FlatList, TouchableOpacity } from 'react-native-gesture-handler';
 import { useNavigation,  } from '@react-navigation/native';
 import axios from 'axios';
 
+
 const { width } = Dimensions.get('window');
 
 const MovieDetailScreen = ({route}) => {
@@ -18,7 +19,7 @@ const MovieDetailScreen = ({route}) => {
 
     const { movieId, userId } = route.params;
     console.log("Movie ID received in MovieDetailScreen: ", movieId);
-    console.log("User ID received in MovieDetailScreen: ", userId);
+    console.log("MovieDetailScreen - userId:", userId);
 
     const navigation = useNavigation();
 
@@ -27,6 +28,10 @@ const MovieDetailScreen = ({route}) => {
     // Fetch the movie data from the API
     useEffect(() => {
         //Function to fetch movie data from the api
+        if (!userId || !movieId) {
+          console.error('Missing parameters for MovieDetailScreen');
+          return;
+        }
         const fetchMovieData = async() => {
             try {
                 const response = await fetch (API_URL);
@@ -82,18 +87,20 @@ const MovieDetailScreen = ({route}) => {
         // Else, continue to the payment or rental process
         const url = `https://api.mymovies.africa/api/v1/payment/gate/10/?amount=${purchaseType === 'RENTAL' ? 149 : 349}&purchase_type=${purchaseType}&ref=${movie.ref}`;
         console.log('Redirect to:', url);
+        
         navigation.navigate('Payment', { 
           userId: userId,  // Ensure storedUserId is defined and holds the correct value
           movieRef: movie.ref,
           amount: purchaseType === 'RENTAL' ? 149 : 349,
-          purchaseType 
+          purchaseType,
+          source: 'MovieDetail'
         });
       }
     };
 
     const addMovieToCollection = async (movie, rentDuration) => {
       try {
-        const response = await axios.post('https://api.mymovies.africa/api/collection', {
+        const response = await axios.post('https://app.mymovies.africa/api/purchases', {
           movieId: movie.id,
           title: movie.title,
           rentDuration: rentDuration,
@@ -119,11 +126,11 @@ const MovieDetailScreen = ({route}) => {
       </View>
     );
 
-    const renderSimilarMovie = ({item}) => {
+    const renderSimilarMovie = ({item, userId}) => {
       const similarPosterUrl = getArtwork(item.ref).portrait;
       return(
         <TouchableOpacity 
-        onPress={()=> navigation.push ('MovieDetail',{movieId: item.id }) }>
+        onPress={()=> navigation.push ('MovieDetail',{movieId: item.id, userId: userId }) }>
           <Image source={{uri:similarPosterUrl}}
         style={styles.similarMoviePoster} />
 
@@ -183,7 +190,7 @@ const MovieDetailScreen = ({route}) => {
 
             <FlatList
             data={similarMovies}
-            renderItem={renderSimilarMovie}
+            renderItem={({ item }) => renderSimilarMovie({ item, userId })}
             keyExtractor={(item) => item.id}
             horizontal
             showsHorizontalScrollIndicator={false}

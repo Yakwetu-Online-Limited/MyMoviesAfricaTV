@@ -135,7 +135,7 @@ const HomePage = () => {
       <GenreSection 
         genres={visibleGenres} 
         selectedGenre={selectedGenre}
-        
+        userId={userId}
       />
       {visibleGenres.length < genres.length && (
         <TouchableOpacity
@@ -227,11 +227,11 @@ const MovieItem = ({ movie, userId }) => {
   const navigation = useNavigation();
   const [isPressed, setIsPressed] = useState(false);
 
-  const posterUrl =
-    movie.poster || (movie.ref ? getArtwork(movie.ref).portrait : null);
+  const posterUrl = movie.poster || (movie.ref ? getArtwork(movie.ref).portrait : null);
 
-  const handlePress = (userId) => {
-    navigation.navigate("MovieDetail", { movieId: movie.id, userId });
+  // Updated handlePress function to correctly pass the movieId and userId
+  const handlePress = () => {
+    navigation.navigate("MovieDetail", { movieId: movie.id, userId: userId });
   };
 
   return (

@@ -8,6 +8,7 @@ const Header = ({ userName, walletBalance, userId, onTopUp}) => {
   
   const navigation = useNavigation();
 
+  
 
   return (
     <View style={styles.container}>
@@ -24,6 +25,7 @@ const Header = ({ userName, walletBalance, userId, onTopUp}) => {
     navigation.navigate('Payment', {
       id: userId,
       purchase_type: 'TOPUP',
+      source: 'Collection'
     });
   }}  style={styles.topUpButton}>
           <Text style={styles.topUpText}>Top Up</Text>

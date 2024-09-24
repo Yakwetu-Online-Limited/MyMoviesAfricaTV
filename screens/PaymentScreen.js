@@ -7,17 +7,23 @@ import axios from 'axios';
 const PaymentPage = () => {
   const navigation = useNavigation();
   const route = useRoute();
-  const { userId, purchase_type, ref } = route.params; // Get route params including ref
+  const { userId, purchase_type, movieRef, ref, source } = route.params; // Get route params including ref
 
   const [paymentMethod, setPaymentMethod] = useState('');
   const [amount, setAmount] = useState('');
   const [paymentOptions, setPaymentOptions] = useState([]);
 
-  console.log('Passed route params:', route);
+  console.log('Passed route params in PaymentScreen:', route);
 
   useEffect(() => {
+    console.log('PaymentPage userId:', userId);
+    
     if (userId) {
       fetchPaymentOptions(userId, purchase_type, ref);
+
+      if(source === 'MovieDetail'){
+        fetchAmountFromAPI();
+      }
     } else {
       console.error('No userId provided to PaymentScreen');
     }
@@ -38,6 +44,18 @@ const PaymentPage = () => {
     } catch (error) {
       console.error('Error fetching payment options:', error);
       Alert.alert('Error', 'Failed to load payment options.');
+    }
+  };
+
+   // Fetch amount from the API (modify as per your logic)
+   const fetchAmountFromAPI = async () => {
+    try {
+      const response = await axios.get(`https://api.mymovies.africa/api/v1/payment/gate/(:userId).`); 
+      console.log('API Response:', response.data); 
+      setAmount(response.data.amount); // Assuming the amount is in the response
+    } catch (error) {
+      console.error('Error fetching amount:', error);
+      Alert.alert('Error', 'Failed to fetch amount.');
     }
   };
 
@@ -71,7 +89,7 @@ const PaymentPage = () => {
 
   const handleNextPress = () => {
     if (paymentMethod) {
-      if (!amount) {
+      if (source === 'Collection' && !amount) {
         Alert.alert('Amount required', 'Please enter the amount to top up.');
         return;
       }
