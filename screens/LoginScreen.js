@@ -3,31 +3,62 @@ import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, Image } fro
 import { auth } from '../firebase'; 
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import axios from 'axios';
 
 const LoginScreen = ({ navigation }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   
-
-  const handleLogin = () => {
+  const handleLogin = async () => {
     if (email === '' || password === '') {
       Alert.alert('Error', 'Please fill in all fields');
       return;
     }
 
-    signInWithEmailAndPassword(auth, email, password)
-      .then((userCredential) => {
-        const user = userCredential.user;
-        const username = user.displayName || 'Guest';
+    try {
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
+      const username = user.displayName || email.split('@')[0];
 
-        Alert.alert('Success', 'Logged in successfully');
-        navigation.navigate('Home');	
-      })
-      .catch((error) => {
-        Alert.alert('Error', error.message);
+      // Fetch userId from AsyncStorage
+      const storedUserId = await AsyncStorage.getItem('userId');
+      console.log('Fetched userId from AsyncStorage:', storedUserId);
+
+      if (!storedUserId) {
+        Alert.alert('Error', 'User ID not found in storage.');
+        return;
+      }
+
+      // Prepare data for the POST request
+      const loginData = new URLSearchParams({
+        uid: storedUserId,
+        email: email,
+        name: username,
+      }).toString();
+
+      console.log('Sending login data:', { uid: storedUserId, email });
+
+      // Make the POST request to the login endpoint
+      const response = await axios.post('https://api.mymovies.africa/api/v1/users/login', loginData, {
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
       });
+
+      console.log('Login response:', response.data);
+
+      if (response.data.error) {
+        Alert.alert('Error', response.data.message);
+      } else {
+        Alert.alert('Success', 'Logged in successfully');
+        navigation.navigate('Home', { userId: storedUserId, username });	
+      }
+    } catch (error) {
+      console.error('Login error:', error);
+      Alert.alert('Error', error.response?.data?.message || error.message);
+    }
   };
 
 

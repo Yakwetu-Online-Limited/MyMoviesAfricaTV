@@ -10,17 +10,20 @@ import PaymentPage from './screens/PaymentScreen';
 import SearchPage from './screens/SearchScreen';
 import LoginScreen from './screens/LoginScreen';
 import SignupScreen from './screens/SignupScreen';
+import MembershipScreen from './membership/MembershipScreen';
+import UpdateAccountForm from './membership/UpdateAccountForm';
 
 
 // Placeholder screens for future implementation
 
 
-const ProfilePage = () => <></>;
-
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
 
-const BottomTabNavigator = () => {
+const BottomTabNavigator = ({ route }) => {
+  const { userId, username } = route.params || {};
+  console.log('BottomTabNavigator params:', route.params); 
+
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
@@ -52,6 +55,7 @@ const BottomTabNavigator = () => {
         name="Home"
         component={HomePage}
         options={{ headerShown: false }} 
+        initialParams={{ userId, username }}
       />
       <Tab.Screen
         name="Search"
@@ -62,10 +66,11 @@ const BottomTabNavigator = () => {
         name="Collection"
         component={CollectionPage}
         options={{ headerShown: false }} 
+        initialParams={{ userId, username }}
       />
       <Tab.Screen
         name="Profile"
-        component={ProfilePage}
+        component={MembershipScreen}
         options={{ headerShown: false }} 
       />
     </Tab.Navigator>
@@ -82,6 +87,14 @@ const App = () => {
         <Stack.Screen name="Search" component={SearchPage} />
         <Stack.Screen name="Collection" component={CollectionPage} />
         <Stack.Screen name="Payment" component={PaymentPage} />
+        <Stack.Screen
+          name="Membership"
+          component={MembershipScreen}
+        />
+        <Stack.Screen
+          name="UpdateAccountForm"
+          component={UpdateAccountForm} 
+        />
         <Stack.Screen
           name="MovieDetail"
           component={MovieDetailScreen}
