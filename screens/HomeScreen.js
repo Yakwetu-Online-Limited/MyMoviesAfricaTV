@@ -352,20 +352,19 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   genreButton: {
-    backgroundColor: "#000000", // black background
+    backgroundColor: "#3E3E3E",
     paddingVertical: 10,
     paddingHorizontal: 20,
     borderRadius: 20,
     marginHorizontal: 5,
-    borderColor: "orange", 
-    borderWidth: 2, 
+    borderColor: "orange",
+  },
+  genreButtonPressed: {
+    transform: [{ scale: 0.95 }],
   },
   genreButtonText: {
     color: "#fff",
     fontWeight: "bold",
-  },
-  genreButtonPressed: {
-    transform: [{ scale: 0.95 }],
   },
   genreCarousel: {
     marginTop: 10,

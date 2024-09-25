@@ -95,7 +95,7 @@ const Screening = () => {
     setModalVisible(false); // Close the modal
 
     // Navigate to the PaymentScreen
-    navigation.navigate("PaymentScreen");
+    navigation.navigate("Payment");
   }, [requestDetails, navigation]);
 
   const handleInputChange = useCallback((field, value) => {
