@@ -7,23 +7,23 @@ import axios from 'axios';
 const PaymentPage = () => {
   const navigation = useNavigation();
   const route = useRoute();
-  const { userId, purchase_type, movieRef, ref, source } = route.params; // Get route params including ref
+  const { userId, purchase_type, movieRef, ref, source, amount: passedAmount } = route.params; // Get route params including ref
 
   const [paymentMethod, setPaymentMethod] = useState('');
-  const [amount, setAmount] = useState('');
+  const [amount, setAmount] = useState(passedAmount || '');
   const [paymentOptions, setPaymentOptions] = useState([]);
 
   console.log('Passed route params in PaymentScreen:', route);
+  console.log('PaymentPage userId:', userId);
 
   useEffect(() => {
-    console.log('PaymentPage userId:', userId);
+    
     
     if (userId) {
-      fetchPaymentOptions(userId, purchase_type, ref);
-
-      if(source === 'MovieDetail'){
-        fetchAmountFromAPI();
+      if (!passedAmount && source === 'MovieDetail') {
+        fetchAmountFromAPI(); // Fetch amount if not passed
       }
+      fetchPaymentOptions(userId, purchase_type, ref);
     } else {
       console.error('No userId provided to PaymentScreen');
     }
@@ -34,9 +34,9 @@ const PaymentPage = () => {
     try {
       const response = await axios.get(`https://api.mymovies.africa/api/v1/payment/gate/${userId}`, {
         params: {
-          amount,
+          amount: amount,
           purchase_type: purchaseType,
-          ref,
+          ref: ref,
         },
       });
       console.log('Payment options:', response.data);
@@ -47,12 +47,18 @@ const PaymentPage = () => {
     }
   };
 
-   // Fetch amount from the API (modify as per your logic)
+   // Fetch amount from the API 
    const fetchAmountFromAPI = async () => {
     try {
-      const response = await axios.get(`https://api.mymovies.africa/api/v1/payment/gate/(:userId).`); 
-      console.log('API Response:', response.data); 
-      setAmount(response.data.amount); // Assuming the amount is in the response
+      const response = await axios.get(`https://https://app.mymovies.africa/api/cache/${movieRef}/price`, {
+        params: {
+          
+          purchase_type: purchase_type,
+          ref: ref,
+        }
+      });
+      console.log('API Response:', response.data);
+      setAmount(response.data.amount);
     } catch (error) {
       console.error('Error fetching amount:', error);
       Alert.alert('Error', 'Failed to fetch amount.');
