@@ -21,7 +21,7 @@ const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
 
 const BottomTabNavigator = ({ route }) => {
-  const { userId, username } = route.params || {};
+  const { userId, username, movieId } = route.params || {};
   console.log('BottomTabNavigator params:', route.params); 
 
   return (
@@ -61,6 +61,7 @@ const BottomTabNavigator = ({ route }) => {
         name="Search"
         component={SearchPage}
         options={{ headerShown: false }} 
+        initialParams={{ userId, movieId }}
       />
       <Tab.Screen
         name="Collection"
