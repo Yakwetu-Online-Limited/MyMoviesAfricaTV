@@ -4,7 +4,8 @@ import { API_URL, paymentUrl } from '../store';
 import { getArtwork } from '../utils/media';
 import { FlatList, TouchableOpacity } from 'react-native-gesture-handler';
 import { useNavigation,  } from '@react-navigation/native';
-import { Button, Modal } from 'react-native-paper';
+import { Button, Modal, Portal, PaperProvider } from 'react-native-paper';
+import { AntDesign } from '@expo/vector-icons';
 
 
 const { width } = Dimensions.get('window');
@@ -167,34 +168,41 @@ const MovieDetailScreen = ({route}) => {
             </View>
 
            {/* Modal for Payment Confirmation */}
-           <Modal
-                visible={modalVisible}
-                transparent={true}
-                animationType="slide"
-                onRequestClose={() => setModalVisible(false)}
-            >
-                <View style={styles.modalContainer}>
-                    <View style={styles.modalContent}>
-                        <Text style={styles.modalTitle}>Payment Details</Text>
-                        <Text style={styles.modalMessage}>
+           <Portal>
+                <Modal
+                    visible={modalVisible}
+                    onDismiss={() => setModalVisible(false)}
+                    contentContainerStyle={styles.modalContent}
+                >
+                    <TouchableOpacity style={styles.closeButton} onPress={() => setModalVisible(false)}>
+                        <AntDesign name="close" size={24} color="black" />
+                    </TouchableOpacity>
+                    <Text style={styles.modalTitle}>Insufficient Account Balance</Text>
+                    <Text style={styles.modalMessage}>
                             {purchaseType === 'rent' && rentalPrice
                                 ? `Rent this movie for KSH. ${rentalPrice}`
                                 : purchaseType === 'own' && ownPrice
                                     ? `Own this movie for KSH. ${ownPrice}`
                                     : 'Loading price...'}
                         </Text>
-                        <View style={styles.paymentButtons}>
-                            <TouchableOpacity style={styles.topUpButton} onPress={handlePayment}>
-                                <Text style={styles.modalButtonText}>Top Up Now</Text>
-                            </TouchableOpacity>
-                            <TouchableOpacity style={styles.cancelButton} onPress={() => setModalVisible(false)}>
-                                <Text style={styles.modalButtonText}>Cancel</Text>
-                            </TouchableOpacity>
-                        </View>
+                    <View style={styles.modalButtons}>
+                        <Button
+                            mode="contained"
+                            onPress={() => setModalVisible(false)}
+                            style={styles.closeModalButton}
+                        >
+                            Close
+                        </Button>
+                        <Button
+                            mode="contained"
+                            onPress={handlePayment}
+                            style={styles.topUpButton}
+                        >
+                            Top-up now
+                        </Button>
                     </View>
-                </View>
-            </Modal>
-
+                </Modal>
+            </Portal>
             <Text style={styles.title}>{movie.title}</Text>
             <Text style={styles.meta}>{movie.year} | {movie.duration} minutes | {movie.classification}</Text>
             <Text style={styles.cast}>{movie.tags}</Text>
@@ -301,53 +309,33 @@ const styles = StyleSheet.create({
     color: 'white',
   },
   modalContent: {
-    flex: 1,
-    backgroundColor: "#fff",
-    padding: 30,
+    backgroundColor: "white",
+    padding: 20,
+    margin: 20,
     borderRadius: 10,
-    alignItems: "center",
-    width: '80%',
-    elevation: 5,
-
-
   },
   modalTitle: {
     fontSize: 18,
-    color: '#333',
-    textAlign: 'center',
-    marginBottom: 20,
+    fontWeight: 'bold',
+    marginBottom: 10,
   },
   modalMessage: {
     fontSize: 16,
-    marginVertical: 10,
-    color: '#666',
-    textAlign: 'center',
-    marginBottom: '20',
-  },
-  paymentButtons: {
-    flexDirection: "row",
-    justifyContent: "space-evenly",
     marginBottom: 20,
-    
+  },
+
+  modalButtons: {
+    flexDirection: "row",
+    justifyContent: "space-between",
   },
 
   topUpButton: {
     backgroundColor: '#008080',
-    padding: 12,
-    borderRadius: 5,
-    width: '100%',
-    marginTop: 10,
-    marginVertical: 10,
-    paddingHorizontal: 5,
+    padding: 10,
   },
-  cancelButton: {
+  closeModalButton: {
     backgroundColor: '#e74c3c',
-    padding: 12,
-    borderRadius: 5,
-    marginTop: 10,
-    marginVertical: 10,
-    marginLeft: 10,
-    width: '100%',
+    padding: 10,
   },
   modalButtonText: {
     color: 'white',

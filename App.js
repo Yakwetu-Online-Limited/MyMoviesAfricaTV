@@ -7,6 +7,8 @@ import HomePage from './screens/HomeScreen';
 import MovieDetailScreen from './screens/MovieDetailScreen';
 import CollectionPage from './screens/CollectionScreen';
 import PaymentPage from './screens/PaymentScreen';
+import { PaperProvider } from 'react-native-paper';
+import { gestureHandlerRootHOC, GestureHandlerRootView } from 'react-native-gesture-handler';
 
 // Placeholder screens for future implementation
 
@@ -70,7 +72,9 @@ const BottomTabNavigator = () => {
 
 const App = () => {
   return (
-    <NavigationContainer>
+    <GestureHandlerRootView style={{flex: 1}}>
+      <PaperProvider>
+      <NavigationContainer>
       <Stack.Navigator screenOptions={{ headerShown: false }} initialRouteName="Main">
         <Stack.Screen name="Main" component={BottomTabNavigator} />
         <Stack.Screen name="Home" component={HomePage}  />
@@ -79,6 +83,10 @@ const App = () => {
         <Stack.Screen name="Payment" component={PaymentPage} />
       </Stack.Navigator>
     </NavigationContainer>
+    </PaperProvider>
+    </GestureHandlerRootView>
+    
+    
   );
 };
 
