@@ -208,7 +208,7 @@ const MovieItem = ({ movie, onPress }) => {
 
   return (
     <TouchableOpacity
-      onPress={() => navigation.navigate("MovieDetailScreen", { movieId: movie.id })}
+      onPress={() => navigation.navigate("MovieDetail", { movieId: movie.id })}
     >
       <View style={styles.movieContainer}>
         <Image

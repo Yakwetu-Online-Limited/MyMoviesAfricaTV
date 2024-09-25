@@ -130,7 +130,7 @@ const MovieDetailScreen = ({route}) => {
       const similarPosterUrl = getArtwork(item.ref).portrait;
       return(
         <TouchableOpacity 
-        onPress={()=> navigation.push ('MovieDetailScreen',{movieId: item.id }) }>
+        onPress={()=> navigation.push ('MovieDetail',{movieId: item.id }) }>
           <Image source={{uri:similarPosterUrl}}
         style={styles.similarMoviePoster} />
 
@@ -226,7 +226,7 @@ const MovieDetailScreen = ({route}) => {
             />
             
         </ScrollView>
-        </PaperProvider>
+         </PaperProvider>
     );
 };  
 
