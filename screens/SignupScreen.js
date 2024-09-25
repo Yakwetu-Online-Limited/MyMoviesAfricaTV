@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, Image, Switch } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, Image, Switch, ActivityIndicator } from 'react-native';
 import PhoneInput from 'react-native-phone-input';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-import { auth } from './firebase';  
+import { auth } from '../firebase'; 
+import { createUserWithEmailAndPassword } from 'firebase/auth';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const SignupScreen = ({ navigation }) => {
   const [fullName, setFullName] = useState('');
@@ -11,22 +13,90 @@ const SignupScreen = ({ navigation }) => {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isPrivacyChecked, setIsPrivacyChecked] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleSignup = () => {
+  const handleSignup = async () => {
     if (fullName === '' || email === '' || phoneNumber === '' || password === '' || !isPrivacyChecked) {
       Alert.alert('Error', 'Please fill in all fields and agree to the Privacy Policy');
       return;
     }
+  
+    setIsLoading(true);
+  
+    try {
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      console.log('Firebase user created', userCredential);
 
-    auth.createUserWithEmailAndPassword(email, password)
-      .then((userCredential) => {
-        // User created successfully, you can save additional information (like fullName, phoneNumber) here.
-        Alert.alert('Success', 'Account created successfully');
-        // Navigate to another screen or do other actions
-      })
-      .catch((error) => {
-        Alert.alert('Error', error.message);
+      const formData = new URLSearchParams({
+        email: email,
+        name: fullName,
+        phone: phoneNumber.replace('+', ''),
+        ref: `signupFromApp_${Date.now()}`,
+        isHidden: '0',
+        reason: 'newUserSignup',
+      }).toString();
+  
+      console.log('Request URL:', 'https://api.mymovies.africa/api/v1/users/createAccount');
+      console.log('Request Body:', formData);
+
+      const response = await fetch('https://api.mymovies.africa/api/v1/users/createAccount', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: formData,
       });
+  
+      console.log('Response status:', response.status);
+      console.log('Response headers:', response.headers);
+
+      const responseText = await response.text();
+      console.log(response.status, responseText); 
+
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+
+      // Extract JSON from the response
+      const jsonMatch = responseText.match(/\{.*\}/);
+      if (!jsonMatch) {
+        console.error('No JSON found in the response');
+        Alert.alert('Error', 'Invalid server response. Please try again later.');
+        return;
+      }
+
+      const jsonStr = jsonMatch[0];
+      console.log('Extracted JSON:', jsonStr);
+
+      let data;
+      try {
+        data = JSON.parse(jsonStr);
+        console.log('Parsed response:', data);
+      } catch (parseError) {
+        console.error('Error parsing JSON:', parseError);
+        Alert.alert('Error', 'Unable to parse server response. Please try again later.');
+        return;
+      }
+  
+      if (data.status === true) {
+        console.log('API response contains uid:', data.userId);
+        Alert.alert('Success', 'Account created successfully');
+
+        // Store the uid in AsyncStorage
+        await AsyncStorage.setItem('userId', String(data.userId));
+        console.log('UserId stored in AsyncStorage successfully:', data.userId);
+
+        navigation.navigate('Home', { userId: data.userId, username: fullName });
+      } else {
+        console.error('Server error:', data);
+        Alert.alert('Error', data.message || 'An error occurred while creating the account.');
+      }
+    } catch (error) {
+      console.error('Error during signup:', error);
+      Alert.alert('Error', 'An error occurred while creating the account. Please check your internet connection and try again.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -37,45 +107,41 @@ const SignupScreen = ({ navigation }) => {
         Sign-up now to Enjoy the latest Movies from Africa available to #RentFor2Days, #RentFor7Days or #OwnForLife!
       </Text>
 
-      {/* Full Name Input */}
       <View style={styles.inputContainer}>
         <TextInput
           style={styles.input}
           placeholder="Full name"
           placeholderTextColor="#888"
           value={fullName}
-          onChangeText={setFullName}
+          onChangeText={(text) => setFullName(text)}
         />
-        <Text style={styles.errorText}>Full name is required</Text>
+        {fullName === '' && <Text style={styles.errorText}>Full name is required</Text>}
       </View>
 
-      {/* Email Input */}
       <View style={styles.inputContainer}>
         <TextInput
           style={styles.input}
           placeholder="Your email"
           placeholderTextColor="#888"
           value={email}
-          onChangeText={setEmail}
+          onChangeText={(text) => setEmail(text)}
           keyboardType="email-address"
           autoCapitalize="none"
         />
-        <Text style={styles.errorText}>Enter a valid Email</Text>
+        {email === '' && <Text style={styles.errorText}>Enter a valid Email</Text>}
       </View>
 
-      {/* Phone Number Input */}
       <View style={styles.inputContainer}>
         <PhoneInput
           style={styles.phoneInput}
-          textStyle={{ color: '#fff' }} 
-          initialCountry="ke" 
+          textStyle={{ color: '#fff' }}
+          initialCountry="ke"
           value={phoneNumber}
-          onChangePhoneNumber={setPhoneNumber}
+          onChangePhoneNumber={(text) => setPhoneNumber(text)}
         />
-        <Text style={styles.errorText}>Enter a valid phone number</Text>
+        {phoneNumber === '' && <Text style={styles.errorText}>Enter a valid phone number</Text>}
       </View>
 
-      {/* Password Input */}
       <View style={styles.inputContainer}>
         <View style={styles.passwordContainer}>
           <TextInput
@@ -83,7 +149,7 @@ const SignupScreen = ({ navigation }) => {
             placeholder="Password"
             placeholderTextColor="#888"
             value={password}
-            onChangeText={setPassword}
+            onChangeText={(text) => setPassword(text)}
             secureTextEntry={!showPassword}
             autoCapitalize="none"
           />
@@ -91,28 +157,33 @@ const SignupScreen = ({ navigation }) => {
             <Icon name={showPassword ? 'visibility' : 'visibility-off'} size={24} color="#888" />
           </TouchableOpacity>
         </View>
-        <Text style={styles.errorText}>Password should be more than 6 characters</Text>
+        {password.length < 6 && <Text style={styles.errorText}>Password should be at least 6 characters</Text>}
       </View>
 
-      {/* Privacy Policy Checkbox */}
       <View style={styles.checkboxContainer}>
         <Switch
           value={isPrivacyChecked}
-          onValueChange={setIsPrivacyChecked}
-          trackColor={{ false: "#767577", true: "#81b0ff" }} 
-          thumbColor={isPrivacyChecked ? "#f4f3f4" : "#f4f3f4"} 
+          onValueChange={(value) => setIsPrivacyChecked(value)}
+          trackColor={{ false: "#767577", true: "#81b0ff" }}
+          thumbColor={isPrivacyChecked ? "#f4f3f4" : "#f4f3f4"}
         />
         <Text style={styles.checkboxLabel}>I have read and agreed to the Privacy Policy</Text>
       </View>
 
-      {/* Create Account Button */}
-      <TouchableOpacity style={styles.signupButton} onPress={handleSignup}>
-        <Text style={styles.signupButtonText}>Create Account</Text>
+      <TouchableOpacity 
+        style={styles.signupButton} 
+        onPress={handleSignup} 
+        disabled={isLoading}
+      >
+        {isLoading ? (
+          <ActivityIndicator color="#fff" />
+        ) : (
+          <Text style={styles.signupButtonText}>Create Account</Text>
+        )}
       </TouchableOpacity>
 
       <Text style={styles.orText}>OR</Text>
 
-      {/* Already a Member Link */}
       <TouchableOpacity onPress={() => navigation.navigate('Login')}>
         <Text style={styles.footerText}>Already a Member?</Text>
       </TouchableOpacity>
@@ -128,8 +199,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   logo: {
-    alignSelf: 'center', 
-    marginBottom: 20, 
+    alignSelf: 'center',
+    marginBottom: 20,
   },
   headerText: {
     color: '#fff',
@@ -157,18 +228,18 @@ const styles = StyleSheet.create({
     borderColor: '#888',
   },
   passwordContainer: {
-    flexDirection: 'row', 
-    alignItems: 'center', 
+    flexDirection: 'row',
+    alignItems: 'center',
     backgroundColor: '#1e1e1e',
     borderRadius: 5,
     borderWidth: 1,
     borderColor: '#888',
-    paddingHorizontal: 10, 
+    paddingHorizontal: 10,
   },
   passwordInput: {
     flex: 1,
     color: '#fff',
-    paddingVertical: 10, 
+    paddingVertical: 10,
   },
   errorText: {
     color: '#ff4d4d',
@@ -180,18 +251,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 20,
   },
-  checkbox: {
-    marginRight: 10,
-  },
   checkboxLabel: {
     color: '#ffcc00',
+    marginLeft: 10,
   },
   signupButton: {
     borderRadius: 5,
     borderWidth: 1,
     borderColor: '#90EE90',
     padding: 15,
-    borderRadius: 5,
     alignItems: 'center',
     marginTop: 20,
   },
