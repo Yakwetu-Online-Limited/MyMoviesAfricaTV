@@ -7,8 +7,9 @@ import { useNavigation,  } from '@react-navigation/native';
 import axios from 'axios';
 import { Linking } from 'react-native';
 
-import { Button, Modal } from 'react-native-paper';
-
+import { Button, Modal, PaperProvider } from 'react-native-paper';
+import { AntDesign } from '@expo/vector-icons';
+import { WebView } from 'react-native-webview';
 
 const { width } = Dimensions.get('window');
 
