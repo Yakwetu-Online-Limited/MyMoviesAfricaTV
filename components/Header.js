@@ -23,7 +23,7 @@ const Header = ({ userName, walletBalance, userId, onTopUp}) => {
         <TouchableOpacity onPress={() => {
     console.log('Navigating to Payment with userId:', userId);
     navigation.navigate('Payment', {
-      id: userId,
+      userId,
       purchase_type: 'TOPUP',
       source: 'Collection'
     });
