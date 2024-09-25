@@ -7,16 +7,23 @@ import HomePage from './screens/HomeScreen';
 import MovieDetailScreen from './screens/MovieDetailScreen';
 import CollectionPage from './screens/CollectionScreen';
 import PaymentPage from './screens/PaymentScreen';
+import SearchPage from './screens/SearchScreen';
+import LoginScreen from './screens/LoginScreen';
+import SignupScreen from './screens/SignupScreen';
+import MembershipScreen from './membership/MembershipScreen';
+import UpdateAccountForm from './membership/UpdateAccountForm';
+
 
 // Placeholder screens for future implementation
 
-const SearchPage = () => <></>;
-const ProfilePage = () => <></>;
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
 
-const BottomTabNavigator = () => {
+const BottomTabNavigator = ({ route }) => {
+  const { userId, username, movieId } = route.params || {};
+  console.log('BottomTabNavigator params:', route.params); 
+
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
@@ -48,20 +55,23 @@ const BottomTabNavigator = () => {
         name="Home"
         component={HomePage}
         options={{ headerShown: false }} 
+        initialParams={{ userId, username }}
       />
       <Tab.Screen
         name="Search"
         component={SearchPage}
         options={{ headerShown: false }} 
+        initialParams={{ userId, movieId }}
       />
       <Tab.Screen
         name="Collection"
         component={CollectionPage}
         options={{ headerShown: false }} 
+        initialParams={{ userId, username }}
       />
       <Tab.Screen
         name="Profile"
-        component={ProfilePage}
+        component={MembershipScreen}
         options={{ headerShown: false }} 
       />
     </Tab.Navigator>
@@ -71,12 +81,26 @@ const BottomTabNavigator = () => {
 const App = () => {
   return (
     <NavigationContainer>
-      <Stack.Navigator screenOptions={{ headerShown: false }} initialRouteName="Main">
-        <Stack.Screen name="Main" component={BottomTabNavigator} />
-        <Stack.Screen name="Home" component={HomePage}  />
-        <Stack.Screen name="MovieDetailScreen" component={MovieDetailScreen} />
+      <Stack.Navigator screenOptions={{ headerShown: false }} initialRouteName="Login">
+        <Stack.Screen name="Login" component={LoginScreen} />
+        <Stack.Screen name="Signup" component={SignupScreen} />        
+        <Stack.Screen name="Home" component={BottomTabNavigator}  />
+        <Stack.Screen name="Search" component={SearchPage} />
         <Stack.Screen name="Collection" component={CollectionPage} />
         <Stack.Screen name="Payment" component={PaymentPage} />
+        <Stack.Screen
+          name="Membership"
+          component={MembershipScreen}
+        />
+        <Stack.Screen
+          name="UpdateAccountForm"
+          component={UpdateAccountForm} 
+        />
+        <Stack.Screen
+          name="MovieDetail"
+          component={MovieDetailScreen}
+          options={{ title: 'Movie Details' }}
+      />
       </Stack.Navigator>
     </NavigationContainer>
   );

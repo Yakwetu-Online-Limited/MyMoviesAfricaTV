@@ -1,7 +1,37 @@
-import React from 'react';
-import { View, Text, Image, StyleSheet, TouchableOpacity } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, Image, StyleSheet, TouchableOpacity, Alert } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import { Linking } from 'react-native';
 
-const Header = ({ userName, walletBalance, onTopUp, navigation }) => {
+
+const Header = ({ userName, walletBalance, userId, onTopUp}) => {
+  console.log('Header received userName:', userName);
+  console.log('Header received userId:', userId);
+  
+  const navigation = useNavigation();
+
+  const handleTopUp = () => {
+    if (userId) {
+      const url = `https://api.mymovies.africa/api/v1/payment/gate/${userId}`;
+
+      Linking.openURL(url)
+        .then((supported) => {
+          if (!supported) {
+            console.error('Unable to open URL:', url);
+            Alert.alert('Error', 'Unable to open the top-up page.');
+          }
+          else {
+            // Assuming the top-up completes successfully and the user returns to the app
+            if (onTopUpSuccess) {
+              onTopUpSuccess();
+            }
+          }
+        })
+        .catch((err) => console.error('An error occurred:', err));
+    } else {
+      Alert.alert('Error', 'User ID not found. Please log in.');
+    }
+  };
   return (
     <View style={styles.container}>
       <View style={styles.logoContainer}>
@@ -12,11 +42,11 @@ const Header = ({ userName, walletBalance, onTopUp, navigation }) => {
         
       </View>
       <View style={styles.userContainer}>
-        <TouchableOpacity onPress={() => navigation.navigate('PaymentPage')} style={styles.topUpButton}>
+        <TouchableOpacity onPress={handleTopUp}  style={styles.topUpButton}>
           <Text style={styles.topUpText}>Top Up</Text>
         </TouchableOpacity>
         <View style={styles.userInfo}>
-          <Text style={styles.userName}>{userName}</Text>
+          <Text style={styles.userName}>{userName || 'Guest'}</Text>
           <Text style={styles.walletBalance}>Wallet Balance: {walletBalance}</Text>
         </View>
       </View>
