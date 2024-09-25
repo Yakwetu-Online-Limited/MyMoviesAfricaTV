@@ -5,6 +5,7 @@ import { getArtwork } from '../utils/media';
 import { FlatList, TouchableOpacity } from 'react-native-gesture-handler';
 import { useNavigation,  } from '@react-navigation/native';
 import axios from 'axios';
+import { Linking } from 'react-native';
 
 import { Button, Modal } from 'react-native-paper';
 
@@ -107,16 +108,19 @@ const MovieDetailScreen = ({route}) => {
         }
       } else {
         // Else, continue to the payment or rental process
-        const url = `https://api.mymovies.africa/api/v1/payment/gate/${userId}/?amount=${type}&purchase_type=${type}&ref=${movie.ref} `;
+        const url = `https://api.mymovies.africa/api/v1/payment/gate/${userId}/?amount=${amount}&purchase_type=${type}&ref=${movie.ref} `;
         console.log('Redirect to:', url);
+
+        Linking.openURL(url).catch((err) => console.error('Failed to open URL:', err));
+      
         
-        navigation.navigate('Payment', { 
-          userId: userId, 
-          movieId: movie.id,
-          amount: amount,
-          purchaseType: type,
-          source: 'MovieDetail'
-        });
+        // navigation.navigate('Payment', { 
+        //   userId: userId, 
+        //   movieId: movie.id,
+        //   amount: amount,
+        //   purchaseType: type,
+        //   source: 'MovieDetail'
+        // });
       }
     };
 

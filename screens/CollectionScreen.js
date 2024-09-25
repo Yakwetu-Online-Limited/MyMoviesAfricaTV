@@ -31,25 +31,20 @@ const CollectionPage = () => {
   }, []);
 
   // Fetch wallet balance from API
-  useEffect(() => {
-    const fetchWalletBalance = async () => {
-      try {
-        const response = await axios.post('https://api.mymovies.africa/api/v1/users/wallet', null, {
-          params: { user_id: userId },
-          headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-          },
-        });
-        setWalletBalance(response.data.balance || '0'); // Assuming the API returns an object with the balance
-      } catch (error) {
-        console.error("Error fetching wallet balance: ", error);
-      }
-    };
-
-    if (userId) {
-      fetchWalletBalance();
+  const fetchWalletBalance = async () => {
+    try {
+      const response = await fetch(`https://api.mymovies.africa/api/v1/user/${userId}`);
+      const data = await response.json();
+      setWalletBalance(data.balance);
+    } catch (error) {
+      console.error('Failed to fetch wallet balance:', error);
     }
-  }, [userId]); // Fetch balance whenever userId changes
+  };
+
+  useEffect(() => {
+    // Initial fetch of wallet balance
+    fetchWalletBalance();
+  }, []); // Fetch balance whenever userId changes
   
   const renderMovieItem = ({ item }) => (
     <TouchableOpacity style={styles.movieItem}>
@@ -64,13 +59,6 @@ const CollectionPage = () => {
     </TouchableOpacity>
   );
 
-  
-
-  const onTopUp = () => {
-    // Handle top-up action here
-    console.log('Top Up Pressed');
-  };
-
   return (
     <View style={styles.container}>
       {/* Add the Header Component */}
@@ -78,7 +66,7 @@ const CollectionPage = () => {
         userName={username}
         userId={userId}
         walletBalance={walletBalance}
-        onTopUp={onTopUp}
+        onTopUpSuccess={fetchWalletBalance}
       />
       
       <Text style={styles.header}>My Collection</Text>
