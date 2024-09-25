@@ -6,6 +6,7 @@ import { FlatList, TouchableOpacity } from 'react-native-gesture-handler';
 import { useNavigation,  } from '@react-navigation/native';
 import { Button, Modal, Portal, PaperProvider } from 'react-native-paper';
 import { AntDesign } from '@expo/vector-icons';
+import { WebView } from 'react-native-webview';
 
 
 const { width } = Dimensions.get('window');
@@ -20,6 +21,7 @@ const MovieDetailScreen = ({route}) => {
     const [ rentalPrice, setRentalPrice ] = useState(null);
     const [ ownPrice, setOwnPrice ] = useState (null);
     const [ purchaseType, setPurchaseType ] = useState (null);
+    const [trailerUrl, setTrailerUrl ] = useState (null);
 
     const { movieId } = route.params;
     const navigation = useNavigation();
@@ -48,6 +50,12 @@ const MovieDetailScreen = ({route}) => {
                 // Set the rental and own prices
                 setRentalPrice(rentalPriceData);
                 setOwnPrice(estPriceData);
+
+                //set trailer Url if available
+                if (movieData.trailer_url) {
+                  setTrailerUrl(movieData.trailer_url) // store the trailer url provided by the api
+
+                }
 
                 //Filter similar movies
                 const currentGenres = JSON.parse(movieData.genres);// convert genres from string to Array
@@ -80,6 +88,10 @@ const MovieDetailScreen = ({route}) => {
 
     // Fetch the movie poster using getArtwork
     const posterUrl = getArtwork(movie.ref).portrait;
+
+    // Construct the full YouTube URL for the trailer
+    const videoUrl = `https://www.youtube.com/embed/${trailerUrl}`;//Embed URL format from youtube
+
 
     // Check if the movie is free
     const isMovieFree = movie.genres && movie.genres.includes('Watch these Movies for FREE!');
@@ -132,28 +144,20 @@ const MovieDetailScreen = ({route}) => {
         <ScrollView style={styles.container}>
             <HeaderSection />
           
-            <View style={styles.posterContainer}>
-                <Image source={{ uri:posterUrl }} style={styles.poster} />
-            </View>
-
-            {/* Display movie trailer if available 
-
-            {movie.trailer_url ? (
-                <Video source={{ uri: movie.trailer_url }}
-                controls={true}
-                resizeMode="cover"
-                paused={false}
-                onError={(err) => console.error('Video error: ', err)}
-                style={styles.video}  
+            {/* Display movie trailer if available  */}
+            {trailerUrl ? (
+              <View style={styles.videoContainer}>
+                <WebView 
+                style={styles.video}
+                javaScriptEnabled={true}
+                domStorageEnabled={true}
+                source={{ uri: videoUrl}}
                 />
-
+              </View>
             ) : (
-                <Text> No trailer available.</Text>
+              <Text style={styles.noTrailerText}>No Trailer Available </Text>
             )}
-                */}
-             
-                
-                
+                  
             <View style={styles.buttonContainer}>
 
             <TouchableOpacity style={[isMovieFree ? styles.watchNowButton : styles.rentButton]} onPress={() => handleRentOrOwn('rent')}>
@@ -341,12 +345,21 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: 16,
     fontWeight: 'bold',
-},
+  },
+  videoContainer: {
+    marginTop: 16,
+    alignItems: 'center',
+  },
   video: {
-    width: "100%",
+    width: width * 0.9,
     height: 200,
     marginTop: 16,
     backgroundColor:"black",
+  },
+  noTrailerText: {
+    color: "white",
+    marginTop: 16,
+    textAlign: 'center',
   },
   posterContainer: {
     alignItems: "center",
