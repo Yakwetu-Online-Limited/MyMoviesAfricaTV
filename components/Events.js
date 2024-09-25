@@ -5,6 +5,7 @@ import {
   TouchableOpacity,
   Modal,
   ScrollView,
+  SafeAreaView,
   Image,
   StyleSheet,
   Dimensions,
@@ -14,7 +15,7 @@ import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import defaultPosterImage from "../images/default.jpg";
 import { getArtwork } from "../components/imageUtils";
 
-const { width } = Dimensions.get("window");
+const { height: SCREEN_HEIGHT, width: SCREEN_WIDTH } = Dimensions.get("window");
 
 const Events = ({ currentEvents, genres }) => {
   const [eventModalVisible, setEventModalVisible] = useState(false);
@@ -29,11 +30,10 @@ const Events = ({ currentEvents, genres }) => {
       const sortedMovies = allMovies.sort(
         (a, b) => new Date(b.releaseDate) - new Date(a.releaseDate)
       );
-      setNewReleases(sortedMovies.slice(0, 5)); // Get the 5 most recent releases
+      setNewReleases(sortedMovies.slice(0, 5));
     }
   }, [genres]);
 
-  // Reset the modal visibility and selected event on screen focus
   useFocusEffect(
     useCallback(() => {
       setEventModalVisible(false);
@@ -78,6 +78,7 @@ const Events = ({ currentEvents, genres }) => {
     </>
   );
 };
+
 const EventDetailsModal = ({ visible, events, onClose, onLearnMore }) => {
   const [currentEventIndex, setCurrentEventIndex] = useState(0);
 
@@ -109,7 +110,7 @@ const EventDetailsModal = ({ visible, events, onClose, onLearnMore }) => {
       animationType="slide"
       onRequestClose={onClose}
     >
-      <View style={styles.modalBackground}>
+      <SafeAreaView style={styles.modalBackground}>
         <View style={styles.modalContainer}>
           <View style={styles.modalHeader}>
             <Text style={styles.modalTitle}>MyMovies.Africa™ Events</Text>
@@ -126,13 +127,16 @@ const EventDetailsModal = ({ visible, events, onClose, onLearnMore }) => {
             <Text style={styles.eventDescription}>
               {truncateDescription(currentEvent.description, 150)}
             </Text>
+            <View style={styles.spacer} />
+          </ScrollView>
+          <View style={styles.buttonContainer}>
             <TouchableOpacity
               style={styles.eventLinkButton}
               onPress={() => onLearnMore(currentEvent)}
             >
               <Text style={styles.eventLinkButtonText}>Learn More</Text>
             </TouchableOpacity>
-          </ScrollView>
+          </View>
           <View style={styles.navigationContainer}>
             <TouchableOpacity
               onPress={goToPreviousEvent}
@@ -148,7 +152,7 @@ const EventDetailsModal = ({ visible, events, onClose, onLearnMore }) => {
             </TouchableOpacity>
           </View>
         </View>
-      </View>
+      </SafeAreaView>
     </Modal>
   );
 };
@@ -203,11 +207,8 @@ const MovieItem = ({ movie, onPress }) => {
     movie.poster || (movie.ref ? getArtwork(movie.ref).portrait : null);
 
   return (
-    // <TouchableOpacity onPress={() => onPress(movie)}>
     <TouchableOpacity
-    // onPress={navigation.navigate("MovieDetailScreen", { movieId: movie.id })}
-    onPress={() => navigation.navigate("MovieDetailScreen", { movieId: movie.id })}
-    //   onPress={() => navigation.navigate("MovieDetailScreen", { movie })}
+      onPress={() => navigation.navigate("MovieDetailScreen", { movieId: movie.id })}
     >
       <View style={styles.movieContainer}>
         <Image
@@ -244,7 +245,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   modalContainer: {
-    width: "90%",
+    width: SCREEN_WIDTH * 0.9,
+    maxHeight: SCREEN_HEIGHT * 0.8,
     backgroundColor: "#1E1E1E",
     borderRadius: 10,
     padding: 20,
@@ -257,45 +259,47 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   modalTitle: {
-    fontSize: 24,
+    fontSize: SCREEN_WIDTH * 0.06,
     fontWeight: "bold",
     color: "#FFFFFF",
   },
   closeButton: {
-    fontSize: 24,
+    fontSize: SCREEN_WIDTH * 0.06,
     color: "#FFFFFF",
   },
   eventDetailsContainer: {
     padding: 20,
+    flexGrow: 1,
   },
   eventArtwork: {
     width: "100%",
-    height: 200,
+    height: SCREEN_WIDTH * 0.6,
     resizeMode: "cover",
     borderRadius: 10,
     marginBottom: 15,
   },
   eventTitle: {
-    fontSize: 22,
+    fontSize: SCREEN_WIDTH * 0.055,
     fontWeight: "bold",
     color: "#FFFFFF",
     marginBottom: 10,
   },
   eventDescription: {
-    fontSize: 16,
+    fontSize: SCREEN_WIDTH * 0.04,
     color: "#CCCCCC",
     marginBottom: 15,
-    lineHeight: 24,
+    lineHeight: SCREEN_WIDTH * 0.05,
   },
   eventLinkButton: {
     backgroundColor: "#8E44AD",
     borderRadius: 5,
     padding: 10,
     alignItems: "center",
+    marginBottom: 10,
   },
   eventLinkButtonText: {
     color: "#FFFFFF",
-    fontSize: 16,
+    fontSize: SCREEN_WIDTH * 0.04,
     fontWeight: "bold",
   },
   navigationContainer: {
@@ -303,6 +307,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     paddingVertical: 15,
+    paddingTop: 10,
     paddingHorizontal: 20,
     borderTopWidth: 1,
     borderTopColor: "#333",
@@ -312,15 +317,15 @@ const styles = StyleSheet.create({
   },
   navButtonText: {
     color: "#FFFFFF",
-    fontSize: 16,
+    fontSize: SCREEN_WIDTH * 0.04,
     fontWeight: "bold",
   },
   eventCounter: {
     color: "#FFFFFF",
-    fontSize: 16,
+    fontSize: SCREEN_WIDTH * 0.04,
   },
   newReleasesTitle: {
-    fontSize: 22,
+    fontSize: SCREEN_WIDTH * 0.055,
     fontWeight: "bold",
     color: "#FFFFFF",
     marginTop: 30,
@@ -334,21 +339,25 @@ const styles = StyleSheet.create({
   movieContainer: {
     marginRight: 15,
     alignItems: "center",
-    width: 130,
+    width: SCREEN_WIDTH * 0.325,
   },
   moviePoster: {
-    width: 130,
-    height: 195,
+    width: SCREEN_WIDTH * 0.325,
+    height: SCREEN_WIDTH * 0.4875,
     borderRadius: 10,
     marginBottom: 8,
   },
   movieTitle: {
-    fontSize: 14,
+    fontSize: SCREEN_WIDTH * 0.035,
     color: "#FFFFFF",
     textAlign: "center",
-    width: 130,
+    width: SCREEN_WIDTH * 0.325,
     fontWeight: "600",
   },
+  spacer: {
+    height: SCREEN_HEIGHT * 0.05, // Add more space after the description
+  },
+  
 });
 
 export default Events;
