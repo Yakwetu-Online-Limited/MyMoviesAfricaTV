@@ -19,7 +19,10 @@ const MovieDetailScreen = ({ route }) => {
     const [ownPrice, setOwnPrice] = useState(null);
     const [purchaseType, setPurchaseType] = useState(null);
 
-    const { movieId } = route.params;
+    const { movieId, userId } = route.params;
+    console.log("Movie ID received in MovieDetailScreen: ", movieId);
+    console.log("MovieDetailScreen - userId:", userId);
+
     const navigation = useNavigation();
 
     useEffect(() => {
@@ -32,6 +35,14 @@ const MovieDetailScreen = ({ route }) => {
                     throw new Error('Movie not found');
                 }
                 setMovie(movieData);
+
+                // Set rental and purchase prices from the API response
+                const rentalPriceData = JSON.parse(movieData.rental_price)?.kenya;
+                const estPriceData = JSON.parse(movieData.est_price)?.kenya;
+
+                // Set the rental and own prices
+                setRentalPrice(rentalPriceData);
+                setOwnPrice(estPriceData);
 
                 const rentalPriceData = JSON.parse(movieData.rental_price)?.kenya;
                 const estPriceData = JSON.parse(movieData.est_price)?.kenya;

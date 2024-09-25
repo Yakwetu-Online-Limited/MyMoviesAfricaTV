@@ -17,6 +17,7 @@ import { getArtwork } from "../components/imageUtils";
 import { eventsData } from "../events";
 import Events from "../components/Events";
 import Screening from "../components/Screening";
+import { useRoute } from '@react-navigation/native';
 
 const { width } = Dimensions.get("window");
 
@@ -30,6 +31,14 @@ const HomePage = () => {
   const [loading, setLoading] = useState(true);
   const [selectedGenre, setSelectedGenre] = useState(null);
   const [currentEvents, setCurrentEvents] = useState([]);
+
+  const navigation = useNavigation();
+
+  const route = useRoute();
+  const { userId } = route.params || {};
+
+  console.log('Received route params:', route.params);  
+  console.log('Received userId in HomeScreen:', userId);
 
   const fetchMovies = async () => {
     try {
@@ -101,6 +110,8 @@ const HomePage = () => {
     setCurrentEvents(filteredEvents);
   };
 
+
+
   if (loading) {
     return (
       <View style={styles.loaderContainer}>
@@ -121,7 +132,11 @@ const HomePage = () => {
         currentEvents={currentEvents}
       />
       <BannerSection banners={banners} />
-      <GenreSection genres={visibleGenres} selectedGenre={selectedGenre} />
+      <GenreSection 
+        genres={visibleGenres} 
+        selectedGenre={selectedGenre}
+        userId={userId}
+      />
       {visibleGenres.length < genres.length && (
         <TouchableOpacity
           style={styles.loadMoreButton}
@@ -185,7 +200,7 @@ const BannerItem = ({ banner }) => {
   );
 };
 
-const GenreSection = ({ genres, selectedGenre }) => {
+const GenreSection = ({ genres, selectedGenre, userId }) => {
   const filteredGenres = selectedGenre
     ? genres.filter((genre) => genre.name === selectedGenre)
     : genres;
@@ -197,7 +212,7 @@ const GenreSection = ({ genres, selectedGenre }) => {
           <Text style={styles.genreTitle}>{genre.name}</Text>
           <FlatList
             data={genre.movies}
-            renderItem={({ item }) => <MovieItem movie={item} />}
+            renderItem={({ item }) => <MovieItem movie={item} userId={userId} />}
             keyExtractor={(item) => item.id}
             horizontal
             showsHorizontalScrollIndicator={false}
@@ -208,15 +223,15 @@ const GenreSection = ({ genres, selectedGenre }) => {
   );
 };
 
-const MovieItem = ({ movie }) => {
+const MovieItem = ({ movie, userId }) => {
   const navigation = useNavigation();
   const [isPressed, setIsPressed] = useState(false);
 
-  const posterUrl =
-    movie.poster || (movie.ref ? getArtwork(movie.ref).portrait : null);
+  const posterUrl = movie.poster || (movie.ref ? getArtwork(movie.ref).portrait : null);
 
+  // Updated handlePress function to correctly pass the movieId and userId
   const handlePress = () => {
-    navigation.navigate("MovieDetailScreen", { movieId: movie.id });
+    navigation.navigate("MovieDetail", { movieId: movie.id, userId: userId });
   };
 
   return (
@@ -274,6 +289,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingVertical: 10,
     backgroundColor: "#000000",
+    marginTop: 35
   },
   logo: {
     resizeMode: "contain",

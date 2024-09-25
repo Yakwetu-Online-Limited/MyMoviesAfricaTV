@@ -2,18 +2,50 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, FlatList, Image, StyleSheet, TouchableOpacity } from 'react-native';
 import Header from '../components/Header';
 import axios from 'axios';
+import { useRoute } from '@react-navigation/native';
+
 
 const CollectionPage = () => {
   const [collection, setCollection] = useState([]);
+  const [walletBalance, setWalletBalance] = useState(0);
+  const route = useRoute();
+  const { userId, username } = route.params || { userId: null, username: 'Guest' };
+
+  console.log('Received route params:', route.params); 
+  console.log('Received userName in CollectionPage:', username); 
+  console.log('Received userId:', userId); 
+
 
   // Fetch user's collection from API
   useEffect(() => {
-    // Assuming the API endpoint is `/api/cache`
-    axios.get('https://app.mymovies.africa/api/cache')
-      .then(response => setCollection(response.data))
-      .catch(error => console.error("Error fetching collection: ", error));
+    const fetchCollection = async () => {
+      try {
+        const response = await axios.get('https://api.mymovies.africa/api/cache');
+        setCollection(response.data);
+      } catch (error) {
+        console.error("Error fetching collection: ", error);
+      }
+    };
+    
+    fetchCollection();
   }, []);
 
+  // Fetch wallet balance from API
+  const fetchWalletBalance = async () => {
+    try {
+      const response = await fetch(`https://api.mymovies.africa/api/v1/user/${userId}`);
+      const data = await response.json();
+      setWalletBalance(data.balance);
+    } catch (error) {
+      console.error('Failed to fetch wallet balance:', error);
+    }
+  };
+
+  useEffect(() => {
+    // Initial fetch of wallet balance
+    fetchWalletBalance();
+  }, []); // Fetch balance whenever userId changes
+  
   const renderMovieItem = ({ item }) => (
     <TouchableOpacity style={styles.movieItem}>
       <Image
@@ -27,21 +59,14 @@ const CollectionPage = () => {
     </TouchableOpacity>
   );
 
-  const userName = 'Ryan Munge'; // Mock user details
-  const walletBalance = '35.0'; // Mock wallet balance
-
-  const onTopUp = () => {
-    // Handle top-up action here
-    console.log('Top Up Pressed');
-  };
-
   return (
     <View style={styles.container}>
       {/* Add the Header Component */}
       <Header 
-        userName={userName}
+        userName={username}
+        userId={userId}
         walletBalance={walletBalance}
-        onTopUp={onTopUp}
+        onTopUpSuccess={fetchWalletBalance}
       />
       
       <Text style={styles.header}>My Collection</Text>
