@@ -93,6 +93,9 @@ const MovieDetailScreen = ({route}) => {
     const handleRentOrOwn = async (type) => {
 
       setPurchaseType(type);
+      // Determine the amount based on the type
+      const amount = type === 'rent' ? rentalPrice : ownPrice;
+
       if (isMovieFree) {
         try {
           // Add movie to the collection with rent duration
@@ -104,14 +107,14 @@ const MovieDetailScreen = ({route}) => {
         }
       } else {
         // Else, continue to the payment or rental process
-        const url = `https://api.mymovies.africa/api/v1/payment/gate/10/?amount=${purchaseType === 'RENTAL' ? 149 : 349}&purchase_type=${purchaseType}&ref=${movie.ref}`;
+        const url = `https://api.mymovies.africa/api/v1/payment/gate/${userId}/?amount=${type}&purchase_type=${type}&ref=${movie.ref} `;
         console.log('Redirect to:', url);
         
         navigation.navigate('Payment', { 
-          userId: userId,  // Ensure storedUserId is defined and holds the correct value
+          userId: userId, 
           movieId: movie.id,
-          price: purchaseType === 'rent' ? rentalPrice : ownPrice,
-          purchaseType: purchaseType,
+          amount: amount,
+          purchaseType: type,
           source: 'MovieDetail'
         });
       }
@@ -215,14 +218,14 @@ const MovieDetailScreen = ({route}) => {
                                     ? `Own this movie for KSH. ${ownPrice}`
                                     : 'Loading price...'}
                         </Text>
-                        <View style={styles.paymentButtons}>
+                        {/* <View style={styles.paymentButtons}>
                             <TouchableOpacity style={styles.topUpButton} onPress={handlePayment}>
                                 <Text style={styles.modalButtonText}>Top Up Now</Text>
                             </TouchableOpacity>
                             <TouchableOpacity style={styles.cancelButton} onPress={() => setModalVisible(false)}>
                                 <Text style={styles.modalButtonText}>Cancel</Text>
                             </TouchableOpacity>
-                        </View>
+                        </View> */}
                     </View>
                 </View>
             </Modal>
@@ -306,7 +309,7 @@ const styles = StyleSheet.create({
     marginTop: 16,
     alignItems: "center",
 },
-  buttonOwn: {
+ownButton: {
     borderColor: '#d648d7',
     backgroundColor: 'black',
     borderWidth:2,
