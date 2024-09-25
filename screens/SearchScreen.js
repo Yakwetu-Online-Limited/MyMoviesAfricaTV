@@ -5,6 +5,7 @@ import { getArtwork } from '../utils/media';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import Fuse from 'fuse.js';
 import { API_URL } from '../store';
+import { useRoute } from '@react-navigation/native';
 
 
 const SearchScreen = ({ navigation }) => {
@@ -13,6 +14,12 @@ const SearchScreen = ({ navigation }) => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [searchQuery, setSearchQuery] = useState('');
+
+    const route = useRoute();
+    const { userId } = route.params || {};
+
+    console.log('Received route params:', route.params);  
+    console.log('SearchScren -> userId:', userId);
 
     useEffect(() => {
         fetchMovies();
@@ -71,7 +78,7 @@ const SearchScreen = ({ navigation }) => {
 
     const handlePress = (item) => {
         console.log("Selected movie item: ", item);
-        navigation.navigate('MovieDetail', { movieId: item.id });
+        navigation.navigate('MovieDetail', { movieId: item.id, userId: userId });
     };
 
     const renderItem = ({ item }) => {
