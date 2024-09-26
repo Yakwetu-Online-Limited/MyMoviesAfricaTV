@@ -38,7 +38,7 @@ const LoginScreen = ({ navigation }) => {
         name: username,
       }).toString();
 
-      console.log('Sending login data:', { uid: storedUserId, email });
+      console.log('Sending login data:', { username, uid: storedUserId, email });
 
       // Make the POST request to the login endpoint
       const response = await axios.post('https://api.mymovies.africa/api/v1/users/login', loginData, {
