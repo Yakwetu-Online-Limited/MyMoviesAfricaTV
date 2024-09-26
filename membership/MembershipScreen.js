@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, Image } from 'react-native';
 import { Button, Card } from '@rneui/themed';
+import Icon from 'react-native-vector-icons/MaterialIcons';
 import { useNavigation } from '@react-navigation/native';
 
 const MembershipScreen = () => {
@@ -32,10 +33,12 @@ const MembershipScreen = () => {
                     style={styles.logoImage}
                 />
                 <TouchableOpacity>
-                    <Image 
-                        source={require('../assets/default.jpg')}
-                        style={styles.logoutImage}
-                    />
+                <Icon 
+                    name="logout" 
+                    size={30} 
+                    color="#fff" 
+                    style={styles.logoutIcon}
+                />
                 </TouchableOpacity>
             </View>
 
@@ -43,14 +46,20 @@ const MembershipScreen = () => {
             <View style={styles.cardContainer}>
                 <Card containerStyle={styles.card}>
                     <Card.Title style={styles.cardTitle}>
-                        <Image source={require('../assets/default.jpg')} style={styles.titleImage}/>
+                        <View style={{ marginTop: 20 }}>
+                            <Icon 
+                                name="person-outline" 
+                                size={22} 
+                                color="white" 
+                            />
+                        </View>
                         <Text style={styles.titleText}>Account</Text>
                     </Card.Title>
 
                     <Card.Divider/>
 
                     <View style={styles.cardContent}>
-                        <Card.Image source={require('../assets/default.jpg')} style={styles.profileImage}/>
+                    <Icon name="account-circle" size={140} color="rgba(172, 231, 223, 1)" />
                         <View style={styles.userInfo}>
                             <Text style={styles.text}>Ryan Munge</Text>
                             <Text style={styles.text}>ryanmunge@gmail.com</Text> 
@@ -112,38 +121,40 @@ const styles = StyleSheet.create({
         height: 36,
         resizeMode: 'contain',
     },
-    logoutImage: {
+    logoutIcon: {
         width: 50,
         height: 50,
         borderRadius: 25,
+        marginTop: 20,
     },
     cardContainer: {
-        flex: 1,
-        justifyContent: 'center',
+        //flex: 1,
+        //justifyContent: 'center',
         paddingHorizontal: 10,
     },
     card: {
         backgroundColor: '#190028',
         borderRadius: 10,
         padding: 20,
+        
         marginVertical: 20,
         borderWidth: 0,// the white lining of the card
     },
     cardTitle: {
         flexDirection: 'row',
-        alignItems: 'center',
-        marginBottom: 15,
+        //alignItems: 'center',
+        textAlign: "left",
     },
-    titleImage: {
-        width: 40,
-        height: 40,
-        borderRadius: 20,
-        marginRight: 15,
+    titleIcon: {
+        paddingTop: 20,
+        marginTop: 20, 
     },
     titleText: {
         color: 'white',
-        fontWeight: 'bold',
-        fontSize: 22,
+        //fontWeight: 'bold',
+        fontSize: 16,
+        marginTop: 15, 
+        
     },
     cardContent: {
         alignItems: 'center',

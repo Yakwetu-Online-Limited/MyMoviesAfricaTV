@@ -9,7 +9,7 @@ import {
   FIREBASE_MESSAGING_SENDER_ID 
 } from '@env';
 
-dotenv.config()
+//dotenv.config()
 const firebaseConfig = {
   apiKey: FIREBASE_API_KEY,
   authDomain: FIREBASE_AUTH_DOMAIN,
