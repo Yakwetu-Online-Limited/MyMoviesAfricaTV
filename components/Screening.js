@@ -17,6 +17,7 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import MapView, { Marker } from 'react-native-maps';
 import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+// import { useForm, Controller } from 'react-hook-form';
 
 const { width, height } = Dimensions.get('window');
 
@@ -66,6 +67,7 @@ const Screening = () => {
 
   // Fetch auth token when component mounts
   useEffect(() => {
+
     const getAuthToken = async () => {
       try {
         const token = await AsyncStorage.getItem('authToken');
