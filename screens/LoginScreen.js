@@ -26,6 +26,7 @@ const LoginScreen = ({ navigation }) => {
 
       // Fetch userId from AsyncStorage
       const storedUserId = await AsyncStorage.getItem('userId');
+      
       console.log('Fetched userId from AsyncStorage:', storedUserId);
 
       if (!storedUserId) {
@@ -38,6 +39,7 @@ const LoginScreen = ({ navigation }) => {
         uid: storedUserId,
         email: email,
         name: username,
+        // phone: userData.phone || '', // Include phone number in user data
       }).toString();
 
       console.log('Sending login data:', { uid: storedUserId, email });
@@ -58,7 +60,8 @@ const LoginScreen = ({ navigation }) => {
           uid: storedUserId,
           email: email,
           name: username,
-         phone: phone,
+          // phone: userData.phone || '', // Include phone number in user data
+        //  phone: phone,
         }; 
         await login(userData);
         Alert.alert('Success', 'Logged in successfully');

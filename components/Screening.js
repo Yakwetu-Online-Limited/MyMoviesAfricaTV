@@ -10,6 +10,7 @@ import {
   Dimensions,
   Platform,
   Alert,
+  Linking,
 } from "react-native";
 import PhoneInput from "react-native-phone-number-input";
 import { Picker } from "@react-native-picker/picker";
@@ -19,6 +20,7 @@ import { useNavigation } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 // import { useForm, Controller } from 'react-hook-form';
 import { useUser } from "./UserContext";
+import { calculatePrice } from "./priceCalculator";
 const { width, height } = Dimensions.get("window");
 
 // Helper function to build FormData
@@ -59,10 +61,42 @@ const Screening = () => {
   });
   const [errors, setErrors] = useState({});
   const [authToken, setAuthToken] = useState("");
+  const [totalPrice, setTotalPrice] = useState(0);
+
+
+  // Highlight: Added movies array inside the component
+  const movies = [
+    {
+      title: "WHERE THE RIVER DIVIDES (Dholuo)",
+      ref: "c342b4d82ea46334",
+      pricePerAttendee: 149,
+    },
+    {
+      title: "ACT OF LOVE",
+      ref: "0782fa09cf495e49",
+      pricePerAttendee: 149,
+    },
+    {
+      title: "WHERE THE RIVER DIVIDES (English)",
+      ref: "ced5b16dcf329733",
+      pricePerAttendee: 149,
+    },
+    {
+      title: "WHERE THE RIVER DIVIDES (Kiswahili)",
+      ref: "3175116ab51d1335",
+      pricePerAttendee: 149,
+    },
+  ];
+  const attendeesOptions = [
+    "6-20 People",
+    "21-100 People",
+    "101-200 People",
+    "201+ People",
+  ];
 
   useEffect(() => {
     console.log("useEffect triggered, user:", user); // New log
-    if ( user) {
+    if (user) {
       //     setRequestDetails(prevDetails => {
       //       const newDetails = {
       //         ...prevDetails,
@@ -94,18 +128,8 @@ const Screening = () => {
 
   const navigation = useNavigation();
 
-  const movies = [
-    "WHERE THE RIVER DIVIDES (Dholuo): KES 149 per Attendee",
-    "ACT OF LOVE : KES 149 Per Attendee",
-    "WHERE THE RIVER DIVIDES (English): KES 149 per Attendee",
-    "WHERE THE RIVER DIVIDES (Kiswahili): KES 149 per Attendee",
-  ];
-  const attendeesOptions = [
-    "6-20 People",
-    "21-100 People",
-    "101-200 People",
-    "201+ People",
-  ];
+  
+  
 
   // Fetch auth token when component mounts
   useEffect(() => {
@@ -119,6 +143,14 @@ const Screening = () => {
     };
     getAuthToken();
   }, []);
+
+  useEffect(() => {
+    const price = calculatePrice(
+      requestDetails.movie_name,
+      requestDetails.expected_audience
+    );
+    setTotalPrice(price);
+  }, [requestDetails.movie_name, requestDetails.expected_audience]);
 
   // Form validation function
   const validateForm = useCallback(() => {
@@ -148,13 +180,18 @@ const Screening = () => {
   const handleRequestScreening = useCallback(async () => {
     if (!validateForm()) return;
 
-    console.log("form daa:", requestDetails);
+    console.log("form data:", requestDetails);
     const formData = buildFormData(requestDetails);
     console.log("form data built successfully");
 
     try {
       console.log("making request");
       console.log("auth token", authToken);
+
+      // Log important variables before making the request
+      console.log("User ID:", user?.uid);
+      console.log("Total Price:", totalPrice);
+
       const response = await fetch(
         "https://api.mymovies.africa/api/v1/bulkscreenings",
         {
@@ -174,22 +211,54 @@ const Screening = () => {
       if (response.ok) {
         console.log("Submission successful:", result);
         setModalVisible(false);
-        navigation.navigate("Payment");
+
+        // Log important variables
+        console.log("Screening ID:", result.screeningid);
+        console.log("Reference:", result.ref);
+
+        console.log("Before URL construction");
+
+        // Construct the payment URL
+      // Highlight: Updated payment URL construction
+      if (user?.uid && result.screeningid && requestDetails.movie_name) {
+        const selectedMovie = movies.find(movie => movie.ref === requestDetails.movie_name);
+        const movieRef = selectedMovie ? selectedMovie.ref : '';
+
+        const paymentUrl = `https://api.mymovies.africa/api/v1/payment/gate/${user.uid}/?amount=${totalPrice}&purchase_type=BULK OFFLINE SCREENING&screeningid=${result.screeningid}&ref=${movieRef}&source=pwa`;
+
+        console.log("Payment URL:", paymentUrl);
+        navigation.navigate("Payment", { paymentUrl });
       } else {
-        console.error("Submission failed:", result);
+        console.error("Missing required data for payment URL");
         Alert.alert(
-          "Submission Failed",
-          "Please check your input and try again."
+          "Error",
+          "Unable to process payment due to missing information. Please try again."
         );
       }
-    } catch (error) {
-      console.error("Error during submission:", error);
+    } else {
+      console.error("Submission failed:", result);
       Alert.alert(
-        "Error",
-        "An unexpected error occurred. Please try again later."
+        "Submission Failed",
+        "Please check your input and try again."
       );
     }
-  }, [requestDetails, authToken, navigation, validateForm]);
+  } catch (error) {
+    console.error("Error during submission:", error);
+    Alert.alert(
+      "Error",
+      "An unexpected error occurred. "
+    );
+  }
+}, [
+  requestDetails,
+  authToken,
+  navigation,
+  user?.uid,
+  totalPrice,
+  validateForm,
+  movies,
+]);
+
 
   // Handle input changes
   const handleInputChange = useCallback(
@@ -222,7 +291,6 @@ const Screening = () => {
 
   return (
     <>
-    
       <TouchableOpacity
         style={styles.requestScreeningButton}
         onPress={() => setModalVisible(true)}
@@ -362,14 +430,18 @@ const Screening = () => {
                 <View style={styles.selectContainer}>
                   <Picker
                     selectedValue={requestDetails.movie_name}
-                    onValueChange={(movie) =>
-                      handleInputChange("movie_name", movie)
+                    onValueChange={(movieRef) =>
+                      handleInputChange("movie_name", movieRef)
                     }
                     style={styles.picker}
                   >
                     <Picker.Item label="Select Movie" value="" />
                     {movies.map((movie, index) => (
-                      <Picker.Item key={index} label={movie} value={movie} />
+                      <Picker.Item
+                        key={index}
+                        label={`${movie.title}: KES ${movie.pricePerAttendee} per Attendee`}
+                        value={movie.ref}
+                      />
                     ))}
                   </Picker>
                 </View>

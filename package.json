@@ -41,6 +41,7 @@
     "react-native-dotenv": "^3.4.11",
     "react-native-gesture-handler": "~2.16.1",
     "react-native-google-signin": "^2.1.1",
+    "react-native-link": "^4.1.0",
     "react-native-maps": "1.14.0",
     "react-native-paper": "^5.12.5",
     "react-native-phone-input": "^1.3.7",
