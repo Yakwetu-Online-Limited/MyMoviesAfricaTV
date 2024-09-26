@@ -10,7 +10,8 @@ import { AntDesign } from '@expo/vector-icons';
 import { WebView } from 'react-native-webview';
 
 import { Button, Modal, Portal } from 'react-native-paper';
-
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { storePurchasedMovie } from '../utils/storage';
 
 const { width } = Dimensions.get('window');
 
@@ -31,7 +32,7 @@ const MovieDetailScreen = ({route}) => {
     const { movieId, userId, walletBalance: initialWalletBalance, username  } = route.params;
     const [walletBalance, setWalletBalance] = useState(initialWalletBalance);
     console.log("Movie ID received in MovieDetailScreen: ", movieId);
-    console.log("MovieDetailScreen - userId:", userId, username);
+    console.log("MovieDetailScreen - userId:", userId);
     console.log("MovieDetailScreen - walletBalance:", walletBalance);
     const navigation = useNavigation();
 
@@ -108,15 +109,7 @@ const MovieDetailScreen = ({route}) => {
     // Construct the full YouTube URL for the trailer
     const videoUrl = `https://www.youtube.com/embed/${trailerUrl}?autoplay=0&modestbranding=1&showinfo=0&controls=1&fullscreen=1`;//Embed URL format from youtube
 
-    // Simulate adding a movie to "My Collection"
-    const addToCollection = (movie) => {
-    // Simulate adding the movie to "My Collection"
-      console.log(`Movie ${movie.title} added to My Collection`);
-      // Navigate to the movie player screen
-      navigation.navigate('Player', { movieRef: movie.ref });
-    };
-
-
+   
     // Check if the movie is free
     const isMovieFree = movie.genres && movie.genres.includes('Watch these Movies for FREE!');
 
@@ -157,11 +150,15 @@ const MovieDetailScreen = ({route}) => {
           setWalletBalance((prevBalance) => prevBalance - amount);
           alert(`Purchase successful! You've been charged KSH. ${amount}.`);
           
+          // Store purchased movie locally
+          await storePurchasedMovie(movie, purchaseType === 'rent' ? 'rent' : 'own');
 
-          await addMovieToCollection(movie, purchaseType === 'RENTAL' ? 7 : null, purchaseType); 
+          // await addMovieToCollection(movie, purchaseType === 'RENTAL' ? 7 : null, purchaseType); 
 
           // Navigate to the CollectionScreen to show updated collection
-          navigation.navigate('Collection', {userId: userId, username: username, movieId: movieId});
+          setTimeout(() => {
+            navigation.navigate('Collection', { userId: userId, username: username, movieId: movieId });
+        }, 5000);
       } catch (error) {
           console.error('Error making purchase:', error);
       }
@@ -183,15 +180,16 @@ const MovieDetailScreen = ({route}) => {
 
     const addMovieToCollection = async (movie, rentDuration, purchaseType) => {
       try {
-        const response = await axios.post(`https://api.mymovies.africa/api/v1/purchases`, {
+        const response = await axios.post(`https://api.mymovies.africa/api/v1/purchases?userId=${userId}&movieId=${movieId}`, {
           user_id: userId, 
           ref: movie.ref,  
           purchase_type: purchaseType, 
           title: movie.title,
           poste: getArtwork(movie.ref).portrait,
         });
-        console.log('Full API response:', response);
+        // console.log('Full API response:', response);
         console.log('Movie added to collection:', response.data);
+        console.log('Movie ID:', movieId);
       } catch (error) {
         console.error('Error adding movie to collection:', error);
       }
@@ -210,11 +208,11 @@ const MovieDetailScreen = ({route}) => {
       </View>
     );
 
-    const renderSimilarMovie = ({item, userId}) => {
+    const renderSimilarMovie = ({item, userId, walletBalance}) => {
       const similarPosterUrl = getArtwork(item.ref).portrait;
       return(
         <TouchableOpacity 
-        onPress={()=> navigation.push ('MovieDetail',{movieId: item.id, userId: userId }) }>
+        onPress={()=> navigation.push ('MovieDetail',{movieId: item.id, userId: userId, walletBalance }) }>
           <Image source={{uri:similarPosterUrl}}
         style={styles.similarMoviePoster} />
 
@@ -329,7 +327,7 @@ const MovieDetailScreen = ({route}) => {
 
             <FlatList
             data={similarMovies}
-            renderItem={({ item }) => renderSimilarMovie({ item, userId })}
+            renderItem={({ item }) => renderSimilarMovie({ item, userId, walletBalance })}
             keyExtractor={(item) => item.id}
             horizontal
             showsHorizontalScrollIndicator={false}
@@ -555,3 +553,5 @@ ownButton: {
 });
 
 export default MovieDetailScreen;
+
+
