@@ -4,6 +4,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Create a new Context for user data to be accessible throughout the app.
 const UserContext = createContext();
+console.log('User context:', UserContext);
+
 
 // Create the UserProvider component that wraps the app and provides user-related data/functions.
 export const UserProvider = ({ children }) => {

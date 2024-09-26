@@ -10,6 +10,7 @@ import PaymentPage from './screens/PaymentScreen';
 import SearchPage from './screens/SearchScreen';
 import LoginScreen from './screens/LoginScreen';
 import SignupScreen from './screens/SignupScreen';
+import { UserProvider } from './components/UserContext';
 import MembershipScreen from './membership/MembershipScreen';
 import UpdateAccountForm from './membership/UpdateAccountForm';
 
@@ -80,6 +81,7 @@ const BottomTabNavigator = ({ route }) => {
 
 const App = () => {
   return (
+    <UserProvider>
     <NavigationContainer>
       <Stack.Navigator screenOptions={{ headerShown: false }} initialRouteName="Login">
         <Stack.Screen name="Login" component={LoginScreen} />
@@ -103,6 +105,7 @@ const App = () => {
       />
       </Stack.Navigator>
     </NavigationContainer>
+    </UserProvider>
   );
 };
 

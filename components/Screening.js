@@ -32,7 +32,9 @@ const buildFormData = (formObj) => {
 
 const Screening = () => {
   const [modalVisible, setModalVisible] = useState(false);
-  const { user } = useUser();
+  // const { user } = useUser();
+  const userContext = useUser();
+  const user = userContext?.user;
   const [requestDetails, setRequestDetails] = useState({
     organisation:  "",
     contact_name: "",
@@ -60,7 +62,7 @@ const Screening = () => {
     if (user) {
       setRequestDetails(prevDetails => ({
         ...prevDetails,
-        organisation: user.organisation || "",
+        // organisation: user.organisation || "",
         contact_name: user.name || "",
         email: user.email || "",
         phone: user.phone || "",
