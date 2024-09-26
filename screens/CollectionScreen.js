@@ -7,44 +7,31 @@ import { useRoute } from '@react-navigation/native';
 
 const CollectionPage = () => {
   const [collection, setCollection] = useState([]);
-  const [walletBalance, setWalletBalance] = useState(0);
+  
   const route = useRoute();
-  const { userId, username } = route.params || { userId: null, username: 'Guest' };
+  const { userId, username, walletBalance = 500 } = route.params || { userId: null, username: 'Guest' };
 
   console.log('Received route params:', route.params); 
   console.log('Received userName in CollectionPage:', username); 
   console.log('Received userId:', userId); 
+  console.log('Received walletBalance:', walletBalance);
 
 
   // Fetch user's collection from API
   useEffect(() => {
     const fetchCollection = async () => {
       try {
-        const response = await axios.get('https://api.mymovies.africa/api/cache');
+        const response = await axios.get('https://api.mymovies.africa/api/v1/purchases');
         setCollection(response.data);
       } catch (error) {
         console.error("Error fetching collection: ", error);
       }
     };
-    
+
     fetchCollection();
-  }, []);
 
-  // Fetch wallet balance from API
-  const fetchWalletBalance = async () => {
-    try {
-      const response = await fetch(`https://api.mymovies.africa/api/v1/user/${userId}`);
-      const data = await response.json();
-      setWalletBalance(data.balance);
-    } catch (error) {
-      console.error('Failed to fetch wallet balance:', error);
-    }
-  };
+  }, [userId]);
 
-  useEffect(() => {
-    // Initial fetch of wallet balance
-    fetchWalletBalance();
-  }, []); // Fetch balance whenever userId changes
   
   const renderMovieItem = ({ item }) => (
     <TouchableOpacity style={styles.movieItem}>
@@ -65,8 +52,7 @@ const CollectionPage = () => {
       <Header 
         userName={username}
         userId={userId}
-        walletBalance={walletBalance}
-        onTopUpSuccess={fetchWalletBalance}
+        walletBalance={walletBalance} 
       />
       
       <Text style={styles.header}>My Collection</Text>
@@ -95,7 +81,7 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: 'bold',
     color: '#FFCC00',
-    marginTop: 20, // Adjust this as needed to space it from the header
+    marginTop: 20,
     marginBottom: 20,
     textAlign: 'center',
   },

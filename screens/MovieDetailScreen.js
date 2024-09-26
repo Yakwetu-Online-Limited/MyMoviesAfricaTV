@@ -6,15 +6,17 @@ import { FlatList, TouchableOpacity } from 'react-native-gesture-handler';
 import { useNavigation,  } from '@react-navigation/native';
 import axios from 'axios';
 import { Linking } from 'react-native';
-
-import { Button, Modal, PaperProvider } from 'react-native-paper';
 import { AntDesign } from '@expo/vector-icons';
 import { WebView } from 'react-native-webview';
+
+import { Button, Modal, Portal } from 'react-native-paper';
+
 
 const { width } = Dimensions.get('window');
 
 const MovieDetailScreen = ({route}) => {
     // set useStates
+    
     const [ movie, setMovie ] = useState(null);
     const [ loading, setLoading ]= useState(true);
     const [ error, setError ] = useState(null);
@@ -23,11 +25,14 @@ const MovieDetailScreen = ({route}) => {
     const [ rentalPrice, setRentalPrice ] = useState(null);
     const [ ownPrice, setOwnPrice ] = useState (null);
     const [ purchaseType, setPurchaseType ] = useState (null);
-
-    const { movieId, userId } = route.params;
+    const [trailerUrl, setTrailerUrl ] = useState (null);
+    const [url, setUrl] = useState(null);
+   
+    const { movieId, userId, walletBalance: initialWalletBalance  } = route.params;
+    const [walletBalance, setWalletBalance] = useState(initialWalletBalance);
     console.log("Movie ID received in MovieDetailScreen: ", movieId);
     console.log("MovieDetailScreen - userId:", userId);
-
+    console.log("MovieDetailScreen - walletBalance:", walletBalance);
     const navigation = useNavigation();
 
     //const movieId = '184'; // Static ID for testing
@@ -59,6 +64,12 @@ const MovieDetailScreen = ({route}) => {
                 setRentalPrice(rentalPriceData);
                 setOwnPrice(estPriceData);
 
+                //set trailer Url if available
+                if (movieData.trailer_url) {
+                  setTrailerUrl(movieData.trailer_url) // store the trailer url provided by the api
+
+                }
+
                 //Filter similar movies
                 const currentGenres = JSON.parse(movieData.genres);// convert genres from string to Array
                 const filteredMovies = data.content.filter(m =>
@@ -79,6 +90,9 @@ const MovieDetailScreen = ({route}) => {
         };
         fetchMovieData();
     }, [movieId]);
+
+    
+
     // Render loading state.
     if (loading) {
         return <ActivityIndicator size = "large" color="#0000ff" alignItems="center" />
@@ -91,39 +105,60 @@ const MovieDetailScreen = ({route}) => {
     // Fetch the movie poster using getArtwork
     const posterUrl = getArtwork(movie.ref).portrait;
 
-    const isMovieFree = movie.genres && movie.genres.includes('Watch these Movies for FREE!');
-    const handleRentOrOwn = async (type) => {
+    // Construct the full YouTube URL for the trailer
+    const videoUrl = `https://www.youtube.com/embed/${trailerUrl}`;//Embed URL format from youtube
 
+
+    // Check if the movie is free
+    const isMovieFree = movie.genres && movie.genres.includes('Watch these Movies for FREE!');
+    const handleRentOrOwn = (type) => {
       setPurchaseType(type);
+      
       // Determine the amount based on the type
       const amount = type === 'rent' ? rentalPrice : ownPrice;
-
-      if (isMovieFree) {
-        try {
-          // Add movie to the collection with rent duration
-          await addMovieToCollection(movie, 7); // Rent for 7 days
-          // Navigate to the player
-          navigation.navigate('Player', { movieRef: movie.ref });
-        } catch (error) {
-          console.error('Error adding movie to collection:', error);
-        }
-      } else {
-        // Else, continue to the payment or rental process
-        const url = `https://api.mymovies.africa/api/v1/payment/gate/${userId}/?amount=${amount}&purchase_type=${type}&ref=${movie.ref} `;
-        console.log('Redirect to:', url);
-
-        Linking.openURL(url).catch((err) => console.error('Failed to open URL:', err));
       
-        
-        // navigation.navigate('Payment', { 
-        //   userId: userId, 
-        //   movieId: movie.id,
-        //   amount: amount,
-        //   purchaseType: type,
-        //   source: 'MovieDetail'
-        // });
-      }
+      // Check if wallet balance is sufficient
+      if (walletBalance >= amount) {
+        handlePurchase(amount, movie.ref, type);
+    } else {
+        const remainingBalance = amount - walletBalance;
+        alert(`Your wallet balance is insufficient. You need KSH. ${remainingBalance} more.`);
+        setModalVisible(true);
+    }
     };
+
+    const handlePurchase = async (amount, movieRef, purchaseType) => {
+      const purchaseObj = {
+          user_id: userId,
+          ref: movieRef,
+          purchase_type: purchaseType,
+          source: 1,
+      };
+  
+      try {
+          const response = await axios.post('https://api.mymovies.africa/api/v1/users/buy', purchaseObj);
+          console.log('Purchase successful:', response.data);
+          // Optionally update the wallet balance after purchase
+          setWalletBalance((prevBalance) => prevBalance - amount);
+          alert(`Purchase successful! You've been charged KSH. ${amount}.`);
+      } catch (error) {
+          console.error('Error making purchase:', error);
+      }
+  };
+    
+  const handleModalTopUp = () => {
+    // Determine the required amount based on purchaseType
+    const amount = purchaseType === 'rent' ? rentalPrice : ownPrice;
+
+        const remainingBalance = amount - walletBalance;
+        const url = `https://api.mymovies.africa/api/v1/payment/gate/${userId}/?amount=${remainingBalance}&purchase_type=${purchaseType}&ref=${movie.ref}`;
+        
+        Linking.openURL(url)
+            .catch((err) => console.error('Failed to open URL:', err));
+        alert(`Your wallet balance is insufficient. Please top-up to cover KSH. ${remainingBalance}.`);
+    
+};
+    
 
     const addMovieToCollection = async (movie, rentDuration) => {
       try {
@@ -170,29 +205,21 @@ const MovieDetailScreen = ({route}) => {
     return (
         <ScrollView style={styles.container}>
             <HeaderSection />
-          
-            <View style={styles.posterContainer}>
-                <Image source={{ uri:posterUrl }} style={styles.poster} />
-            </View>
-
-            {/* Display movie trailer if available 
-
-            {movie.trailer_url ? (
-                <Video source={{ uri: movie.trailer_url }}
-                controls={true}
-                resizeMode="cover"
-                paused={false}
-                onError={(err) => console.error('Video error: ', err)}
-                style={styles.video}  
+            {/* <Text style={styles.walletBalance}>Wallet Balance: ${walletBalance}</Text> */}
+            {/* Display movie trailer if available  */}
+            {trailerUrl ? (
+              <View style={styles.videoContainer}>
+                <WebView 
+                style={styles.video}
+                javaScriptEnabled={true}
+                domStorageEnabled={true}
+                source={{ uri: videoUrl}}
                 />
-
+              </View>
             ) : (
-                <Text> No trailer available.</Text>
+              <Text style={styles.noTrailerText}>No Trailer Available </Text>
             )}
-                */}
-             
-                
-                
+                  
             <View style={styles.buttonContainer}>
 
             <TouchableOpacity style={[isMovieFree ? styles.watchNowButton : styles.rentButton]} onPress={() => handleRentOrOwn('rent')}>
@@ -207,34 +234,53 @@ const MovieDetailScreen = ({route}) => {
             </View>
 
            {/* Modal for Payment Confirmation */}
-           <Modal
-                visible={modalVisible}
-                transparent={true}
-                animationType="slide"
-                onRequestClose={() => setModalVisible(false)}
-            >
-                <View style={styles.modalContainer}>
-                    <View style={styles.modalContent}>
-                        <Text style={styles.modalTitle}>Payment Details</Text>
+           <Portal>
+                <Modal
+                    visible={modalVisible}
+                    onDismiss={() => setModalVisible(false)}
+                    contentContainerStyle={styles.modalContent}
+                >
+                    <TouchableOpacity style={styles.closeButton} onPress={() => setModalVisible(false)}>
+                        <AntDesign name="close" size={24} color="black" />
+                    </TouchableOpacity>
+                    <Text style={styles.modalTitle}>Insufficient Account Balance</Text>
+                    <Text style={styles.modalMessage}>
+                      {purchaseType === 'rent' && rentalPrice && (
                         <Text style={styles.modalMessage}>
-                            {purchaseType === 'rent' && rentalPrice
-                                ? `Rent this movie for KSH. ${rentalPrice}`
-                                : purchaseType === 'own' && ownPrice
-                                    ? `Own this movie for KSH. ${ownPrice}`
-                                    : 'Loading price...'}
+                            Rent this movie for KSH. {rentalPrice}
+                            {walletBalance < rentalPrice && 
+                                `\nYour wallet balance is insufficient. You need KSH. ${rentalPrice - walletBalance} more to rent this movie. Please top-up to continue.`}
                         </Text>
-                        {/* <View style={styles.paymentButtons}>
-                            <TouchableOpacity style={styles.topUpButton} onPress={handlePayment}>
-                                <Text style={styles.modalButtonText}>Top Up Now</Text>
-                            </TouchableOpacity>
-                            <TouchableOpacity style={styles.cancelButton} onPress={() => setModalVisible(false)}>
-                                <Text style={styles.modalButtonText}>Cancel</Text>
-                            </TouchableOpacity>
-                        </View> */}
+                    )}
+                    {purchaseType === 'own' && ownPrice && (
+                        <Text style={styles.modalMessage}>
+                            Own this movie for KSH. {ownPrice}
+                            {walletBalance < ownPrice && 
+                                `\nYour wallet balance is insufficient. You need KSH. ${ownPrice - walletBalance} more to own this movie. Please top-up to continue.`}
+                        </Text>
+                    )}
+                    {!rentalPrice && !ownPrice && (
+                        <Text style={styles.modalMessage}>Loading price...</Text>
+                    )}
+                    </Text>
+                    <View style={styles.modalButtons}>
+                        <Button
+                            mode="contained"
+                            onPress={() => setModalVisible(false)}
+                            style={styles.closeModalButton}
+                        >
+                            Close
+                        </Button>
+                        <Button
+                            mode="contained"
+                            onPress={handleModalTopUp}
+                            style={styles.topUpButton}
+                        >
+                            Top-up now
+                        </Button>
                     </View>
-                </View>
-            </Modal>
-
+                </Modal>
+            </Portal>
             <Text style={styles.title}>{movie.title}</Text>
             <Text style={styles.meta}>{movie.year} | {movie.duration} minutes | {movie.classification}</Text>
             <Text style={styles.cast}>{movie.tags}</Text>
@@ -274,6 +320,11 @@ const styles = StyleSheet.create({
     fontSize: 16,
     marginVertical: 10,
 
+  },
+  walletBalance: { 
+    fontSize: 18, 
+    color: '#FFCC00', 
+    marginBottom: 20 
   },
   cast:{
     color: "white",
@@ -351,64 +402,53 @@ ownButton: {
     color: 'white',
   },
   modalContent: {
-    flex: 1,
-    backgroundColor: "#fff",
-    padding: 30,
+    backgroundColor: "white",
+    padding: 20,
+    margin: 20,
     borderRadius: 10,
-    alignItems: "center",
-    width: '80%',
-    elevation: 5,
-
-
   },
   modalTitle: {
     fontSize: 18,
-    color: '#333',
-    textAlign: 'center',
-    marginBottom: 20,
+    fontWeight: 'bold',
+    marginBottom: 10,
   },
   modalMessage: {
     fontSize: 16,
-    marginVertical: 10,
-    color: '#666',
-    textAlign: 'center',
-    marginBottom: '20',
-  },
-  paymentButtons: {
-    flexDirection: "row",
-    justifyContent: "space-evenly",
     marginBottom: 20,
-    
+  },
+
+  modalButtons: {
+    flexDirection: "row",
+    justifyContent: "space-between",
   },
 
   topUpButton: {
     backgroundColor: '#008080',
-    padding: 12,
-    borderRadius: 5,
-    width: '100%',
-    marginTop: 10,
-    marginVertical: 10,
-    paddingHorizontal: 5,
+    padding: 10,
   },
-  cancelButton: {
+  closeModalButton: {
     backgroundColor: '#e74c3c',
-    padding: 12,
-    borderRadius: 5,
-    marginTop: 10,
-    marginVertical: 10,
-    marginLeft: 10,
-    width: '100%',
+    padding: 10,
   },
   modalButtonText: {
     color: 'white',
     fontSize: 16,
     fontWeight: 'bold',
-},
+  },
+  videoContainer: {
+    marginTop: 16,
+    alignItems: 'center',
+  },
   video: {
-    width: "100%",
+    width: width * 0.9,
     height: 200,
     marginTop: 16,
     backgroundColor:"black",
+  },
+  noTrailerText: {
+    color: "white",
+    marginTop: 16,
+    textAlign: 'center',
   },
   posterContainer: {
     alignItems: "center",

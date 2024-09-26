@@ -13,6 +13,8 @@ import SignupScreen from './screens/SignupScreen';
 import MembershipScreen from './membership/MembershipScreen';
 import UpdateAccountForm from './membership/UpdateAccountForm';
 
+import { PaperProvider } from 'react-native-paper';
+import { gestureHandlerRootHOC, GestureHandlerRootView } from 'react-native-gesture-handler';
 
 // Placeholder screens for future implementation
 
@@ -80,7 +82,9 @@ const BottomTabNavigator = ({ route }) => {
 
 const App = () => {
   return (
-    <NavigationContainer>
+    <GestureHandlerRootView style={{flex: 1}}>
+      <PaperProvider>
+      <NavigationContainer>
       <Stack.Navigator screenOptions={{ headerShown: false }} initialRouteName="Login">
         <Stack.Screen name="Login" component={LoginScreen} />
         <Stack.Screen name="Signup" component={SignupScreen} />        
@@ -103,6 +107,10 @@ const App = () => {
       />
       </Stack.Navigator>
     </NavigationContainer>
+    </PaperProvider>
+    </GestureHandlerRootView>
+    
+    
   );
 };
 
