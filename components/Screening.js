@@ -202,7 +202,7 @@ const Screening = () => {
                 </Text>
                 <TextInput
                   style={styles.input}
-                  value={requestDetails.organizationName}
+                  value={requestDetails.organisation}
                   onChangeText={(text) => handleInputChange('organizationName', text)}
                   placeholder="Enter organization name"
                   placeholderTextColor="#999"
@@ -219,7 +219,7 @@ const Screening = () => {
                 </Text>
                 <TextInput
                   style={styles.input}
-                  value={requestDetails.contactPersonName}
+                  value={requestDetails.contact_name}
                   onChangeText={(text) => handleInputChange('contactPersonName', text)}
                   placeholder="Enter full name"
                   placeholderTextColor="#999"
@@ -275,7 +275,7 @@ const Screening = () => {
                 <View style={styles.locationInputContainer}>
                   <TextInput
                     style={[styles.input, styles.locationInput]}
-                    value={requestDetails.location}
+                    value={requestDetails.screening_location}
                     onChangeText={(text) => handleInputChange('location', text)}
                     placeholder="Enter screening location"
                     placeholderTextColor="#999"
@@ -296,7 +296,7 @@ const Screening = () => {
                 </Text>
                 <View style={styles.selectContainer}>
                   <Picker
-                    selectedValue={requestDetails.movie}
+                    selectedValue={requestDetails.movie_name}
                     onValueChange={(movie) => handleInputChange('movie', movie)}
                     style={styles.picker}
                   >
@@ -318,7 +318,7 @@ const Screening = () => {
                 </Text>
                 <View style={styles.selectContainer}>
                   <Picker
-                    selectedValue={requestDetails.attendees}
+                    selectedValue={requestDetails.expected_audience}
                     onValueChange={(attendees) => handleInputChange('attendees', attendees)}
                     style={styles.picker}
                   >
