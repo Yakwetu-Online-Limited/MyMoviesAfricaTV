@@ -70,6 +70,13 @@ const Screening = () => {
     }
   }, [user]);
 
+
+   // CHANGE: Add console.log to check user and requestDetails
+   useEffect(() => {
+    console.log('User:', user);
+    console.log('Request Details:', requestDetails);
+  }, [user, requestDetails]);
+
   
   const navigation = useNavigation();
   
