@@ -4,7 +4,7 @@ import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { Linking } from 'react-native';
 import axios from 'axios'; 
 
-const Header = ({ userName, walletBalance = 500, userId }) => {
+const Header = ({ userName, walletBalance, userId, movieId }) => {
   console.log('Header received userName:', userName);
   console.log('Header received userId:', userId);
 

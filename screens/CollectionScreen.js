@@ -7,29 +7,29 @@ import { useRoute } from '@react-navigation/native';
 
 const CollectionPage = () => {
   const [collection, setCollection] = useState([]);
-  
+  const [purchasedMovies, setPurchasedMovies] = useState([]);
   const route = useRoute();
-  const { userId, username, walletBalance = 500 } = route.params || { userId: null, username: 'Guest' };
+  const { userId, username, movieId, walletBalance = 500 } = route.params || { userId: null, username: 'Guest' };
 
   console.log('Received route params:', route.params); 
   console.log('Received userName in CollectionPage:', username); 
   console.log('Received userId:', userId); 
   console.log('Received walletBalance:', walletBalance);
-
+  console.log('Received movieId:', movieId);
 
   // Fetch user's collection from API
   useEffect(() => {
-    const fetchCollection = async () => {
+    // Fetch purchased movies from your API or local state
+    const fetchPurchasedMovies = async () => {
       try {
-        const response = await axios.get('https://api.mymovies.africa/api/v1/purchases');
-        setCollection(response.data);
+        const response = await axios.get(`https://api.mymovies.africa/api/v1/purchases/${movieId}`);
+        setPurchasedMovies(response.data); // Assuming response contains the list of purchased movies
       } catch (error) {
-        console.error("Error fetching collection: ", error);
+        console.error('Error fetching purchased movies:', error);
       }
     };
 
-    fetchCollection();
-
+    fetchPurchasedMovies();
   }, [userId]);
 
   

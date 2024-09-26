@@ -28,14 +28,13 @@ const MovieDetailScreen = ({route}) => {
     const [trailerUrl, setTrailerUrl ] = useState (null);
     const [url, setUrl] = useState(null);
    
-    const { movieId, userId, walletBalance: initialWalletBalance  } = route.params;
+    const { movieId, userId, walletBalance: initialWalletBalance, username  } = route.params;
     const [walletBalance, setWalletBalance] = useState(initialWalletBalance);
     console.log("Movie ID received in MovieDetailScreen: ", movieId);
-    console.log("MovieDetailScreen - userId:", userId);
+    console.log("MovieDetailScreen - userId:", userId, username);
     console.log("MovieDetailScreen - walletBalance:", walletBalance);
     const navigation = useNavigation();
 
-    //const movieId = '184'; // Static ID for testing
 
     // Fetch the movie data from the API
     useEffect(() => {
@@ -79,10 +78,11 @@ const MovieDetailScreen = ({route}) => {
                   JSON.parse(m.genres).some (genre => currentGenres.includes(genre))
                   //Limit to 8 movies.
 
-                ).slice(0,8);
+                ).slice(0,12);
                 setSimilarMovies(filteredMovies);
 
                 setLoading(false);
+
             } catch(error) {
                 setError(error.message); 
                 setLoading(false);
@@ -106,11 +106,26 @@ const MovieDetailScreen = ({route}) => {
     const posterUrl = getArtwork(movie.ref).portrait;
 
     // Construct the full YouTube URL for the trailer
-    const videoUrl = `https://www.youtube.com/embed/${trailerUrl}`;//Embed URL format from youtube
+    const videoUrl = `https://www.youtube.com/embed/${trailerUrl}?autoplay=0&modestbranding=1&showinfo=0&controls=1&fullscreen=1`;//Embed URL format from youtube
+
+    // Simulate adding a movie to "My Collection"
+    const addToCollection = (movie) => {
+    // Simulate adding the movie to "My Collection"
+      console.log(`Movie ${movie.title} added to My Collection`);
+      // Navigate to the movie player screen
+      navigation.navigate('Player', { movieRef: movie.ref });
+    };
 
 
     // Check if the movie is free
     const isMovieFree = movie.genres && movie.genres.includes('Watch these Movies for FREE!');
+
+    // Handle Watch Now Button for free movies
+    const handleWatchNow = () => {
+      // Directly add the movie to "My Collection" and navigate to the player
+      addToCollection(movie);
+    };
+
     const handleRentOrOwn = (type) => {
       setPurchaseType(type);
       
@@ -127,10 +142,10 @@ const MovieDetailScreen = ({route}) => {
     }
     };
 
-    const handlePurchase = async (amount, movieRef, purchaseType) => {
+    const handlePurchase = async (amount, movie, purchaseType, username) => {
       const purchaseObj = {
           user_id: userId,
-          ref: movieRef,
+          ref: movie.ref,
           purchase_type: purchaseType,
           source: 1,
       };
@@ -138,9 +153,15 @@ const MovieDetailScreen = ({route}) => {
       try {
           const response = await axios.post('https://api.mymovies.africa/api/v1/users/buy', purchaseObj);
           console.log('Purchase successful:', response.data);
-          // Optionally update the wallet balance after purchase
+          // update the wallet balance after purchase
           setWalletBalance((prevBalance) => prevBalance - amount);
           alert(`Purchase successful! You've been charged KSH. ${amount}.`);
+          
+
+          await addMovieToCollection(movie, purchaseType === 'RENTAL' ? 7 : null, purchaseType); 
+
+          // Navigate to the CollectionScreen to show updated collection
+          navigation.navigate('Collection', {userId: userId, username: username, movieId: movieId});
       } catch (error) {
           console.error('Error making purchase:', error);
       }
@@ -148,7 +169,7 @@ const MovieDetailScreen = ({route}) => {
     
   const handleModalTopUp = () => {
     // Determine the required amount based on purchaseType
-    const amount = purchaseType === 'rent' ? rentalPrice : ownPrice;
+    const amount = purchaseType === 'rent' ? 'Rent for 7 Days' : 'Movies Owned';
 
         const remainingBalance = amount - walletBalance;
         const url = `https://api.mymovies.africa/api/v1/payment/gate/${userId}/?amount=${remainingBalance}&purchase_type=${purchaseType}&ref=${movie.ref}`;
@@ -160,12 +181,13 @@ const MovieDetailScreen = ({route}) => {
 };
     
 
-    const addMovieToCollection = async (movie, rentDuration) => {
+    const addMovieToCollection = async (movie, rentDuration, purchaseType) => {
       try {
-        const response = await axios.post('https://app.mymovies.africa/api/purchases', {
-          movieId: movie.id,
+        const response = await axios.post(`https://api.mymovies.africa/api/v1/purchases`, {
+          user_id: userId, 
+          ref: movie.ref,  
+          purchase_type: purchaseType, 
           title: movie.title,
-          rentDuration: rentDuration,
           poste: getArtwork(movie.ref).portrait,
         });
         console.log('Full API response:', response);
@@ -222,15 +244,31 @@ const MovieDetailScreen = ({route}) => {
                   
             <View style={styles.buttonContainer}>
 
-            <TouchableOpacity style={[isMovieFree ? styles.watchNowButton : styles.rentButton]} onPress={() => handleRentOrOwn('rent')}>
-                <Text style={styles.buttonText}>
-                  {isMovieFree ? 'Watch Now' : `Rent For 7 Days KSH. ${rentalPrice}`}
-                </Text>
-            </TouchableOpacity>
+            { isMovieFree ? (
+              <>
+              
+              <TouchableOpacity style={styles.watchNowButton} onPress={handleWatchNow}>
+                <Text style={styles.buttonText}>WATCH NOW </Text>
+              </TouchableOpacity>
 
-            <TouchableOpacity style={styles.ownButton} onPress={() => handleRentOrOwn('own')} >
-                <Text style={styles.buttonText}>{`Own for Life KSH. ${ownPrice}`}</Text>
-            </TouchableOpacity>
+              <TouchableOpacity style={styles.ownButton} onPress={() => handleRentOrOwn('own')} >
+              <Text style={styles.buttonText}>{`OWN FOR LIFE KSH. ${ownPrice}`}</Text>
+              </TouchableOpacity>
+              </>
+            ) : (
+              <>
+              <TouchableOpacity style={styles.rentButton} onPress={() => handleRentOrOwn('rent')}>
+                <Text style={styles.buttonText}>{`RENT FOR 7 DAYS KSH. ${rentalPrice} `}</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity style={styles.ownButton} onPress={() => handleRentOrOwn('own')} >
+                <Text style={styles.buttonText}>{`OWN FOR LIFE KSH. ${ownPrice}`}</Text>
+              </TouchableOpacity>
+
+              </>
+            )}
+
+            
             </View>
 
            {/* Modal for Payment Confirmation */}
@@ -267,16 +305,16 @@ const MovieDetailScreen = ({route}) => {
                         <Button
                             mode="contained"
                             onPress={() => setModalVisible(false)}
-                            style={styles.closeModalButton}
+                            style={styles.cancelModalButton}
                         >
-                            Close
+                            CANCEL
                         </Button>
                         <Button
                             mode="contained"
                             onPress={handleModalTopUp}
                             style={styles.topUpButton}
                         >
-                            Top-up now
+                            TOP-UP NOW
                         </Button>
                     </View>
                 </Modal>
@@ -423,25 +461,30 @@ ownButton: {
   },
 
   topUpButton: {
-    backgroundColor: '#008080',
+    backgroundColor:'grey',
+    borderWidth: 2,
     padding: 10,
+    borderRadius: 50,
+    borderColor: '#008080'
   },
-  closeModalButton: {
+  cancelModalButton: {
     backgroundColor: '#e74c3c',
     padding: 10,
+    borderRadius: 50,
   },
   modalButtonText: {
     color: 'white',
-    fontSize: 16,
+    fontSize: 12,
     fontWeight: 'bold',
   },
   videoContainer: {
     marginTop: 16,
     alignItems: 'center',
+    marginBottom: 20,
   },
   video: {
-    width: width * 0.9,
-    height: 200,
+    width: width,
+    height: 300,
     marginTop: 16,
     backgroundColor:"black",
   },
