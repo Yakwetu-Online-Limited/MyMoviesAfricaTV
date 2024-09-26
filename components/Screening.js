@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect } from "react";
 import {
   View,
   Text,
@@ -10,16 +10,16 @@ import {
   Dimensions,
   Platform,
   Alert,
-} from 'react-native';
-import PhoneInput from 'react-native-phone-number-input';
-import { Picker } from '@react-native-picker/picker';
-import DateTimePicker from '@react-native-community/datetimepicker';
-import MapView, { Marker } from 'react-native-maps';
-import { useNavigation } from '@react-navigation/native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+} from "react-native";
+import PhoneInput from "react-native-phone-number-input";
+import { Picker } from "@react-native-picker/picker";
+import DateTimePicker from "@react-native-community/datetimepicker";
+import MapView, { Marker } from "react-native-maps";
+import { useNavigation } from "@react-navigation/native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 // import { useForm, Controller } from 'react-hook-form';
-import { useUser } from './UserContext';
-const { width, height } = Dimensions.get('window');
+import { useUser } from "./UserContext";
+const { width, height } = Dimensions.get("window");
 
 // Helper function to build FormData
 const buildFormData = (formObj) => {
@@ -32,11 +32,13 @@ const buildFormData = (formObj) => {
 
 const Screening = () => {
   const [modalVisible, setModalVisible] = useState(false);
-  // const { user } = useUser();
-  const userContext = useUser();
-  const user = userContext?.user;
+  const { user } = useUser();
+  console.log("User in Screening component:", user); // New log
+
+  // const userContext = useUser();
+  // const user = userContext?.user;
   const [requestDetails, setRequestDetails] = useState({
-    organisation:  "",
+    organisation: "",
     contact_name: "",
     email: "",
     phone: "",
@@ -56,13 +58,27 @@ const Screening = () => {
     longitudeDelta: 0.0421,
   });
   const [errors, setErrors] = useState({});
-  const [authToken, setAuthToken] = useState('');
+  const [authToken, setAuthToken] = useState("");
 
   useEffect(() => {
-    if (user) {
-      setRequestDetails(prevDetails => ({
+    console.log("useEffect triggered, user:", user); // New log
+    if ( user) {
+      //     setRequestDetails(prevDetails => {
+      //       const newDetails = {
+      //         ...prevDetails,
+      //         organisation: user.organisation || "",
+      //         contact_name: user.name || "",
+      //         email: user.email || "",
+      //         phone: user.phone || "",
+      //       };
+      //       console.log('Updated request details:', newDetails); // New log
+      //       return newDetails;
+      //     });
+      //   }
+      // }, [user]);
+      setRequestDetails((prevDetails) => ({
         ...prevDetails,
-        // organisation: user.organisation || "",
+        organisation: user.organisation || "",
         contact_name: user.name || "",
         email: user.email || "",
         phone: user.phone || "",
@@ -70,33 +86,35 @@ const Screening = () => {
     }
   }, [user]);
 
-
-   // CHANGE: Add console.log to check user and requestDetails
-   useEffect(() => {
-    console.log('User:', user);
-    console.log('Request Details:', requestDetails);
+  // CHANGE: Add console.log to check user and requestDetails
+  useEffect(() => {
+    console.log("User:", user);
+    console.log("Request Details:", requestDetails);
   }, [user, requestDetails]);
 
-  
   const navigation = useNavigation();
-  
+
   const movies = [
-    'WHERE THE RIVER DIVIDES (Dholuo): KES 149 per Attendee',
-    'ACT OF LOVE : KES 149 Per Attendee',
-    'WHERE THE RIVER DIVIDES (English): KES 149 per Attendee',
-    'WHERE THE RIVER DIVIDES (Kiswahili): KES 149 per Attendee'
+    "WHERE THE RIVER DIVIDES (Dholuo): KES 149 per Attendee",
+    "ACT OF LOVE : KES 149 Per Attendee",
+    "WHERE THE RIVER DIVIDES (English): KES 149 per Attendee",
+    "WHERE THE RIVER DIVIDES (Kiswahili): KES 149 per Attendee",
   ];
-  const attendeesOptions = ['6-20 People', '21-100 People', '101-200 People', '201+ People'];
+  const attendeesOptions = [
+    "6-20 People",
+    "21-100 People",
+    "101-200 People",
+    "201+ People",
+  ];
 
   // Fetch auth token when component mounts
   useEffect(() => {
-
     const getAuthToken = async () => {
       try {
-        const token = await AsyncStorage.getItem('authToken');
+        const token = await AsyncStorage.getItem("authToken");
         if (token) setAuthToken(token);
       } catch (error) {
-        console.error('Error fetching auth token:', error);
+        console.error("Error fetching auth token:", error);
       }
     };
     getAuthToken();
@@ -107,14 +125,20 @@ const Screening = () => {
     const newErrors = {};
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-    if (!requestDetails.organisation) newErrors.organisation = 'Organization name is required';
-    if (!requestDetails.contact_name) newErrors.contact_name = 'Contact person name is required';
-    if (!requestDetails.email) newErrors.email = 'Email is required';
-    else if (!emailRegex.test(requestDetails.email)) newErrors.email = 'Invalid email format';
-    if (!requestDetails.phone) newErrors.phone = 'Phone number is required';
-    if (!requestDetails.screening_location) newErrors.screening_location = 'Location is required';
-    if (!requestDetails.movie_name) newErrors.movie_name = 'Movie selection is required';
-    if (!requestDetails.expected_audience) newErrors.expected_audience = 'Number of attendees is required';
+    if (!requestDetails.organisation)
+      newErrors.organisation = "Organization name is required";
+    if (!requestDetails.contact_name)
+      newErrors.contact_name = "Contact person name is required";
+    if (!requestDetails.email) newErrors.email = "Email is required";
+    else if (!emailRegex.test(requestDetails.email))
+      newErrors.email = "Invalid email format";
+    if (!requestDetails.phone) newErrors.phone = "Phone number is required";
+    if (!requestDetails.screening_location)
+      newErrors.screening_location = "Location is required";
+    if (!requestDetails.movie_name)
+      newErrors.movie_name = "Movie selection is required";
+    if (!requestDetails.expected_audience)
+      newErrors.expected_audience = "Number of attendees is required";
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -124,63 +148,81 @@ const Screening = () => {
   const handleRequestScreening = useCallback(async () => {
     if (!validateForm()) return;
 
-    console.log('form daa:', requestDetails);
+    console.log("form daa:", requestDetails);
     const formData = buildFormData(requestDetails);
-    console.log('form data built successfully')
+    console.log("form data built successfully");
 
     try {
-      console.log('making request');
-      console.log('auth token', authToken)
-      const response = await fetch('https://api.mymovies.africa/api/v1/bulkscreenings', {
-        method: 'POST',
-        body: formData,
-        headers: {
-          Accept: 'application/json',
-          'Content-Type': 'multipart/form-data',
-          'Authorization': `Bearer ${authToken}`,
-        },
-      });
-      console.log('Response status:', response.status);
-      console.log('Response headers:', response.headers);
-
+      console.log("making request");
+      console.log("auth token", authToken);
+      const response = await fetch(
+        "https://api.mymovies.africa/api/v1/bulkscreenings",
+        {
+          method: "POST",
+          body: formData,
+          headers: {
+            Accept: "application/json",
+            "Content-Type": "multipart/form-data",
+            Authorization: `Bearer ${authToken}`,
+          },
+        }
+      );
+      console.log("Response status:", response.status);
+      console.log("Response headers:", response.headers);
 
       const result = await response.json();
       if (response.ok) {
-        console.log('Submission successful:', result);
+        console.log("Submission successful:", result);
         setModalVisible(false);
-        navigation.navigate('Payment');
+        navigation.navigate("Payment");
       } else {
-        console.error('Submission failed:', result);
-        Alert.alert('Submission Failed', 'Please check your input and try again.');
+        console.error("Submission failed:", result);
+        Alert.alert(
+          "Submission Failed",
+          "Please check your input and try again."
+        );
       }
     } catch (error) {
-      console.error('Error during submission:', error);
-      Alert.alert('Error', 'An unexpected error occurred. Please try again later.');
+      console.error("Error during submission:", error);
+      Alert.alert(
+        "Error",
+        "An unexpected error occurred. Please try again later."
+      );
     }
   }, [requestDetails, authToken, navigation, validateForm]);
 
   // Handle input changes
-  const handleInputChange = useCallback((field, value) => {
-    setRequestDetails(prev => ({ ...prev, [field]: value }));
-    // Clear the error for this field when the user starts typing
-    if (errors[field]) {
-      setErrors(prev => ({ ...prev, [field]: null }));
-    }
-  }, [errors]);
+  const handleInputChange = useCallback(
+    (field, value) => {
+      setRequestDetails((prev) => ({ ...prev, [field]: value }));
+      // Clear the error for this field when the user starts typing
+      if (errors[field]) {
+        setErrors((prev) => ({ ...prev, [field]: null }));
+      }
+    },
+    [errors]
+  );
 
   // Handle map press
-  const handleMapPress = useCallback((event) => {
-    const { coordinate } = event.nativeEvent;
-    setMapRegion(prev => ({
-      ...prev,
-      latitude: coordinate.latitude,
-      longitude: coordinate.longitude,
-    }));
-    handleInputChange('location', `${coordinate.latitude}, ${coordinate.longitude}`);
-  }, [handleInputChange]);
+  const handleMapPress = useCallback(
+    (event) => {
+      const { coordinate } = event.nativeEvent;
+      setMapRegion((prev) => ({
+        ...prev,
+        latitude: coordinate.latitude,
+        longitude: coordinate.longitude,
+      }));
+      handleInputChange(
+        "location",
+        `${coordinate.latitude}, ${coordinate.longitude}`
+      );
+    },
+    [handleInputChange]
+  );
 
   return (
     <>
+    
       <TouchableOpacity
         style={styles.requestScreeningButton}
         onPress={() => setModalVisible(true)}
@@ -212,7 +254,9 @@ const Screening = () => {
                 <TextInput
                   style={styles.input}
                   value={requestDetails.organisation}
-                  onChangeText={(text) => handleInputChange('organisation', text)}
+                  onChangeText={(text) =>
+                    handleInputChange("organisation", text)
+                  }
                   placeholder="Enter organization name"
                   placeholderTextColor="#999"
                 />
@@ -229,7 +273,9 @@ const Screening = () => {
                 <TextInput
                   style={styles.input}
                   value={requestDetails.contact_name}
-                  onChangeText={(text) => handleInputChange('contact_name', text)}
+                  onChangeText={(text) =>
+                    handleInputChange("contact_name", text)
+                  }
                   placeholder="Enter full name"
                   placeholderTextColor="#999"
                 />
@@ -246,7 +292,7 @@ const Screening = () => {
                 <TextInput
                   style={styles.input}
                   value={requestDetails.email}
-                  onChangeText={(text) => handleInputChange('email', text)}
+                  onChangeText={(text) => handleInputChange("email", text)}
                   placeholder="Enter email address"
                   placeholderTextColor="#999"
                   keyboardType="email-address"
@@ -264,7 +310,9 @@ const Screening = () => {
                 <PhoneInput
                   defaultValue={requestDetails.phone}
                   defaultCode="KE"
-                  onChangeFormattedText={(text) => handleInputChange('phone', text)}
+                  onChangeFormattedText={(text) =>
+                    handleInputChange("phone", text)
+                  }
                   containerStyle={styles.phoneInputContainer}
                   textContainerStyle={styles.phoneTextContainer}
                   textInputStyle={styles.input}
@@ -279,22 +327,30 @@ const Screening = () => {
               {/* Location Input */}
               <View style={styles.inputGroup}>
                 <Text style={styles.label}>
-                  Location of the Screening <Text style={styles.asterisk}>*</Text>
+                  Location of the Screening{" "}
+                  <Text style={styles.asterisk}>*</Text>
                 </Text>
                 <View style={styles.locationInputContainer}>
                   <TextInput
                     style={[styles.input, styles.locationInput]}
                     value={requestDetails.screening_location}
-                    onChangeText={(text) => handleInputChange('screening_location', text)}
+                    onChangeText={(text) =>
+                      handleInputChange("screening_location", text)
+                    }
                     placeholder="Enter screening location"
                     placeholderTextColor="#999"
                   />
-                  <TouchableOpacity onPress={() => setShowMap(true)} style={styles.mapButton}>
+                  <TouchableOpacity
+                    onPress={() => setShowMap(true)}
+                    style={styles.mapButton}
+                  >
                     <Text style={styles.mapButtonText}>📍 Map</Text>
                   </TouchableOpacity>
                 </View>
                 {errors.screening_location && (
-                  <Text style={styles.errorText}>{errors.screening_location}</Text>
+                  <Text style={styles.errorText}>
+                    {errors.screening_location}
+                  </Text>
                 )}
               </View>
 
@@ -306,7 +362,9 @@ const Screening = () => {
                 <View style={styles.selectContainer}>
                   <Picker
                     selectedValue={requestDetails.movie_name}
-                    onValueChange={(movie) => handleInputChange('movie_name', movie)}
+                    onValueChange={(movie) =>
+                      handleInputChange("movie_name", movie)
+                    }
                     style={styles.picker}
                   >
                     <Picker.Item label="Select Movie" value="" />
@@ -328,7 +386,9 @@ const Screening = () => {
                 <View style={styles.selectContainer}>
                   <Picker
                     selectedValue={requestDetails.expected_audience}
-                    onValueChange={(attendees) => handleInputChange('expected_audience', attendees)}
+                    onValueChange={(attendees) =>
+                      handleInputChange("expected_audience", attendees)
+                    }
                     style={styles.picker}
                   >
                     <Picker.Item label="Select Attendee Tier" value="" />
@@ -338,7 +398,9 @@ const Screening = () => {
                   </Picker>
                 </View>
                 {errors.expected_audience && (
-                  <Text style={styles.errorText}>{errors.expected_audience}</Text>
+                  <Text style={styles.errorText}>
+                    {errors.expected_audience}
+                  </Text>
                 )}
               </View>
 
@@ -347,7 +409,10 @@ const Screening = () => {
                 <Text style={styles.label}>
                   Date of the Screening <Text style={styles.asterisk}>*</Text>
                 </Text>
-                <TouchableOpacity onPress={() => setShowDatePicker(true)} style={styles.dateButton}>
+                <TouchableOpacity
+                  onPress={() => setShowDatePicker(true)}
+                  style={styles.dateButton}
+                >
                   <Text style={styles.dateButtonText}>
                     {requestDetails.date.toLocaleDateString()}
                   </Text>
@@ -373,7 +438,7 @@ const Screening = () => {
           display="default"
           onChange={(event, selectedDate) => {
             setShowDatePicker(false);
-            if (selectedDate) handleInputChange('date', selectedDate);
+            if (selectedDate) handleInputChange("date", selectedDate);
           }}
         />
       )}
@@ -404,8 +469,6 @@ const Screening = () => {
     </>
   );
 };
-
-
 
 const styles = StyleSheet.create({
   requestScreeningButton: {
@@ -475,19 +538,19 @@ const styles = StyleSheet.create({
   phoneInputContainer: {
     backgroundColor: "#2C2C2C",
     borderRadius: 5,
-    padding: 0,  // Ensure padding matches other input fields
+    padding: 0, // Ensure padding matches other input fields
     borderWidth: 0,
   },
   phoneTextContainer: {
-    backgroundColor: "#2C2C2C",  // Same background as input fields
+    backgroundColor: "#2C2C2C", // Same background as input fields
     borderRadius: 5,
   },
   phoneTextInput: {
     color: "#999",
   },
   phoneCodeText: {
-    color: "#999",  // Set the country code color to whitish-gray
-    fontSize: 16,  // Match the font size with input fields
+    color: "#999", // Set the country code color to whitish-gray
+    fontSize: 16, // Match the font size with input fields
   },
   submitButton: {
     backgroundColor: "#8E44AD",
@@ -528,7 +591,7 @@ const styles = StyleSheet.create({
   selectContainer: {
     backgroundColor: "#2C2C2C",
     borderRadius: 5,
-    overflow: 'hidden',
+    overflow: "hidden",
   },
   picker: {
     color: "#FFFFFF",
@@ -555,15 +618,15 @@ const styles = StyleSheet.create({
   },
   mapContainer: {
     flex: 1,
-    justifyContent: 'flex-end',
-    alignItems: 'center',
-    backgroundColor: 'white',
+    justifyContent: "flex-end",
+    alignItems: "center",
+    backgroundColor: "white",
   },
   map: {
     ...StyleSheet.absoluteFillObject,
   },
   closeMapButton: {
-    position: 'absolute',
+    position: "absolute",
     bottom: 20,
     backgroundColor: "#8E44AD",
     borderRadius: 5,
@@ -573,7 +636,7 @@ const styles = StyleSheet.create({
     color: "#FFFFFF",
     fontSize: 18,
     fontWeight: "bold",
-  }
+  },
 });
 
 export default React.memo(Screening);

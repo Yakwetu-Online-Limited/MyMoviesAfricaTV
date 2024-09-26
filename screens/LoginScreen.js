@@ -5,11 +5,13 @@ import { signInWithEmailAndPassword } from 'firebase/auth';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
+import { useUser } from '../components/UserContext';
 
 const LoginScreen = ({ navigation }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const {login} = useUser();
   
   const handleLogin = async () => {
     if (email === '' || password === '') {
@@ -52,6 +54,13 @@ const LoginScreen = ({ navigation }) => {
       if (response.data.error) {
         Alert.alert('Error', response.data.message);
       } else {
+        const userData= {
+          uid: storedUserId,
+          email: email,
+          name: username,
+         phone: phone,
+        }; 
+        await login(userData);
         Alert.alert('Success', 'Logged in successfully');
         navigation.navigate('Home', { userId: storedUserId, username });	
       }
