@@ -35,7 +35,7 @@ const HomePage = () => {
   const navigation = useNavigation();
 
   const route = useRoute();
-  const { userId, walletBalance= 50 } = route.params || {};
+  const { userId, walletBalance= 500 } = route.params || {};
 
   console.log('Received route params:', route.params);  
   console.log('HomeScreen :- userId / walletBalance', userId, walletBalance);

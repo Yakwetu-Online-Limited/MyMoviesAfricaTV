@@ -58,7 +58,7 @@ const Header = ({ userName, walletBalance = 500, userId }) => {
   // Mocking wallet balance for now
   const fetchWalletBalance = async () => {
     try {
-      const mockBalance = 5000;  // Mocking with a wallet balance of 5000
+      const mockBalance = 500;  // Mocking with a wallet balance of 5000
       setCurrentBalance(mockBalance);
       Alert.alert('Mock Top Up Successful', `New Wallet Balance: ${mockBalance}`);
     } catch (error) {
