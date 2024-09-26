@@ -26,7 +26,6 @@ const MovieDetailScreen = ({route}) => {
     const { movieId } = route.params;
     const navigation = useNavigation();
 
-    //const movieId = '184'; // Static ID for testing
 
     // Fetch the movie data from the API
     useEffect(() => {
@@ -66,17 +65,18 @@ const MovieDetailScreen = ({route}) => {
                   JSON.parse(m.genres).some (genre => currentGenres.includes(genre))
                   //Limit to 8 movies.
 
-                ).slice(0,8);
+                ).slice(0,12);
                 setSimilarMovies(filteredMovies);
 
                 setLoading(false);
+
             } catch(error) {
                 setError(error.message); 
                 setLoading(false);
             }
         };
         fetchMovieData();
-    }, []);
+    }, [movieId]);
     // Render loading state.
     if (loading) {
         return <ActivityIndicator size = "large" color="#0000ff" alignItems="center" />
@@ -90,11 +90,25 @@ const MovieDetailScreen = ({route}) => {
     const posterUrl = getArtwork(movie.ref).portrait;
 
     // Construct the full YouTube URL for the trailer
-    const videoUrl = `https://www.youtube.com/embed/${trailerUrl}`;//Embed URL format from youtube
+    const videoUrl = `https://www.youtube.com/embed/${trailerUrl}?autoplay=0&modestbranding=1&showinfo=0&controls=1&fullscreen=1`;//Embed URL format from youtube
+
+    // Simulate adding a movie to "My Collection"
+    const addToCollection = (movie) => {
+    // Simulate adding the movie to "My Collection"
+      console.log(`Movie ${movie.title} added to My Collection`);
+      // Navigate to the movie player screen
+      navigation.navigate('Player', { movieRef: movie.ref });
+    };
 
 
     // Check if the movie is free
     const isMovieFree = movie.genres && movie.genres.includes('Watch these Movies for FREE!');
+
+    // Handle Watch Now Button for free movies
+    const handleWatchNow = () => {
+      // Directly add the movie to "My Collection" and navigate to the player
+      addToCollection(movie);
+    };
 
     const handleRentOrOwn = (type) => {
         setPurchaseType(type);  // Store the purchase type (rent or own)
@@ -103,6 +117,7 @@ const MovieDetailScreen = ({route}) => {
 
     // Handle payment after the user clicks "Top Up Now"
     const handlePayment = () => {
+      addToCollection(movie); // Add to my collection after successful payment
       setModalVisible(false);  // Close the modal
       navigation.navigate('Payment', {
           movieId: movie.id,
@@ -160,15 +175,31 @@ const MovieDetailScreen = ({route}) => {
                   
             <View style={styles.buttonContainer}>
 
-            <TouchableOpacity style={[isMovieFree ? styles.watchNowButton : styles.rentButton]} onPress={() => handleRentOrOwn('rent')}>
-                <Text style={styles.buttonText}>
-                  {isMovieFree ? 'Watch Now' : `Rent For 7 Days KSH. ${rentalPrice}`}
-                </Text>
-            </TouchableOpacity>
+            { isMovieFree ? (
+              <>
+              
+              <TouchableOpacity style={styles.watchNowButton} onPress={handleWatchNow}>
+                <Text style={styles.buttonText}>WATCH NOW </Text>
+              </TouchableOpacity>
 
-            <TouchableOpacity style={styles.ownButton} onPress={() => handleRentOrOwn('own')} >
-                <Text style={styles.buttonText}>{`Own for Life KSH. ${ownPrice}`}</Text>
-            </TouchableOpacity>
+              <TouchableOpacity style={styles.ownButton} onPress={() => handleRentOrOwn('own')} >
+              <Text style={styles.buttonText}>{`OWN FOR LIFE KSH. ${ownPrice}`}</Text>
+              </TouchableOpacity>
+              </>
+            ) : (
+              <>
+              <TouchableOpacity style={styles.rentButton} onPress={() => handleRentOrOwn('rent')}>
+                <Text style={styles.buttonText}>{`RENT FOR 7 DAYS KSH. ${rentalPrice} `}</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity style={styles.ownButton} onPress={() => handleRentOrOwn('own')} >
+                <Text style={styles.buttonText}>{`OWN FOR LIFE KSH. ${ownPrice}`}</Text>
+              </TouchableOpacity>
+
+              </>
+            )}
+
+            
             </View>
 
            {/* Modal for Payment Confirmation */}
@@ -193,16 +224,16 @@ const MovieDetailScreen = ({route}) => {
                         <Button
                             mode="contained"
                             onPress={() => setModalVisible(false)}
-                            style={styles.closeModalButton}
+                            style={styles.cancelModalButton}
                         >
-                            Close
+                            CANCEL
                         </Button>
                         <Button
                             mode="contained"
                             onPress={handlePayment}
                             style={styles.topUpButton}
                         >
-                            Top-up now
+                            TOP-UP NOW
                         </Button>
                     </View>
                 </Modal>
@@ -334,25 +365,30 @@ const styles = StyleSheet.create({
   },
 
   topUpButton: {
-    backgroundColor: '#008080',
+    backgroundColor:'grey',
+    borderWidth: 2,
     padding: 10,
+    borderRadius: 50,
+    borderColor: '#008080'
   },
-  closeModalButton: {
+  cancelModalButton: {
     backgroundColor: '#e74c3c',
     padding: 10,
+    borderRadius: 50,
   },
   modalButtonText: {
     color: 'white',
-    fontSize: 16,
+    fontSize: 12,
     fontWeight: 'bold',
   },
   videoContainer: {
     marginTop: 16,
     alignItems: 'center',
+    marginBottom: 20,
   },
   video: {
-    width: width * 0.9,
-    height: 200,
+    width: width,
+    height: 300,
     marginTop: 16,
     backgroundColor:"black",
   },
