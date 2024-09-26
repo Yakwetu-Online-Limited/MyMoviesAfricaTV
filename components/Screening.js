@@ -98,14 +98,14 @@ const Screening = () => {
     const newErrors = {};
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-    if (!requestDetails.organisation) newErrors.organizationName = 'Organization name is required';
-    if (!requestDetails.contactPersonName) newErrors.contactPersonName = 'Contact person name is required';
+    if (!requestDetails.organisation) newErrors.organisation = 'Organization name is required';
+    if (!requestDetails.contact_name) newErrors.contact_name = 'Contact person name is required';
     if (!requestDetails.email) newErrors.email = 'Email is required';
     else if (!emailRegex.test(requestDetails.email)) newErrors.email = 'Invalid email format';
     if (!requestDetails.phone) newErrors.phone = 'Phone number is required';
-    if (!requestDetails.location) newErrors.location = 'Location is required';
-    if (!requestDetails.movie) newErrors.movie = 'Movie selection is required';
-    if (!requestDetails.attendees) newErrors.attendees = 'Number of attendees is required';
+    if (!requestDetails.screening_location) newErrors.screening_location = 'Location is required';
+    if (!requestDetails.movie_name) newErrors.movie_name = 'Movie selection is required';
+    if (!requestDetails.expected_audience) newErrors.expected_audience = 'Number of attendees is required';
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -203,12 +203,12 @@ const Screening = () => {
                 <TextInput
                   style={styles.input}
                   value={requestDetails.organisation}
-                  onChangeText={(text) => handleInputChange('organizationName', text)}
+                  onChangeText={(text) => handleInputChange('organisation', text)}
                   placeholder="Enter organization name"
                   placeholderTextColor="#999"
                 />
-                {errors.organizationName && (
-                  <Text style={styles.errorText}>{errors.organizationName}</Text>
+                {errors.organisation && (
+                  <Text style={styles.errorText}>{errors.organisation}</Text>
                 )}
               </View>
 
@@ -220,12 +220,12 @@ const Screening = () => {
                 <TextInput
                   style={styles.input}
                   value={requestDetails.contact_name}
-                  onChangeText={(text) => handleInputChange('contactPersonName', text)}
+                  onChangeText={(text) => handleInputChange('contact_name', text)}
                   placeholder="Enter full name"
                   placeholderTextColor="#999"
                 />
-                {errors.contactPersonName && (
-                  <Text style={styles.errorText}>{errors.contactPersonName}</Text>
+                {errors.contact_name && (
+                  <Text style={styles.errorText}>{errors.contact_name}</Text>
                 )}
               </View>
 
@@ -276,7 +276,7 @@ const Screening = () => {
                   <TextInput
                     style={[styles.input, styles.locationInput]}
                     value={requestDetails.screening_location}
-                    onChangeText={(text) => handleInputChange('location', text)}
+                    onChangeText={(text) => handleInputChange('screening_location', text)}
                     placeholder="Enter screening location"
                     placeholderTextColor="#999"
                   />
@@ -284,8 +284,8 @@ const Screening = () => {
                     <Text style={styles.mapButtonText}>📍 Map</Text>
                   </TouchableOpacity>
                 </View>
-                {errors.location && (
-                  <Text style={styles.errorText}>{errors.location}</Text>
+                {errors.screening_location && (
+                  <Text style={styles.errorText}>{errors.screening_location}</Text>
                 )}
               </View>
 
@@ -297,7 +297,7 @@ const Screening = () => {
                 <View style={styles.selectContainer}>
                   <Picker
                     selectedValue={requestDetails.movie_name}
-                    onValueChange={(movie) => handleInputChange('movie', movie)}
+                    onValueChange={(movie) => handleInputChange('movie_name', movie)}
                     style={styles.picker}
                   >
                     <Picker.Item label="Select Movie" value="" />
@@ -306,8 +306,8 @@ const Screening = () => {
                     ))}
                   </Picker>
                 </View>
-                {errors.movie && (
-                  <Text style={styles.errorText}>{errors.movie}</Text>
+                {errors.movie_name && (
+                  <Text style={styles.errorText}>{errors.movie_name}</Text>
                 )}
               </View>
 
@@ -319,7 +319,7 @@ const Screening = () => {
                 <View style={styles.selectContainer}>
                   <Picker
                     selectedValue={requestDetails.expected_audience}
-                    onValueChange={(attendees) => handleInputChange('attendees', attendees)}
+                    onValueChange={(attendees) => handleInputChange('expected_audience', attendees)}
                     style={styles.picker}
                   >
                     <Picker.Item label="Select Attendee Tier" value="" />
@@ -328,8 +328,8 @@ const Screening = () => {
                     ))}
                   </Picker>
                 </View>
-                {errors.attendees && (
-                  <Text style={styles.errorText}>{errors.attendees}</Text>
+                {errors.expected_audience && (
+                  <Text style={styles.errorText}>{errors.expected_audience}</Text>
                 )}
               </View>
 
