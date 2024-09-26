@@ -18,7 +18,7 @@ import MapView, { Marker } from 'react-native-maps';
 import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 // import { useForm, Controller } from 'react-hook-form';
-
+import { useUser } from './UserContext';
 const { width, height } = Dimensions.get('window');
 
 // Helper function to build FormData
@@ -32,6 +32,7 @@ const buildFormData = (formObj) => {
 
 const Screening = () => {
   const [modalVisible, setModalVisible] = useState(false);
+  const { user } = useUser();
   const [requestDetails, setRequestDetails] = useState({
     organisation:  "",
     contact_name: "",
@@ -54,6 +55,19 @@ const Screening = () => {
   });
   const [errors, setErrors] = useState({});
   const [authToken, setAuthToken] = useState('');
+
+  useEffect(() => {
+    if (user) {
+      setRequestDetails(prevDetails => ({
+        ...prevDetails,
+        organisation: user.organisation || "",
+        contact_name: user.name || "",
+        email: user.email || "",
+        phone: user.phone || "",
+      }));
+    }
+  }, [user]);
+
   
   const navigation = useNavigation();
   
