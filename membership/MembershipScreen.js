@@ -1,48 +1,112 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, Image } from 'react-native';
 import { Button, Card } from '@rneui/themed';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { useNavigation } from '@react-navigation/native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+const baseUrl = 'https://api.mymovies.africa/api/v1/users';
+
+const fetchUserData = async (userId) => {
+    try {
+        const response = await fetch(`${baseUrl}/${userId}`);
+        if (!response.ok) {
+            throw new Error('Failed to fetch user data');
+        }
+        const data = await response.json();
+        return {
+            id: userId,
+            name: data.name,
+            phoneNumber: data.phone_number,
+            email: data.email
+        };
+    } catch (err) {
+        console.log('Error fetching user data:', err);
+        return null;
+    }
+};
+
+const fetchWalletBalance = async (userId) => {
+    try {
+        const response = await fetch(`${baseUrl}/wallet`);
+        if (!response.ok) {
+            throw new Error('Failed to fetch wallet balance');
+        }
+        const data = await response.json();
+        return data.balance;
+    } catch (err) {
+        console.log('Error fetching wallet balance:', err);
+        return null;
+    }
+};
 
 const MembershipScreen = () => {
+    const [userData, setUserData] = useState(null);
+    const [walletBalance, setWalletBalance] = useState(null);
+    const [isLoading, setLoading] = useState(false);
+
+    useEffect(() => {
+        const loadData = async () => {
+            try {
+                setLoading(true);
+                const storedUserId = await AsyncStorage.getItem('userId');
+                if (storedUserId) {
+                    const data = await fetchUserData(storedUserId);
+                    if (data) {
+                        setUserData(data);
+                        const balance = await fetchWalletBalance(storedUserId);
+                        setWalletBalance(balance);
+                    }
+                }
+            } catch (err) {
+                console.log('Error loading data:', err);
+            } finally {
+                setLoading(false);
+            }
+        };
+        loadData();
+    }, []);
+
+    if (isLoading) {
+        return <Text style={styles.loadingText}>Loading user data...</Text>;
+    }
+
+    if (!userData) {
+        return <Text style={styles.loadingText}>No user data available</Text>;
+    }
+
     const navigation = useNavigation();
 
-    // Add state for button presses
     const [topUpPressed, setTopUpPressed] = useState(false);
     const [updateAccountPressed, setUpdateAccountPressed] = useState(false);
 
-    // : Create handler functions for button presses
     const handleTopUpPress = () => {
         setTopUpPressed(true);
-        // Simulate button press duration
         setTimeout(() => setTopUpPressed(false), 200);
     };
 
-    const handleUpdateAccountPress = ({ navigation }) => {
+    const handleUpdateAccountPress = () => {
         setUpdateAccountPressed(true);
-        // Simulate button press duration
         setTimeout(() => setUpdateAccountPressed(false), 200);
     };
 
     return (
         <SafeAreaView style={styles.safeArea}>
-            {/* header section */}
             <View style={styles.header}>
                 <Image 
                     source={require('../assets/mymovies-africa-logo.png')}
                     style={styles.logoImage}
                 />
                 <TouchableOpacity>
-                <Icon 
-                    name="logout" 
-                    size={30} 
-                    color="#fff" 
-                    style={styles.logoutIcon}
-                />
+                    <Icon 
+                        name="logout" 
+                        size={30} 
+                        color="#fff" 
+                        style={styles.logoutIcon}
+                    />
                 </TouchableOpacity>
             </View>
 
-            {/* Card container */}
             <View style={styles.cardContainer}>
                 <Card containerStyle={styles.card}>
                     <Card.Title style={styles.cardTitle}>
@@ -59,16 +123,15 @@ const MembershipScreen = () => {
                     <Card.Divider/>
 
                     <View style={styles.cardContent}>
-                    <Icon name="account-circle" size={140} color="rgba(172, 231, 223, 1)" />
+                        <Icon name="account-circle" size={140} color="rgba(172, 231, 223, 1)" />
                         <View style={styles.userInfo}>
-                            <Text style={styles.text}>Ryan Munge</Text>
-                            <Text style={styles.text}>ryanmunge@gmail.com</Text> 
-                            <Text style={styles.text}>+254701449264</Text>
+                            <Text style={styles.text}>{userData.name}</Text>
+                            <Text style={styles.text}>{userData.email}</Text> 
+                            <Text style={styles.text}>{userData.phoneNumber}</Text>
                             <Text style={[styles.text, styles.boldUnderline]}>Wallet Balance</Text>
-                            <Text style={styles.text}>KSH 0</Text>
+                            <Text style={styles.text}>KSH {walletBalance !== null ? walletBalance : 'Loading...'}</Text>
                         </View>
 
-                        {/* Step 3: Update Button components with onPress handlers and dynamic styles */}
                         <Button
                             title="Top Up"
                             buttonStyle={[
@@ -104,6 +167,7 @@ const MembershipScreen = () => {
         </SafeAreaView>
     );
 };
+
 
 const styles = StyleSheet.create({
     safeArea: {
@@ -197,6 +261,12 @@ const styles = StyleSheet.create({
     },
     buttonTextPressed: {
         color: 'white',
+    },
+    loadingText: {
+        color: 'white',
+        fontSize: 16,
+        textAlign: 'center',
+        marginTop: 20,
     },
 });
 
