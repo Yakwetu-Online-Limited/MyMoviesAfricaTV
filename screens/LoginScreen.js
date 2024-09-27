@@ -29,32 +29,73 @@ const LoginScreen = ({ navigation }) => {
       Alert.alert('Error', 'Please fill in all fields');
       return;
     }
-
+  
     setIsLoading(true);
-
+  
     try {
+      // Firebase authentication
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       console.log('User signed in:', userCredential);
+  
       const userId = userCredential.user.uid;
-      const username = userCredential.user.displayName || email.split('@')[0];
+      const userEmail = userCredential.user.email || email;
 
-      // Fetch additional user data (like username) from your database
-      const userDoc = await axios.get('https://api.mymovies.africa/api/v1/users/login'); // Replace with your API
-     // Assuming this is the structure of your response
+      const fullName = userEmail.split('@')[0];
+  
+      // Prepare form-encoded data for the POST request
+      const formData = new URLSearchParams();
+      formData.append('uid', userId);
+      formData.append('email', userEmail);
+      formData.append('name', fullName);
+  
+      // Make the POST request to fetch user data
+      const response = await axios.post('https://api.mymovies.africa/api/v1/users/login', formData, {
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+      });
 
-      // Store the userId and username in cookies
-      Cookies.set('userId', userId, { expires: 7 }); // expires in 7 days
-      Cookies.set('username', username, { expires: 7 }); // Store username in cookies as well
-
-      navigation.navigate('Home', { userId, username });
+      console.log('API Response:', response.data);
+  
+      if (response.data && response.data.user) {
+        const userData = response.data.user;
+        ;
+  
+        // Store the userId and username in cookies
+        Cookies.set('userId', userId, { expires: 7 });
+        Cookies.set('username', userData.fullname || fullName, { expires: 7 });
+  
+        // Navigate to the Home screen with user data
+        navigation.navigate('Home', { userId, username: userData.fullname || fullName, userEmail: userData.email || email });
+      } else {
+        throw new Error('User data not found in the API response');
+      }
     } catch (error) {
-      console.error('Error during login:', error);
-      Alert.alert('Error', 'Invalid email or password. Please try again.');
+      // Check if it's a Firebase error
+      if (error.code) {
+        // Firebase error
+        console.error('Firebase Error during login:', error.message);
+        if (error.code === 'auth/user-not-found') {
+          Alert.alert('Error', 'User not found. Please check your email.');
+        } else if (error.code === 'auth/wrong-password') {
+          Alert.alert('Error', 'Incorrect password. Please try again.');
+        } else {
+          Alert.alert('Error', 'Authentication failed. Please try again.');
+        }
+      } else if (error.response) {
+        // API error
+        console.error('API Error during login:', error.response.data);
+        Alert.alert('Error', 'Failed to fetch user data. Please try again later.');
+      } else {
+        // General error
+        console.error('Unknown Error during login:', error);
+        Alert.alert('Error', 'An unexpected error occurred. Please try again.');
+      }
     } finally {
       setIsLoading(false);
     }
   };
-
+  
   return (
     <View style={styles.container}>
       <Image source={require('../assets/logo.webp')} style={styles.logo} />

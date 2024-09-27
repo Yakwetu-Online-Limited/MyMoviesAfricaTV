@@ -86,7 +86,7 @@ const SignupScreen = ({ navigation }) => {
         Cookies.set('userId', data.userId, { expires: 7 }); // expires in 7 days
         Cookies.set('username', fullName, { expires: 7 });
         
-        navigation.navigate('Home', { userId: data.userId, username: fullName });
+        navigation.navigate('Home', { userId: data.userId, username: fullName, userEmail: email });
       } else {
         console.error('Server error:', data);
         Alert.alert('Error', data.message || 'An error occurred while creating the account.');
