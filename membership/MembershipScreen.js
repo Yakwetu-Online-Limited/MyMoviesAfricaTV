@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'; 
+import React, { useEffect, useState } from 'react';  
 import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, Image, Alert } from 'react-native';
 import { Button, Card } from '@rneui/themed';
 import Icon from 'react-native-vector-icons/MaterialIcons';
@@ -13,7 +13,9 @@ const MembershipScreen = () => {
     const [isLoading, setLoading] = useState(false);
     const navigation = useNavigation();
     const route = useRoute();
-    const { userId } = route.params;
+    const { userId, userEmail, username, phoneNumber, birthday } = route.params; // Get name and email from params
+
+    console.log("Route params - userId:", userId, "userEmail:", userEmail, "fullName:", username, "phoneNumber:", phoneNumber, "birthday:", birthday);
 
     useEffect(() => {
         const loadData = async () => {
@@ -21,18 +23,34 @@ const MembershipScreen = () => {
                 setLoading(true);
                 console.log("User ID from params:", userId); // Log the value of userId from route params
 
-                if (userId) {
-                    // Fetch user data
-                    const userResponse = await axios.get('https://api.mymovies.africa/api/v1/users/login');
+                if (userId && userEmail && username) { // Ensure all necessary data is available
+                    // Fetch user data, send the required parameters
+                    console.log("Fetching user data...");
+                    const userResponse = await axios.post(
+                        'https://api.mymovies.africa/api/v1/users/login',
+                        qs.stringify({
+                            user_id: userId,
+                            email: userEmail,
+                            name: username
+                        }),
+                        {
+                            headers: {
+                                'Content-Type': 'application/x-www-form-urlencoded',
+                            },
+                        }
+                    );
                     console.log("User Response:", userResponse.data);
+
                     if (userResponse.data && userResponse.data.user) {
                         setUserData(userResponse.data.user);
+                        console.log("User Data Set:", userResponse.data.user);
                     } else {
                         console.error('User data is missing in response:', userResponse.data);
                         Alert.alert("Error", "User data not found.");
                     }
 
                     // Fetch wallet balance
+                    console.log("Fetching wallet balance...");
                     const balanceResponse = await axios.post('https://api.mymovies.africa/api/v1/users/wallet', 
                         qs.stringify({ user_id: userId }), 
                         {
@@ -43,7 +61,8 @@ const MembershipScreen = () => {
                     );
                     setWalletBalance(balanceResponse.data.balance);
                 } else {
-                    console.log("User ID not available in route params"); 
+                    console.log("User ID, Email, or Full Name not available in route params");
+                    Alert.alert("Error", "Missing required user details.");
                 }
             } catch (error) {
                 console.error('Error loading user data:', error.response ? error.response.data : error.message);
@@ -54,7 +73,7 @@ const MembershipScreen = () => {
         };
 
         loadData();
-    }, [userId]);
+    }, [userId, userEmail, username]); // Ensure these values trigger the effect
 
     const handleLogout = () => {
         Cookies.remove('userId'); // Clear the userId cookie
@@ -105,10 +124,10 @@ const MembershipScreen = () => {
                     <View style={styles.cardContent}>
                         <Icon name="account-circle" size={140} color="rgba(172, 231, 223, 1)" />
                         <View style={styles.userInfo}>
-                            <Text style={styles.text}>{userData.fullname}</Text>
-                            <Text style={styles.text}>{userData.email}</Text> 
-                            <Text style={styles.text}>{userData.phone}</Text>
-                            <Text style={styles.text}>{userData.birthday}</Text>
+                            <Text style={styles.text}>{username}</Text>
+                            <Text style={styles.text}>{userEmail}</Text> 
+                            <Text style={styles.text}>{phoneNumber}</Text>
+                            <Text style={styles.text}>{birthday}</Text>
                             <Text style={styles.text}>Locale: {userData.locale}</Text>
                             <Text style={[styles.text, styles.boldUnderline]}>Wallet Balance</Text>
                             <Text style={styles.text}>KSH {walletBalance !== null ? walletBalance : 'Loading...'}</Text>
@@ -127,7 +146,13 @@ const MembershipScreen = () => {
                             buttonStyle={styles.button}
                             type="outline"
                             containerStyle={styles.buttonContainer}
-                            onPress={() => navigation.navigate('UpdateAccountForm')}
+                            onPress={() => navigation.navigate('UpdateAccountForm', {
+                                userId: userId,
+                                username: username, // Use userData instead of user
+                                userEmail:  userEmail,
+                                phoneNumber: userData.phoneNumber,
+                                birthday: userData.birthday,
+                            })}
                         />
                     </View>
                 </Card>
@@ -137,81 +162,96 @@ const MembershipScreen = () => {
 };
 
 const styles = StyleSheet.create({
-    container: {
-      flex: 1,
-      backgroundColor: '#121212',
-      padding: 20,
-      justifyContent: 'center',
+    safeArea: {
+        flex: 1,
+        backgroundColor: '#000000',
     },
-    logo: {
-     alignSelf: 'center', 
-     marginBottom: 50, 
-   },
-   
-    headerText: {
-      color: '#fff',
-      fontSize: 16,
-      textAlign: 'center',
-      marginBottom: 20,
+    header: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        padding: 15,
     },
-    inputContainer: {
-      marginBottom: 15,
+    logoImage: {
+        width: 180,
+        height: 36,
+        resizeMode: 'contain',
     },
-    input: {
-      backgroundColor: '#1e1e1e',
-      color: '#fff',
-      padding: 10,
-      borderRadius: 5,
-      borderWidth: 1,
-      borderColor: '#888',
+    logoutImage: {
+        width: 50,
+        height: 50,
+        borderRadius: 25,
     },
-    passwordContainer: {
-      flexDirection: 'row',
-      alignItems: 'center', 
-      backgroundColor: '#1e1e1e',
-      borderRadius: 5,
-      borderWidth: 1,
-      borderColor: '#888',
-      paddingHorizontal: 10, 
+    cardContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        paddingHorizontal: 10,
+        marginTop: 20,
     },
-    passwordInput: {
-      flex: 1, 
-      color: '#fff',
-      paddingVertical: 10, 
+    card: {
+        backgroundColor: '#000000',
+        borderRadius: 10,
+        padding: 20,
+        marginVertical: 20,
     },
-    errorText: {
-      color: '#ff4d4d',
-      fontSize: 12,
-      marginTop: 5,
+    cardTitle: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginBottom: 15,
     },
-    loginButton: {
-      borderRadius: 5,
-      borderWidth: 1,
-      borderColor: '#ffcc00',
-      padding: 15,
-      borderRadius: 5,
-      alignItems: 'center',
-      marginTop: 20,
+    titleImage: {
+        width: 40,
+        height: 40,
+        borderRadius: 20,
+        marginRight: 15,
     },
-    loginButtonText: {
-      color: '#fff',
-      fontSize: 16,
-      fontWeight: 'bold',
+    titleText: {
+        color: 'white',
+        fontWeight: 'bold',
+        fontSize: 22,
     },
-    orText: {
-      color: '#fff',
-      textAlign: 'center',
-      marginVertical: 10,
+    cardContent: {
+        alignItems: 'center',
     },
-    footer: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      marginTop: 20,
+    profileImage: {
+        width: 120,
+        height: 120,
+        borderRadius: 60,
+        marginBottom: 20,
     },
-    footerText: {
-      color: '#fff',
-      fontSize: 14,
+    userInfo: {
+        alignItems: 'center',
+        marginBottom: 20,
     },
-  });
+    text: {
+        color: 'white',
+        marginBottom: 8,
+        fontSize: 16,
+    },
+    boldUnderline: {
+        fontWeight: 'bold',
+        textDecorationLine: 'underline',
+    },
+    buttonContainer: {
+        width: '100%',
+        marginVertical: 10,
+    },
+    button: {
+        borderColor: 'rgba(78, 116, 289, 1)',
+        borderWidth: 2,
+        borderRadius: 8,
+    },
+    buttonPressed: {
+        backgroundColor: 'rgba(78, 116, 289, 1)',
+    },
+    buttonText: {
+        color: 'rgba(78, 116, 289, 1)',
+        fontSize: 16,
+    },
+    buttonTextPressed: {
+        color: 'white',
+    },
+});
+
 
 export default MembershipScreen;
