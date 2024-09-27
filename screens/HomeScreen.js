@@ -44,10 +44,10 @@ const HomePage = () => {
   const navigation = useNavigation();
 
   const route = useRoute();
-  const { userId } = route.params || {};
+  const { userId, userEmail, username } = route.params || {};
 
   console.log('Received route params:', route.params);  
-  console.log('Received userId in HomeScreen:', userId);
+  console.log('Received userId in HomeScreen:', userId, userEmail, username);
 
   const fetchMovies = async () => {
     try {
