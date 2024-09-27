@@ -18,37 +18,43 @@ import DateTimePicker from "@react-native-community/datetimepicker";
 import MapView, { Marker } from "react-native-maps";
 import { useNavigation } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-// import { useForm, Controller } from 'react-hook-form';
 import { useUser } from "./UserContext";
 import { calculatePrice } from "./priceCalculator";
+import axios from "axios";
+import dayjs from "dayjs";
+
 const { width, height } = Dimensions.get("window");
 
 // Helper function to build FormData
 const buildFormData = (formObj) => {
   const formData = new FormData();
-  Object.keys(formObj).forEach((key) => {
-    formData.append(key, formObj[key]);
-  });
+  const keys = Object.keys(formObj);
+  for (let i in keys) {
+    let varname = keys[i];
+    formData.append(varname, formObj[varname]);
+  }
+  // console.log("form dara:", formData)
   return formData;
 };
+
+
 
 const Screening = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const { user } = useUser();
-  console.log("User in Screening component:", user); // New log
+  console.log("User in Screening component:", user); // Debugging log
 
-  // const userContext = useUser();
-  // const user = userContext?.user;
   const [requestDetails, setRequestDetails] = useState({
-    organisation: "",
     contact_name: "",
+    // date: "",
     email: "",
-    phone: "",
-    screening_location: "",
-    screening_date: "",
-    movie_name: "",
     expected_audience: "",
-    // user_id: "",
+    movie_name: "",
+    organisation: "",
+    phone: "",
+    screening_date: "",
+    screening_location: "",
+    ref: "",
     date: new Date(),
   });
   const [showDatePicker, setShowDatePicker] = useState(false);
@@ -62,9 +68,8 @@ const Screening = () => {
   const [errors, setErrors] = useState({});
   const [authToken, setAuthToken] = useState("");
   const [totalPrice, setTotalPrice] = useState(0);
+  const [paymentUrl, setPaymentUrl] = useState("");
 
-
-  // Highlight: Added movies array inside the component
   const movies = [
     {
       title: "WHERE THE RIVER DIVIDES (Dholuo)",
@@ -95,24 +100,11 @@ const Screening = () => {
   ];
 
   useEffect(() => {
-    console.log("useEffect triggered, user:", user); // New log
+    console.log("useEffect triggered, user:", user); // Debugging log
     if (user) {
-      //     setRequestDetails(prevDetails => {
-      //       const newDetails = {
-      //         ...prevDetails,
-      //         organisation: user.organisation || "",
-      //         contact_name: user.name || "",
-      //         email: user.email || "",
-      //         phone: user.phone || "",
-      //       };
-      //       console.log('Updated request details:', newDetails); // New log
-      //       return newDetails;
-      //     });
-      //   }
-      // }, [user]);
       setRequestDetails((prevDetails) => ({
         ...prevDetails,
-        organisation: user.organisation || "",
+        // organisation: user.organisation || "",
         contact_name: user.name || "",
         email: user.email || "",
         phone: user.phone || "",
@@ -120,29 +112,25 @@ const Screening = () => {
     }
   }, [user]);
 
-  // CHANGE: Add console.log to check user and requestDetails
   useEffect(() => {
     console.log("User:", user);
     console.log("Request Details:", requestDetails);
   }, [user, requestDetails]);
 
-  const navigation = useNavigation();
-
-  
-  
-
-  // Fetch auth token when component mounts
-  useEffect(() => {
-    const getAuthToken = async () => {
-      try {
-        const token = await AsyncStorage.getItem("authToken");
-        if (token) setAuthToken(token);
-      } catch (error) {
-        console.error("Error fetching auth token:", error);
-      }
-    };
-    getAuthToken();
-  }, []);
+  // useEffect(() => {
+  //   const getAuthToken = async () => {
+  //     try {
+  //       const token = await AsyncStorage.getItem("authToken");
+  //       if (token) {
+  //         setAuthToken(token);
+  //         console.log("Auth Token set:", token); // Debugging log
+  //       }
+  //     } catch (error) {
+  //       console.error("Error fetching auth token:", error);
+  //     }
+  //   };
+  //   getAuthToken();
+  // }, []);
 
   useEffect(() => {
     const price = calculatePrice(
@@ -150,9 +138,24 @@ const Screening = () => {
       requestDetails.expected_audience
     );
     setTotalPrice(price);
+    console.log("Total Price calculated:", price); // Debugging log
   }, [requestDetails.movie_name, requestDetails.expected_audience]);
 
-  // Form validation function
+  // const navigation = useNavigation();
+
+  const formattedDate = dayjs(requestDetails.date).format("MM/DD/YYYY");
+  console.log("Formatted Date:", formattedDate);
+
+  // const handleDateSelect = (date) => {
+  const [month, day, year] = formattedDate.split("/");
+  const newformattedDate = `${parseInt(month, 10)}/${parseInt(
+    day,
+    10
+  )}/${year}`;
+  console.log("new formatted date", newformattedDate);
+
+  // console.log('Formatted date:', formattedDate);
+
   const validateForm = useCallback(() => {
     const newErrors = {};
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -176,89 +179,137 @@ const Screening = () => {
     return Object.keys(newErrors).length === 0;
   }, [requestDetails]);
 
-  // Handle form submission
   const handleRequestScreening = useCallback(async () => {
-    if (!validateForm()) return;
+    if (!validateForm()) {
+      console.log("Form validation failed");
+      return;
+    }
 
-    console.log("form data:", requestDetails);
-    const formData = buildFormData(requestDetails);
-    console.log("form data built successfully");
+    console.log("Form data:", requestDetails);
 
+    // Extract the upper limit of expected audience
+    const audienceUpperLimit = requestDetails.expected_audience
+      .split("-")[1]
+      .split(" ")[0];
+
+    const formDataObj = {
+      ...requestDetails,
+      expected_audience: audienceUpperLimit,
+      screening_date: requestDetails.date.toISOString().split("T")[0], // Format date as YYYY-MM-DD
+    };
+
+    
+
+    // Find the selected movie
+    const selectedMovie = movies.find(
+      (movie) => movie.ref === requestDetails.movie_name
+    );
+
+    // Prepare the form data using URLSearchParams
+    const formData = new URLSearchParams({
+      ...requestDetails,
+      expected_audience: audienceUpperLimit,
+      screening_date: dayjs(requestDetails.date).format("MM/DD/YYYY"),
+      movie_name: selectedMovie ? selectedMovie.title : "",
+      movie_ref: requestDetails.movie_name, // This is actually the movie ref
+      user_id: user?.uid || "", // Include user_id from the user object
+    });
+
+    console.log("Form data built successfully", formData.toString());
+
+    
     try {
-      console.log("making request");
-      console.log("auth token", authToken);
+      console.log("Making request");
+      // console.log("Auth token:", authToken);
 
-      // Log important variables before making the request
-      console.log("User ID:", user?.uid);
-      console.log("Total Price:", totalPrice);
+      // const success = await axios.post(
+      //   "https://api.mymovies.africa/api/v1/bulkscreenings",
+      //   buildFormData(testingData)
+      // );
+      // const success = await axios.post(
+      //   "https://mymovies-payload-cms.herokuapp.com/api/screening",
+      //   formDataObj
+      // );
 
-      const response = await fetch(
+      
+      const success = await fetch(
         "https://api.mymovies.africa/api/v1/bulkscreenings",
         {
           method: "POST",
           body: formData,
           headers: {
-            Accept: "application/json",
-            "Content-Type": "multipart/form-data",
-            Authorization: `Bearer ${authToken}`,
+            "Content-Type": "application/x-www-form-urlencoded",
+            // Authorization: `Bearer ${authToken}`,
           },
         }
       );
-      console.log("Response status:", response.status);
-      console.log("Response headers:", response.headers);
+      console.log("Response status:", success);
 
-      const result = await response.json();
-      if (response.ok) {
-        console.log("Submission successful:", result);
+      if (success) {
         setModalVisible(false);
 
-        // Log important variables
-        console.log("Screening ID:", result.screeningid);
-        console.log("Reference:", result.ref);
+        // Highlight[
+        // Use the debug link for testing
+        // const urlToOpen = DEBUG_PAYMENT_URL;
+        // console.log("Opening URL:", url);
 
-        console.log("Before URL construction");
+       
 
-        // Construct the payment URL
-      // Highlight: Updated payment URL construction
-      if (user?.uid && result.screeningid && requestDetails.movie_name) {
-        const selectedMovie = movies.find(movie => movie.ref === requestDetails.movie_name);
-        const movieRef = selectedMovie ? selectedMovie.ref : '';
+        if (user?.uid) {
+          console.log("Total Price:", totalPrice);
+          console.log("Movie Name:", requestDetails.movie_name);
+          ;
 
-        const paymentUrl = `https://api.mymovies.africa/api/v1/payment/gate/${user.uid}/?amount=${totalPrice}&purchase_type=BULK OFFLINE SCREENING&screeningid=${result.screeningid}&ref=${movieRef}&source=pwa`;
+          
+          // Use the movie ref directly from requestDetails
+          const movieRef = requestDetails.movie_name;
+          
 
-        console.log("Payment URL:", paymentUrl);
-        navigation.navigate("Payment", { paymentUrl });
+         
+
+          // Updated URL construction
+          const paymentUrl = `https://api.mymovies.africa/api/v1/payment/gate/${
+            user.uid
+          }/?amount=${Math.round(
+            totalPrice * 100
+          )}&purchase_type=BULK OFFLINE SCREENING&screeningid=""&ref=${movieRef}&source=pwa`;
+
+          console.log("Payment URL:", paymentUrl);
+          // console.log("DEBUG URL:", DEBUG_PAYMENT_URL);
+          setPaymentUrl(paymentUrl);
+
+          
+
+          const canOpen = await Linking.canOpenURL(paymentUrl);
+          console.log("Can open URL:", canOpen);
+          if (canOpen) {
+            await Linking.openURL(paymentUrl);
+          } else {
+            // console.error("Cannot open URL:", url);
+            Alert.alert(
+              "Error",
+              "Unable to open payment page. Please try again."
+            );
+          }
+        } else {
+          console.error("Missing required data for payment URL");
+          Alert.alert(
+            "Error",
+            "Unable to process payment due to missing information. Please try again."
+          );
+        }
       } else {
-        console.error("Missing required data for payment URL");
+        console.error("Submission failed");
         Alert.alert(
-          "Error",
-          "Unable to process payment due to missing information. Please try again."
+          "Submission Failed",
+          "Please check your input and try again."
         );
       }
-    } else {
-      console.error("Submission failed:", result);
-      Alert.alert(
-        "Submission Failed",
-        "Please check your input and try again."
-      );
+    } catch (error) {
+      console.error("Error during submission:", error);
+      Alert.alert("Error", "An unexpected error occurred. Please try again.");
     }
-  } catch (error) {
-    console.error("Error during submission:", error);
-    Alert.alert(
-      "Error",
-      "An unexpected error occurred. "
-    );
-  }
-}, [
-  requestDetails,
-  authToken,
-  navigation,
-  user?.uid,
-  totalPrice,
-  validateForm,
-  movies,
-]);
-
+  }, [requestDetails, authToken, user?.uid, totalPrice, validateForm, movies]);
 
   // Handle input changes
   const handleInputChange = useCallback(
@@ -489,6 +540,9 @@ const Screening = () => {
                     {requestDetails.date.toLocaleDateString()}
                   </Text>
                 </TouchableOpacity>
+                {errors.screening_date && (
+                  <Text style={styles.errorText}>{errors.screening_date}</Text>
+                )}
               </View>
 
               <TouchableOpacity
@@ -511,6 +565,10 @@ const Screening = () => {
           onChange={(event, selectedDate) => {
             setShowDatePicker(false);
             if (selectedDate) handleInputChange("date", selectedDate);
+            handleInputChange(
+              "screening_date",
+              selectedDate.toISOString().split("T")[0]
+            );
           }}
         />
       )}
