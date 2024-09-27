@@ -1,91 +1,131 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, Image } from 'react-native';
+import React, { useEffect, useState } from 'react'; 
+import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, Image, Alert } from 'react-native';
 import { Button, Card } from '@rneui/themed';
-import { useNavigation } from '@react-navigation/native';
+import Icon from 'react-native-vector-icons/MaterialIcons';
+import { useNavigation, useRoute } from '@react-navigation/native';
+import Cookies from 'js-cookie'; // Import JS Cookies
+import axios from 'axios';
+import qs from 'qs';
 
 const MembershipScreen = () => {
+    const [userData, setUserData] = useState(null);
+    const [walletBalance, setWalletBalance] = useState(null);
+    const [isLoading, setLoading] = useState(false);
     const navigation = useNavigation();
+    const route = useRoute();
+    const { userId } = route.params;
 
-    // Add state for button presses
-    const [topUpPressed, setTopUpPressed] = useState(false);
-    const [updateAccountPressed, setUpdateAccountPressed] = useState(false);
+    useEffect(() => {
+        const loadData = async () => {
+            try {
+                setLoading(true);
+                console.log("User ID from params:", userId); // Log the value of userId from route params
 
-    // : Create handler functions for button presses
-    const handleTopUpPress = () => {
-        setTopUpPressed(true);
-        // Simulate button press duration
-        setTimeout(() => setTopUpPressed(false), 200);
+                if (userId) {
+                    // Fetch user data
+                    const userResponse = await axios.get('https://api.mymovies.africa/api/v1/users/login');
+                    console.log("User Response:", userResponse.data);
+                    if (userResponse.data && userResponse.data.user) {
+                        setUserData(userResponse.data.user);
+                    } else {
+                        console.error('User data is missing in response:', userResponse.data);
+                        Alert.alert("Error", "User data not found.");
+                    }
+
+                    // Fetch wallet balance
+                    const balanceResponse = await axios.post('https://api.mymovies.africa/api/v1/users/wallet', 
+                        qs.stringify({ user_id: userId }), 
+                        {
+                            headers: {
+                                'Content-Type': 'application/x-www-form-urlencoded',
+                            },
+                        }
+                    );
+                    setWalletBalance(balanceResponse.data.balance);
+                } else {
+                    console.log("User ID not available in route params"); 
+                }
+            } catch (error) {
+                console.error('Error loading user data:', error.response ? error.response.data : error.message);
+                Alert.alert("Error", "Could not load user data. Please try again later.");
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        loadData();
+    }, [userId]);
+
+    const handleLogout = () => {
+        Cookies.remove('userId'); // Clear the userId cookie
+        navigation.navigate('Login'); // Navigate to login screen
     };
 
-    const handleUpdateAccountPress = ({ navigation }) => {
-        setUpdateAccountPressed(true);
-        // Simulate button press duration
-        setTimeout(() => setUpdateAccountPressed(false), 200);
-    };
+    if (isLoading) {
+        return <Text style={styles.loadingText}>Loading user data...</Text>;
+    }
+
+    if (!userData) {
+        return <Text style={styles.loadingText}>No user data available</Text>;
+    }
 
     return (
         <SafeAreaView style={styles.safeArea}>
-            {/* header section */}
             <View style={styles.header}>
                 <Image 
                     source={require('../assets/mymovies-africa-logo.png')}
                     style={styles.logoImage}
                 />
-                <TouchableOpacity>
-                    <Image 
-                        source={require('../assets/default.jpg')}
-                        style={styles.logoutImage}
+                <TouchableOpacity onPress={handleLogout}>
+                    <Icon 
+                        name="logout" 
+                        size={30} 
+                        color="#fff" 
+                        style={styles.logoutIcon}
                     />
                 </TouchableOpacity>
             </View>
 
-            {/* Card container */}
             <View style={styles.cardContainer}>
                 <Card containerStyle={styles.card}>
                     <Card.Title style={styles.cardTitle}>
-                        <Image source={require('../assets/default.jpg')} style={styles.titleImage}/>
+                        <View style={{ marginTop: 20 }}>
+                            <Icon 
+                                name="person-outline" 
+                                size={22} 
+                                color="white"
+                                onPress={() => navigation.navigate('Login')} 
+                            />
+                        </View>
                         <Text style={styles.titleText}>Account</Text>
                     </Card.Title>
 
                     <Card.Divider/>
 
                     <View style={styles.cardContent}>
-                        <Card.Image source={require('../assets/default.jpg')} style={styles.profileImage}/>
+                        <Icon name="account-circle" size={140} color="rgba(172, 231, 223, 1)" />
                         <View style={styles.userInfo}>
-                            <Text style={styles.text}>Ryan Munge</Text>
-                            <Text style={styles.text}>ryanmunge@gmail.com</Text> 
-                            <Text style={styles.text}>+254701449264</Text>
+                            <Text style={styles.text}>{userData.fullname}</Text>
+                            <Text style={styles.text}>{userData.email}</Text> 
+                            <Text style={styles.text}>{userData.phone}</Text>
+                            <Text style={styles.text}>{userData.birthday}</Text>
+                            <Text style={styles.text}>Locale: {userData.locale}</Text>
                             <Text style={[styles.text, styles.boldUnderline]}>Wallet Balance</Text>
-                            <Text style={styles.text}>KSH 0</Text>
+                            <Text style={styles.text}>KSH {walletBalance !== null ? walletBalance : 'Loading...'}</Text>
                         </View>
 
-                        {/* Step 3: Update Button components with onPress handlers and dynamic styles */}
                         <Button
                             title="Top Up"
-                            buttonStyle={[
-                                styles.button,
-                                topUpPressed && styles.buttonPressed
-                            ]}
+                            buttonStyle={styles.button}
                             type="outline"
-                            titleStyle={[
-                                styles.buttonText,
-                                topUpPressed && styles.buttonTextPressed
-                            ]}
                             containerStyle={styles.buttonContainer}
-                            onPress={handleTopUpPress}
+                            onPress={() => {}}
                         />
 
                         <Button
                             title="Update Account"
-                            buttonStyle={[
-                                styles.button,
-                                updateAccountPressed && styles.buttonPressed
-                            ]}
+                            buttonStyle={styles.button}
                             type="outline"
-                            titleStyle={[
-                                styles.buttonText,
-                                updateAccountPressed && styles.buttonTextPressed
-                            ]}
                             containerStyle={styles.buttonContainer}
                             onPress={() => navigation.navigate('UpdateAccountForm')}
                         />
@@ -97,94 +137,81 @@ const MembershipScreen = () => {
 };
 
 const styles = StyleSheet.create({
-    safeArea: {
-        flex: 1,
-        backgroundColor: '#000000',
+    container: {
+      flex: 1,
+      backgroundColor: '#121212',
+      padding: 20,
+      justifyContent: 'center',
     },
-    header: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        padding: 15,
+    logo: {
+     alignSelf: 'center', 
+     marginBottom: 50, 
+   },
+   
+    headerText: {
+      color: '#fff',
+      fontSize: 16,
+      textAlign: 'center',
+      marginBottom: 20,
     },
-    logoImage: {
-        width: 180,
-        height: 36,
-        resizeMode: 'contain',
+    inputContainer: {
+      marginBottom: 15,
     },
-    logoutImage: {
-        width: 50,
-        height: 50,
-        borderRadius: 25,
+    input: {
+      backgroundColor: '#1e1e1e',
+      color: '#fff',
+      padding: 10,
+      borderRadius: 5,
+      borderWidth: 1,
+      borderColor: '#888',
     },
-    cardContainer: {
-        flex: 1,
-        justifyContent: 'center',
-        paddingHorizontal: 10,
+    passwordContainer: {
+      flexDirection: 'row',
+      alignItems: 'center', 
+      backgroundColor: '#1e1e1e',
+      borderRadius: 5,
+      borderWidth: 1,
+      borderColor: '#888',
+      paddingHorizontal: 10, 
     },
-    card: {
-        backgroundColor: '#000000',
-        borderRadius: 10,
-        padding: 20,
-        marginVertical: 20,
+    passwordInput: {
+      flex: 1, 
+      color: '#fff',
+      paddingVertical: 10, 
     },
-    cardTitle: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        marginBottom: 15,
+    errorText: {
+      color: '#ff4d4d',
+      fontSize: 12,
+      marginTop: 5,
     },
-    titleImage: {
-        width: 40,
-        height: 40,
-        borderRadius: 20,
-        marginRight: 15,
+    loginButton: {
+      borderRadius: 5,
+      borderWidth: 1,
+      borderColor: '#ffcc00',
+      padding: 15,
+      borderRadius: 5,
+      alignItems: 'center',
+      marginTop: 20,
     },
-    titleText: {
-        color: 'white',
-        fontWeight: 'bold',
-        fontSize: 22,
+    loginButtonText: {
+      color: '#fff',
+      fontSize: 16,
+      fontWeight: 'bold',
     },
-    cardContent: {
-        alignItems: 'center',
+    orText: {
+      color: '#fff',
+      textAlign: 'center',
+      marginVertical: 10,
     },
-    profileImage: {
-        width: 120,
-        height: 120,
-        borderRadius: 60,
-        marginBottom: 20,
+    footer: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      marginTop: 20,
     },
-    userInfo: {
-        alignItems: 'center',
-        marginBottom: 20,
+    footerText: {
+      color: '#fff',
+      fontSize: 14,
     },
-    text: {
-        color: 'white',
-        marginBottom: 8,
-        fontSize: 16,
-    },
-    boldUnderline: {
-        fontWeight: 'bold',
-        textDecorationLine: 'underline',
-    },
-    buttonContainer: {
-        width: '100%',
-        marginVertical: 10,
-    },
-    button: {
-        borderColor: 'rgba(78, 116, 289, 1)',
-        borderWidth: 2,
-        borderRadius: 8,
-    },
-    buttonPressed: {
-        backgroundColor: 'rgba(78, 116, 289, 1)',
-    },
-    buttonText: {
-        color: 'rgba(78, 116, 289, 1)',
-        fontSize: 16,
-    },
-    buttonTextPressed: {
-        color: 'white',
-    },
-});
+  });
 
 export default MembershipScreen;

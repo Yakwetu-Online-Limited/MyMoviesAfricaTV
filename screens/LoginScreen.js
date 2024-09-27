@@ -1,66 +1,59 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, Image } from 'react-native';
-import { auth } from '../firebase'; 
+import Cookies from 'js-cookie'; // Import js-cookie
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { auth } from '../firebase';
 import axios from 'axios';
 
 const LoginScreen = ({ navigation }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  
+
+  useEffect(() => {
+    const checkUserCookie = () => {
+      const userId = Cookies.get('userId'); // Access the cookie
+      const username = Cookies.get('username');
+      if (userId && username) {
+        // If cookie exists, navigate to the Home screen
+        navigation.navigate('Home', { userId, username });
+      }
+    };
+    checkUserCookie();
+  }, [navigation]);
+
   const handleLogin = async () => {
     if (email === '' || password === '') {
       Alert.alert('Error', 'Please fill in all fields');
       return;
     }
 
+    setIsLoading(true);
+
     try {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
-      const user = userCredential.user;
-      const username = user.displayName || email.split('@')[0];
+      console.log('User signed in:', userCredential);
+      const userId = userCredential.user.uid;
+      const username = userCredential.user.displayName || email.split('@')[0];
 
-      // Fetch userId from AsyncStorage
-      const storedUserId = await AsyncStorage.getItem('userId');
-      console.log('Fetched userId from AsyncStorage:', storedUserId);
+      // Fetch additional user data (like username) from your database
+      const userDoc = await axios.get('https://api.mymovies.africa/api/v1/users/login'); // Replace with your API
+     // Assuming this is the structure of your response
 
-      if (!storedUserId) {
-        Alert.alert('Error', 'User ID not found in storage.');
-        return;
-      }
+      // Store the userId and username in cookies
+      Cookies.set('userId', userId, { expires: 7 }); // expires in 7 days
+      Cookies.set('username', username, { expires: 7 }); // Store username in cookies as well
 
-      // Prepare data for the POST request
-      const loginData = new URLSearchParams({
-        uid: storedUserId,
-        email: email,
-        name: username,
-      }).toString();
-
-      console.log('Sending login data:', { uid: storedUserId, email });
-
-      // Make the POST request to the login endpoint
-      const response = await axios.post('https://api.mymovies.africa/api/v1/users/login', loginData, {
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-        },
-      });
-
-      console.log('Login response:', response.data);
-
-      if (response.data.error) {
-        Alert.alert('Error', response.data.message);
-      } else {
-        Alert.alert('Success', 'Logged in successfully');
-        navigation.navigate('Home', { userId: storedUserId, username });	
-      }
+      navigation.navigate('Home', { userId, username });
     } catch (error) {
-      console.error('Login error:', error);
-      Alert.alert('Error', error.response?.data?.message || error.message);
+      console.error('Error during login:', error);
+      Alert.alert('Error', 'Invalid email or password. Please try again.');
+    } finally {
+      setIsLoading(false);
     }
   };
-
 
   return (
     <View style={styles.container}>
@@ -83,20 +76,20 @@ const LoginScreen = ({ navigation }) => {
       </View>
 
       <View style={styles.inputContainer}>
-  <View style={styles.passwordContainer}>
-    <TextInput
-      style={styles.passwordInput} 
-      placeholder="Password"
-      placeholderTextColor="#888"
-      value={password}
-      onChangeText={setPassword}
-      secureTextEntry={!showPassword}
-      autoCapitalize="none"
-    />
-    <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
-      <Icon name={showPassword ? 'visibility' : 'visibility-off'} size={24} color="#888" />
-    </TouchableOpacity>
-  </View>
+        <View style={styles.passwordContainer}>
+          <TextInput
+            style={styles.passwordInput}
+            placeholder="Password"
+            placeholderTextColor="#888"
+            value={password}
+            onChangeText={setPassword}
+            secureTextEntry={!showPassword}
+            autoCapitalize="none"
+          />
+          <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
+            <Icon name={showPassword ? 'visibility' : 'visibility-off'} size={24} color="#888" />
+          </TouchableOpacity>
+        </View>
         <Text style={styles.errorText}>Password should be more than 6 characters</Text>
       </View>
 
@@ -105,7 +98,6 @@ const LoginScreen = ({ navigation }) => {
       </TouchableOpacity>
 
       <Text style={styles.orText}>OR</Text>
-
 
       <View style={styles.footer}>
         <TouchableOpacity onPress={() => navigation.navigate('Signup')}>
@@ -127,10 +119,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   logo: {
-   alignSelf: 'center', 
-   marginBottom: 50, 
- },
- 
+    alignSelf: 'center',
+    marginBottom: 50,
+  },
   headerText: {
     color: '#fff',
     fontSize: 16,
@@ -150,17 +141,17 @@ const styles = StyleSheet.create({
   },
   passwordContainer: {
     flexDirection: 'row',
-    alignItems: 'center', 
+    alignItems: 'center',
     backgroundColor: '#1e1e1e',
     borderRadius: 5,
     borderWidth: 1,
     borderColor: '#888',
-    paddingHorizontal: 10, 
+    paddingHorizontal: 10,
   },
   passwordInput: {
-    flex: 1, 
+    flex: 1,
     color: '#fff',
-    paddingVertical: 10, 
+    paddingVertical: 10,
   },
   errorText: {
     color: '#ff4d4d',
@@ -172,7 +163,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#ffcc00',
     padding: 15,
-    borderRadius: 5,
     alignItems: 'center',
     marginTop: 20,
   },
