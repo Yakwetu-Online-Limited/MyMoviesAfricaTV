@@ -23,7 +23,7 @@ const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
 
 const BottomTabNavigator = ({ route }) => {
-  const { userId, username, movieId, walletBalance } = route.params || {};
+  const { userId, username, movieId, walletBalance, userEmail, phoneNumber, birthday } = route.params || {};
   console.log('BottomTabNavigator params:', route.params); 
 
   return (
@@ -57,7 +57,7 @@ const BottomTabNavigator = ({ route }) => {
         name="Home"
         component={HomePage}
         options={{ headerShown: false }} 
-        initialParams={{ userId, username }}
+        initialParams={{ userId, username, userEmail }}
       />
       <Tab.Screen
         name="Search"
@@ -74,7 +74,7 @@ const BottomTabNavigator = ({ route }) => {
         name="Profile"
         component={MembershipScreen}
         options={{ headerShown: false }}
-        initialParams={{ userId, username, walletBalance }}
+        initialParams={{ userId, username, userEmail, walletBalance }}
       />
     </Tab.Navigator>
   );
