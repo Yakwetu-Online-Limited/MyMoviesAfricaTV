@@ -35,10 +35,10 @@ const HomePage = () => {
   const navigation = useNavigation();
 
   const route = useRoute();
-  const { userId, walletBalance= 500 } = route.params || {};
+  const { userId, userEmail, username, walletBalance } = route.params || {};
 
   console.log('Received route params:', route.params);  
-  console.log('HomeScreen :- userId / walletBalance', userId, walletBalance);
+  console.log('HomeScreen :- userId / walletBalance', userId, userEmail, username, walletBalance);
 
   const fetchMovies = async () => {
     try {

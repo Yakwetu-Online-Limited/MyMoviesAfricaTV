@@ -19,11 +19,13 @@ import { gestureHandlerRootHOC, GestureHandlerRootView } from 'react-native-gest
 // Placeholder screens for future implementation
 
 
+
+
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
 
 const BottomTabNavigator = ({ route }) => {
-  const { userId, username, movieId, walletBalance } = route.params || {};
+  const { userId, username, movieId, walletBalance, userEmail, phoneNumber, birthday } = route.params || {};
   console.log('BottomTabNavigator params:', route.params); 
 
   return (
@@ -57,7 +59,7 @@ const BottomTabNavigator = ({ route }) => {
         name="Home"
         component={HomePage}
         options={{ headerShown: false }} 
-        initialParams={{ userId, username, walletBalance }}
+        initialParams={{ userId, username, userEmail, walletBalance }}
       />
       <Tab.Screen
         name="Search"
@@ -74,7 +76,8 @@ const BottomTabNavigator = ({ route }) => {
       <Tab.Screen
         name="Profile"
         component={MembershipScreen}
-        options={{ headerShown: false }} 
+        options={{ headerShown: false }}
+        initialParams={{ userId, username, userEmail, walletBalance }}
       />
     </Tab.Navigator>
   );
@@ -92,7 +95,13 @@ const App = () => {
         <Stack.Screen name="Search" component={SearchPage} />
         <Stack.Screen name="Collection" component={CollectionPage} />
         <Stack.Screen name="Payment" component={PaymentPage} />
+        
         <Stack.Screen
+          name="MovieDetail"
+          component={MovieDetailScreen}
+          options={{ title: 'Movie Details' }}
+      />
+      <Stack.Screen
           name="Membership"
           component={MembershipScreen}
         />
@@ -100,11 +109,6 @@ const App = () => {
           name="UpdateAccountForm"
           component={UpdateAccountForm} 
         />
-        <Stack.Screen
-          name="MovieDetail"
-          component={MovieDetailScreen}
-          options={{ title: 'Movie Details' }}
-      />
       </Stack.Navigator>
     </NavigationContainer>
     </PaperProvider>
