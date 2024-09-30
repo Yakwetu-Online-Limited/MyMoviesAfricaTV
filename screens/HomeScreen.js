@@ -35,7 +35,7 @@ const HomePage = () => {
   const navigation = useNavigation();
 
   const route = useRoute();
-  const { userId, userEmail, username, walletBalance } = route.params || {};
+  const { userId, userEmail, username, walletBalance = 500 } = route.params || {};
 
   console.log('Received route params:', route.params);  
   console.log('HomeScreen :- userId / walletBalance', userId, userEmail, username, walletBalance);
@@ -136,6 +136,7 @@ const HomePage = () => {
         genres={visibleGenres} 
         selectedGenre={selectedGenre}
         userId={userId}
+        username={username}
         walletBalance={walletBalance}
       />
       {visibleGenres.length < genres.length && (
@@ -201,7 +202,7 @@ const BannerItem = ({ banner }) => {
   );
 };
 
-const GenreSection = ({ genres, selectedGenre, userId, walletBalance }) => {
+const GenreSection = ({ genres, selectedGenre, userId, username, walletBalance }) => {
   const filteredGenres = selectedGenre
     ? genres.filter((genre) => genre.name === selectedGenre)
     : genres;
@@ -213,7 +214,7 @@ const GenreSection = ({ genres, selectedGenre, userId, walletBalance }) => {
           <Text style={styles.genreTitle}>{genre.name}</Text>
           <FlatList
             data={genre.movies}
-            renderItem={({ item }) => <MovieItem movie={item} userId={userId} walletBalance={walletBalance}/>}
+            renderItem={({ item }) => <MovieItem movie={item} userId={userId} username={username} walletBalance={walletBalance}/>}
             keyExtractor={(item) => item.id}
             horizontal
             showsHorizontalScrollIndicator={false}
@@ -224,7 +225,7 @@ const GenreSection = ({ genres, selectedGenre, userId, walletBalance }) => {
   );
 };
 
-const MovieItem = ({ movie, userId, walletBalance }) => {
+const MovieItem = ({ movie, userId, username, walletBalance }) => {
   const navigation = useNavigation();
   const [isPressed, setIsPressed] = useState(false);
 
@@ -232,7 +233,7 @@ const MovieItem = ({ movie, userId, walletBalance }) => {
 
   // Updated handlePress function to correctly pass the movieId and userId
   const handlePress = () => {
-    navigation.navigate("MovieDetail", { movieId: movie.id, userId: userId,  walletBalance });
+    navigation.navigate("MovieDetail", { movieId: movie.id, userId: userId, username: username, walletBalance });
   };
 
   return (

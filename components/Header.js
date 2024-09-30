@@ -4,8 +4,8 @@ import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { Linking } from 'react-native';
 import axios from 'axios'; 
 
-const Header = ({ userName, walletBalance, userId, movieId }) => {
-  console.log('Header received userName:', userName);
+const Header = ({ username, walletBalance, userId, movieId }) => {
+  console.log('Header received userName:', username);
   console.log('Header received userId:', userId);
 
   const [currentBalance, setCurrentBalance] = useState(walletBalance);
@@ -87,7 +87,7 @@ const Header = ({ userName, walletBalance, userId, movieId }) => {
           <Text style={styles.topUpText}>Top Up</Text>
         </TouchableOpacity>
         <View style={styles.userInfo}>
-          <Text style={styles.userName}>{userName || 'Guest'}</Text>
+          <Text style={styles.userName}>{username || 'Guest'}</Text>
           <Text style={styles.walletBalance}>Wallet Balance: {currentBalance}</Text>
         </View>
       </View>

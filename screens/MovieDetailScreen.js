@@ -32,7 +32,7 @@ const MovieDetailScreen = ({route}) => {
     const { movieId, userId, walletBalance: initialWalletBalance, username  } = route.params;
     const [walletBalance, setWalletBalance] = useState(initialWalletBalance);
     console.log("Movie ID received in MovieDetailScreen: ", movieId);
-    console.log("MovieDetailScreen - userId:", userId);
+    console.log("MovieDetailScreen - userId:", userId, "username:", username);	
     console.log("MovieDetailScreen - walletBalance:", walletBalance);
     const navigation = useNavigation();
 
@@ -138,6 +138,7 @@ const MovieDetailScreen = ({route}) => {
     const handlePurchase = async (amount, movie, purchaseType, username) => {
       const purchaseObj = {
           user_id: userId,
+          username: username,
           ref: movie.ref,
           purchase_type: purchaseType,
           source: 1,

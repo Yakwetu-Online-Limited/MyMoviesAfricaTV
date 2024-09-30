@@ -69,7 +69,7 @@ useEffect(() => {
     <View style={styles.container}>
       {/* Add the Header Component */}
       <Header 
-        userName={username}
+        username={username}
         userId={userId}
         walletBalance={walletBalance} 
       />
