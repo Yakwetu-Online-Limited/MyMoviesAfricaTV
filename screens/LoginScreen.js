@@ -5,6 +5,7 @@ import { signInWithEmailAndPassword } from 'firebase/auth';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { auth } from '../firebase';
 import axios from 'axios';
+import { useUser } from '../components/UserContext';
 
 const LoginScreen = ({ navigation }) => {
   const [email, setEmail] = useState('');

@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useRef } from 'react';
+import React, { useState, useCallback, useEffect } from "react";
 import {
   View,
   Text,
@@ -9,25 +9,52 @@ import {
   StyleSheet,
   Dimensions,
   Platform,
-} from 'react-native';
-import PhoneInput from 'react-native-phone-number-input';
-import { Picker } from '@react-native-picker/picker';
-import DateTimePicker from '@react-native-community/datetimepicker';
-import MapView, { Marker } from 'react-native-maps';
-import { useNavigation } from '@react-navigation/native';
+  Alert,
+  Linking,
+} from "react-native";
+import PhoneInput from "react-native-phone-number-input";
+import { Picker } from "@react-native-picker/picker";
+import DateTimePicker from "@react-native-community/datetimepicker";
+import MapView, { Marker } from "react-native-maps";
+import { useNavigation } from "@react-navigation/native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useUser } from "./UserContext";
+import { calculatePrice } from "./priceCalculator";
+import axios from "axios";
+import dayjs from "dayjs";
 
-const { width, height } = Dimensions.get('window');
+const { width, height } = Dimensions.get("window");
+
+// Helper function to build FormData
+const buildFormData = (formObj) => {
+  const formData = new FormData();
+  const keys = Object.keys(formObj);
+  for (let i in keys) {
+    let varname = keys[i];
+    formData.append(varname, formObj[varname]);
+  }
+  // console.log("form dara:", formData)
+  return formData;
+};
+
+
 
 const Screening = () => {
   const [modalVisible, setModalVisible] = useState(false);
+  const { user } = useUser();
+  console.log("User in Screening component:", user); // Debugging log
+
   const [requestDetails, setRequestDetails] = useState({
-    organizationName: "",
-    contactPersonName: "",
+    contact_name: "",
+    // date: "",
     email: "",
+    expected_audience: "",
+    movie_name: "",
+    organisation: "",
     phone: "",
-    location: "",
-    movie: "",
-    attendees: "",
+    screening_date: "",
+    screening_location: "",
+    ref: "",
     date: new Date(),
   });
   const [showDatePicker, setShowDatePicker] = useState(false);
@@ -38,69 +65,280 @@ const Screening = () => {
     latitudeDelta: 0.0922,
     longitudeDelta: 0.0421,
   });
+  const [errors, setErrors] = useState({});
+  const [authToken, setAuthToken] = useState("");
+  const [totalPrice, setTotalPrice] = useState(0);
+  const [paymentUrl, setPaymentUrl] = useState("");
+
   const movies = [
-    'WHERE THE RIVER DIVIDES (Dholuo): KES 149 per Attendee',
-    'ACT OF LOVE : KES 149 Per Attendee',
-    'WHERE THE RIVER DIVIDES (English): KES 149 per Attendee',
-    'WHERE THE RIVER DIVIDES (Kiswahili): KES 149 per Attendee'
+    {
+      title: "WHERE THE RIVER DIVIDES (Dholuo)",
+      ref: "c342b4d82ea46334",
+      pricePerAttendee: 149,
+    },
+    {
+      title: "ACT OF LOVE",
+      ref: "0782fa09cf495e49",
+      pricePerAttendee: 149,
+    },
+    {
+      title: "WHERE THE RIVER DIVIDES (English)",
+      ref: "ced5b16dcf329733",
+      pricePerAttendee: 149,
+    },
+    {
+      title: "WHERE THE RIVER DIVIDES (Kiswahili)",
+      ref: "3175116ab51d1335",
+      pricePerAttendee: 149,
+    },
   ];
-  const attendeesOptions = ['6-20 People', '21-100 People', '101-200 People', '201+ People'];
-  const [errors, setErrors] = useState({});  // Manage form errors
-  const navigation = useNavigation();  // Navigation hook
-  
-  const handleRequestScreening = useCallback(() => {
-    // Validation logic
-    const errors = {};
+  const attendeesOptions = [
+    "6-20 People",
+    "21-100 People",
+    "101-200 People",
+    "201+ People",
+  ];
 
-    if (!requestDetails.organizationName) {
-      errors.organizationName = 'Organization name is required';
+  useEffect(() => {
+    console.log("useEffect triggered, user:", user); // Debugging log
+    if (user) {
+      setRequestDetails((prevDetails) => ({
+        ...prevDetails,
+        // organisation: user.organisation || "",
+        contact_name: user.name || "",
+        email: user.email || "",
+        phone: user.phone || "",
+      }));
     }
-    if (!requestDetails.contactPersonName) {
-      errors.contactPersonName = 'Contact person name is required';
-    }
-    if (!requestDetails.email) {
-      errors.email = 'Email is required';
-    }
-    if (!requestDetails.phone) {
-      errors.phone = 'Phone number is required';
-    }
-    if (!requestDetails.location) {
-      errors.location = 'Location is required';
-    }
-    if (!requestDetails.movie) {
-      errors.movie = 'Movie selection is required';
-    }
-    if (!requestDetails.attendees) {
-      errors.attendees = 'Number of attendees is required';
+  }, [user]);
+
+  useEffect(() => {
+    console.log("User:", user);
+    console.log("Request Details:", requestDetails);
+  }, [user, requestDetails]);
+
+  // useEffect(() => {
+  //   const getAuthToken = async () => {
+  //     try {
+  //       const token = await AsyncStorage.getItem("authToken");
+  //       if (token) {
+  //         setAuthToken(token);
+  //         console.log("Auth Token set:", token); // Debugging log
+  //       }
+  //     } catch (error) {
+  //       console.error("Error fetching auth token:", error);
+  //     }
+  //   };
+  //   getAuthToken();
+  // }, []);
+
+  useEffect(() => {
+    const price = calculatePrice(
+      requestDetails.movie_name,
+      requestDetails.expected_audience
+    );
+    setTotalPrice(price);
+    console.log("Total Price calculated:", price); // Debugging log
+  }, [requestDetails.movie_name, requestDetails.expected_audience]);
+
+  // const navigation = useNavigation();
+
+  const formattedDate = dayjs(requestDetails.date).format("MM/DD/YYYY");
+  console.log("Formatted Date:", formattedDate);
+
+  // const handleDateSelect = (date) => {
+  const [month, day, year] = formattedDate.split("/");
+  const newformattedDate = `${parseInt(month, 10)}/${parseInt(
+    day,
+    10
+  )}/${year}`;
+  console.log("new formatted date", newformattedDate);
+
+  // console.log('Formatted date:', formattedDate);
+
+  const validateForm = useCallback(() => {
+    const newErrors = {};
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    if (!requestDetails.organisation)
+      newErrors.organisation = "Organization name is required";
+    if (!requestDetails.contact_name)
+      newErrors.contact_name = "Contact person name is required";
+    if (!requestDetails.email) newErrors.email = "Email is required";
+    else if (!emailRegex.test(requestDetails.email))
+      newErrors.email = "Invalid email format";
+    if (!requestDetails.phone) newErrors.phone = "Phone number is required";
+    if (!requestDetails.screening_location)
+      newErrors.screening_location = "Location is required";
+    if (!requestDetails.movie_name)
+      newErrors.movie_name = "Movie selection is required";
+    if (!requestDetails.expected_audience)
+      newErrors.expected_audience = "Number of attendees is required";
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  }, [requestDetails]);
+
+  const handleRequestScreening = useCallback(async () => {
+    if (!validateForm()) {
+      console.log("Form validation failed");
+      return;
     }
 
-    if (Object.keys(errors).length > 0) {
-      setErrors(errors);  // Set error messages
-      return;  // Prevent form submission
-    }
+    console.log("Form data:", requestDetails);
 
-    // Reset the form after submission
-    setRequestDetails({
-      organizationName: "",
-      contactPersonName: "",
-      email: "",
-      phone: "",
-      location: "",
-      movie: "",
-      attendees: "",
-      date: new Date(),
+    // Extract the upper limit of expected audience
+    const audienceUpperLimit = requestDetails.expected_audience
+      .split("-")[1]
+      .split(" ")[0];
+
+    const formDataObj = {
+      ...requestDetails,
+      expected_audience: audienceUpperLimit,
+      screening_date: requestDetails.date.toISOString().split("T")[0], // Format date as YYYY-MM-DD
+    };
+
+    
+
+    // Find the selected movie
+    const selectedMovie = movies.find(
+      (movie) => movie.ref === requestDetails.movie_name
+    );
+
+    // Prepare the form data using URLSearchParams
+    const formData = new URLSearchParams({
+      ...requestDetails,
+      expected_audience: audienceUpperLimit,
+      screening_date: dayjs(requestDetails.date).format("MM/DD/YYYY"),
+      movie_name: selectedMovie ? selectedMovie.title : "",
+      movie_ref: requestDetails.movie_name, // This is actually the movie ref
+      user_id: user?.uid || "", // Include user_id from the user object
     });
 
-    setErrors({});  // Clear any previous errors
-    setModalVisible(false); // Close the modal
+    console.log("Form data built successfully", formData.toString());
 
-    // Navigate to the PaymentScreen
-    navigation.navigate("PaymentScreen");
-  }, [requestDetails, navigation]);
+    
+    try {
+      console.log("Making request");
+      // console.log("Auth token:", authToken);
 
-  const handleInputChange = useCallback((field, value) => {
-    setRequestDetails(prev => ({ ...prev, [field]: value }));
-  }, []);
+      // const success = await axios.post(
+      //   "https://api.mymovies.africa/api/v1/bulkscreenings",
+      //   buildFormData(testingData)
+      // );
+      // const success = await axios.post(
+      //   "https://mymovies-payload-cms.herokuapp.com/api/screening",
+      //   formDataObj
+      // );
+
+      
+      const success = await fetch(
+        "https://api.mymovies.africa/api/v1/bulkscreenings",
+        {
+          method: "POST",
+          body: formData,
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+            // Authorization: `Bearer ${authToken}`,
+          },
+        }
+      );
+      console.log("Response status:", success);
+
+      if (success) {
+        setModalVisible(false);
+
+        // Highlight[
+        // Use the debug link for testing
+        // const urlToOpen = DEBUG_PAYMENT_URL;
+        // console.log("Opening URL:", url);
+
+       
+
+        if (user?.uid) {
+          console.log("Total Price:", totalPrice);
+          console.log("Movie Name:", requestDetails.movie_name);
+          ;
+
+          
+          // Use the movie ref directly from requestDetails
+          const movieRef = requestDetails.movie_name;
+          
+
+         
+
+          // Updated URL construction
+          const paymentUrl = `https://api.mymovies.africa/api/v1/payment/gate/${
+            user.uid
+          }/?amount=${Math.round(
+            totalPrice * 100
+          )}&purchase_type=BULK OFFLINE SCREENING&screeningid=""&ref=${movieRef}&source=pwa`;
+
+          console.log("Payment URL:", paymentUrl);
+          // console.log("DEBUG URL:", DEBUG_PAYMENT_URL);
+          setPaymentUrl(paymentUrl);
+
+          
+
+          const canOpen = await Linking.canOpenURL(paymentUrl);
+          console.log("Can open URL:", canOpen);
+          if (canOpen) {
+            await Linking.openURL(paymentUrl);
+          } else {
+            // console.error("Cannot open URL:", url);
+            Alert.alert(
+              "Error",
+              "Unable to open payment page. Please try again."
+            );
+          }
+        } else {
+          console.error("Missing required data for payment URL");
+          Alert.alert(
+            "Error",
+            "Unable to process payment due to missing information. Please try again."
+          );
+        }
+      } else {
+        console.error("Submission failed");
+        Alert.alert(
+          "Submission Failed",
+          "Please check your input and try again."
+        );
+      }
+    } catch (error) {
+      console.error("Error during submission:", error);
+      Alert.alert("Error", "An unexpected error occurred. Please try again.");
+    }
+  }, [requestDetails, authToken, user?.uid, totalPrice, validateForm, movies]);
+
+  // Handle input changes
+  const handleInputChange = useCallback(
+    (field, value) => {
+      setRequestDetails((prev) => ({ ...prev, [field]: value }));
+      // Clear the error for this field when the user starts typing
+      if (errors[field]) {
+        setErrors((prev) => ({ ...prev, [field]: null }));
+      }
+    },
+    [errors]
+  );
+
+  // Handle map press
+  const handleMapPress = useCallback(
+    (event) => {
+      const { coordinate } = event.nativeEvent;
+      setMapRegion((prev) => ({
+        ...prev,
+        latitude: coordinate.latitude,
+        longitude: coordinate.longitude,
+      }));
+      handleInputChange(
+        "location",
+        `${coordinate.latitude}, ${coordinate.longitude}`
+      );
+    },
+    [handleInputChange]
+  );
 
   return (
     <>
@@ -127,87 +365,185 @@ const Screening = () => {
             </View>
 
             <ScrollView style={styles.formContainer}>
-              <InputField
-                label="Organization Name"
-                value={requestDetails.organizationName}
-                onChangeText={(text) => handleInputChange('organizationName', text)}
-                placeholder="Enter organization name"
-                required
-              />
-              {errors.organizationName && (
-                <Text style={styles.errorText}>{errors.organizationName}</Text>
-              )}
+              {/* Organization Name Input */}
+              <View style={styles.inputGroup}>
+                <Text style={styles.label}>
+                  Organization Name <Text style={styles.asterisk}>*</Text>
+                </Text>
+                <TextInput
+                  style={styles.input}
+                  value={requestDetails.organisation}
+                  onChangeText={(text) =>
+                    handleInputChange("organisation", text)
+                  }
+                  placeholder="Enter organization name"
+                  placeholderTextColor="#999"
+                />
+                {errors.organisation && (
+                  <Text style={styles.errorText}>{errors.organisation}</Text>
+                )}
+              </View>
 
-              <InputField
-                label="Contact Person Name"
-                value={requestDetails.contactPersonName}
-                onChangeText={(text) => handleInputChange('contactPersonName', text)}
-                placeholder="Enter full name"
-                required
-              />
-              {errors.contactPersonName && (
-                <Text style={styles.errorText}>{errors.contactPersonName}</Text>
-              )}
+              {/* Contact Person Name Input */}
+              <View style={styles.inputGroup}>
+                <Text style={styles.label}>
+                  Contact Person Name <Text style={styles.asterisk}>*</Text>
+                </Text>
+                <TextInput
+                  style={styles.input}
+                  value={requestDetails.contact_name}
+                  onChangeText={(text) =>
+                    handleInputChange("contact_name", text)
+                  }
+                  placeholder="Enter full name"
+                  placeholderTextColor="#999"
+                />
+                {errors.contact_name && (
+                  <Text style={styles.errorText}>{errors.contact_name}</Text>
+                )}
+              </View>
 
-              <InputField
-                label="Email"
-                value={requestDetails.email}
-                onChangeText={(text) => handleInputChange('email', text)}
-                placeholder="Enter email address"
-                keyboardType="email-address"
-                required
-              />
-              {errors.email && (
-                <Text style={styles.errorText}>{errors.email}</Text>
-              )}
+              {/* Email Input */}
+              <View style={styles.inputGroup}>
+                <Text style={styles.label}>
+                  Email <Text style={styles.asterisk}>*</Text>
+                </Text>
+                <TextInput
+                  style={styles.input}
+                  value={requestDetails.email}
+                  onChangeText={(text) => handleInputChange("email", text)}
+                  placeholder="Enter email address"
+                  placeholderTextColor="#999"
+                  keyboardType="email-address"
+                />
+                {errors.email && (
+                  <Text style={styles.errorText}>{errors.email}</Text>
+                )}
+              </View>
 
-              <PhoneInputField
-                value={requestDetails.phone}
-                onChangeText={(text) => handleInputChange('phone', text)}
-              />
-              {errors.phone && (
-                <Text style={styles.errorText}>{errors.phone}</Text>
-              )}
+              {/* Phone Input */}
+              <View style={styles.inputGroup}>
+                <Text style={styles.label}>
+                  Phone Number <Text style={styles.asterisk}>*</Text>
+                </Text>
+                <PhoneInput
+                  defaultValue={requestDetails.phone}
+                  defaultCode="KE"
+                  onChangeFormattedText={(text) =>
+                    handleInputChange("phone", text)
+                  }
+                  containerStyle={styles.phoneInputContainer}
+                  textContainerStyle={styles.phoneTextContainer}
+                  textInputStyle={styles.input}
+                  codeTextStyle={styles.phoneCodeText}
+                  textInputProps={{ placeholderTextColor: "#999" }}
+                />
+                {errors.phone && (
+                  <Text style={styles.errorText}>{errors.phone}</Text>
+                )}
+              </View>
 
-              <LocationInputField
-                value={requestDetails.location}
-                onChangeText={(text) => handleInputChange('location', text)}
-                onPressMap={() => setShowMap(true)}
-              />
-              {errors.location && (
-                <Text style={styles.errorText}>{errors.location}</Text>
-              )}
+              {/* Location Input */}
+              <View style={styles.inputGroup}>
+                <Text style={styles.label}>
+                  Location of the Screening{" "}
+                  <Text style={styles.asterisk}>*</Text>
+                </Text>
+                <View style={styles.locationInputContainer}>
+                  <TextInput
+                    style={[styles.input, styles.locationInput]}
+                    value={requestDetails.screening_location}
+                    onChangeText={(text) =>
+                      handleInputChange("screening_location", text)
+                    }
+                    placeholder="Enter screening location"
+                    placeholderTextColor="#999"
+                  />
+                  <TouchableOpacity
+                    onPress={() => setShowMap(true)}
+                    style={styles.mapButton}
+                  >
+                    <Text style={styles.mapButtonText}>📍 Map</Text>
+                  </TouchableOpacity>
+                </View>
+                {errors.screening_location && (
+                  <Text style={styles.errorText}>
+                    {errors.screening_location}
+                  </Text>
+                )}
+              </View>
 
-              <SelectField
-                label="Movie to Screen"
-                value={requestDetails.movie}
-                onSelect={(movie) => handleInputChange('movie', movie)}
-                placeholder="Select Movie"
-                options={movies}
-                required
-              />
-              {errors.movie && (
-                <Text style={styles.errorText}>{errors.movie}</Text>
-              )}
+              {/* Movie Selection */}
+              <View style={styles.inputGroup}>
+                <Text style={styles.label}>
+                  Movie to Screen <Text style={styles.asterisk}>*</Text>
+                </Text>
+                <View style={styles.selectContainer}>
+                  <Picker
+                    selectedValue={requestDetails.movie_name}
+                    onValueChange={(movieRef) =>
+                      handleInputChange("movie_name", movieRef)
+                    }
+                    style={styles.picker}
+                  >
+                    <Picker.Item label="Select Movie" value="" />
+                    {movies.map((movie, index) => (
+                      <Picker.Item
+                        key={index}
+                        label={`${movie.title}: KES ${movie.pricePerAttendee} per Attendee`}
+                        value={movie.ref}
+                      />
+                    ))}
+                  </Picker>
+                </View>
+                {errors.movie_name && (
+                  <Text style={styles.errorText}>{errors.movie_name}</Text>
+                )}
+              </View>
 
-              <SelectField
-                label="Number of Attendees"
-                value={requestDetails.attendees}
-                onSelect={(attendees) => handleInputChange('attendees', attendees)}
-                placeholder="Select Attendee Tier"
-                options={attendeesOptions}
-                required
-              />
-              {errors.attendees && (
-                <Text style={styles.errorText}>{errors.attendees}</Text>
-              )}
+              {/* Attendees Selection */}
+              <View style={styles.inputGroup}>
+                <Text style={styles.label}>
+                  Number of Attendees <Text style={styles.asterisk}>*</Text>
+                </Text>
+                <View style={styles.selectContainer}>
+                  <Picker
+                    selectedValue={requestDetails.expected_audience}
+                    onValueChange={(attendees) =>
+                      handleInputChange("expected_audience", attendees)
+                    }
+                    style={styles.picker}
+                  >
+                    <Picker.Item label="Select Attendee Tier" value="" />
+                    {attendeesOptions.map((option, index) => (
+                      <Picker.Item key={index} label={option} value={option} />
+                    ))}
+                  </Picker>
+                </View>
+                {errors.expected_audience && (
+                  <Text style={styles.errorText}>
+                    {errors.expected_audience}
+                  </Text>
+                )}
+              </View>
 
-              <DateInputField
-                label="Date of the Screening"
-                value={requestDetails.date}
-                onPress={() => setShowDatePicker(true)}
-                required
-              />
+              {/* Date Selection */}
+              <View style={styles.inputGroup}>
+                <Text style={styles.label}>
+                  Date of the Screening <Text style={styles.asterisk}>*</Text>
+                </Text>
+                <TouchableOpacity
+                  onPress={() => setShowDatePicker(true)}
+                  style={styles.dateButton}
+                >
+                  <Text style={styles.dateButtonText}>
+                    {requestDetails.date.toLocaleDateString()}
+                  </Text>
+                </TouchableOpacity>
+                {errors.screening_date && (
+                  <Text style={styles.errorText}>{errors.screening_date}</Text>
+                )}
+              </View>
 
               <TouchableOpacity
                 style={styles.submitButton}
@@ -219,97 +555,50 @@ const Screening = () => {
           </View>
         </View>
       </Modal>
+
+      {/* Date Picker Modal */}
+      {showDatePicker && (
+        <DateTimePicker
+          value={requestDetails.date}
+          mode="date"
+          display="default"
+          onChange={(event, selectedDate) => {
+            setShowDatePicker(false);
+            if (selectedDate) handleInputChange("date", selectedDate);
+            handleInputChange(
+              "screening_date",
+              selectedDate.toISOString().split("T")[0]
+            );
+          }}
+        />
+      )}
+
+      {/* Map Modal */}
+      <Modal
+        visible={showMap}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setShowMap(false)}
+      >
+        <View style={styles.mapContainer}>
+          <MapView
+            style={styles.map}
+            region={mapRegion}
+            onPress={handleMapPress}
+          >
+            <Marker coordinate={mapRegion} />
+          </MapView>
+          <TouchableOpacity
+            style={styles.closeMapButton}
+            onPress={() => setShowMap(false)}
+          >
+            <Text style={styles.closeMapButtonText}>Confirm Location</Text>
+          </TouchableOpacity>
+        </View>
+      </Modal>
     </>
   );
 };
-
-const InputField = React.memo(({ label, value, onChangeText, placeholder, required, keyboardType }) => (
-  <View style={styles.inputGroup}>
-    <Text style={styles.label}>
-      {label}
-      {required && <Text style={styles.asterisk}>*</Text>}
-    </Text>
-    <TextInput
-      style={styles.input}
-      value={value}
-      onChangeText={onChangeText}
-      placeholder={placeholder}
-      placeholderTextColor="#999"
-      keyboardType={keyboardType}
-    />
-  </View>
-));
-
-const LocationInputField = React.memo(({ value, onChangeText, onPressMap }) => (
-  <View style={styles.inputGroup}>
-    <Text style={styles.label}>
-      Location of the Screening: <Text style={styles.asterisk}>*</Text>
-    </Text>
-    <View style={styles.locationInputContainer}>
-      <TextInput
-        style={[styles.input, styles.locationInput]}
-        value={value}
-        onChangeText={onChangeText}
-        placeholder="Enter screening location"
-        placeholderTextColor="#999"
-      />
-      <TouchableOpacity onPress={onPressMap} style={styles.mapButton}>
-        <Text style={styles.mapButtonText}>📍 Map</Text>
-      </TouchableOpacity>
-    </View>
-  </View>
-));
-
-const PhoneInputField = React.memo(({ value, onChangeText }) => (
-  <View style={styles.inputGroup}>
-    <Text style={styles.label}>
-      Phone Number <Text style={styles.asterisk}>*</Text>
-    </Text>
-    <PhoneInput
-      defaultValue={value}
-      defaultCode="KE"
-      onChangeFormattedText={onChangeText}
-      containerStyle={styles.phoneInputContainer}
-      textContainerStyle={styles.phoneTextContainer}
-      textInputStyle={styles.phoneTextInput}
-    />
-  </View>
-));
-
-const SelectField = React.memo(({ label, value, onSelect, placeholder, options, required }) => (
-  <View style={styles.inputGroup}>
-    <Text style={styles.label}>
-      {label}
-      {required && <Text style={styles.asterisk}>*</Text>}
-    </Text>
-    <View style={styles.selectContainer}>
-      <Picker
-        selectedValue={value}
-        onValueChange={onSelect}
-        style={styles.picker}
-      >
-        <Picker.Item label={placeholder} value="" />
-        {options.map((option, index) => (
-          <Picker.Item key={index} label={option} value={option} />
-        ))}
-      </Picker>
-    </View>
-  </View>
-));
-
-const DateInputField = React.memo(({ label, value, onPress, required }) => (
-  <View style={styles.inputGroup}>
-    <Text style={styles.label}>
-      {label}
-      {required && <Text style={styles.asterisk}>*</Text>}
-    </Text>
-    <TouchableOpacity onPress={onPress} style={styles.dateButton}>
-      <Text style={styles.dateButtonText}>
-        {value.toLocaleDateString()}
-      </Text>
-    </TouchableOpacity>
-  </View>
-));
 
 const styles = StyleSheet.create({
   requestScreeningButton: {
@@ -373,17 +662,43 @@ const styles = StyleSheet.create({
     backgroundColor: "#2C2C2C",
     borderRadius: 5,
     padding: 10,
-    color: "#FFFFFF",
+    color: "#999",
   },
+  // Match the phone input container styling with other input fields
   phoneInputContainer: {
     backgroundColor: "#2C2C2C",
     borderRadius: 5,
+    padding: 0, // Ensure padding matches other input fields
+    borderWidth: 0,
   },
   phoneTextContainer: {
-    backgroundColor: "#2C2C2C",
+    backgroundColor: "#2C2C2C", // Same background as input fields
+    borderRadius: 5,
   },
   phoneTextInput: {
+    color: "#999",
+  },
+  phoneCodeText: {
+    color: "#999", // Set the country code color to whitish-gray
+    fontSize: 16, // Match the font size with input fields
+  },
+  submitButton: {
+    backgroundColor: "#8E44AD",
+    borderRadius: 5,
+    padding: 15,
+    alignItems: "center",
+    marginTop: 20,
+  },
+  submitButtonText: {
     color: "#FFFFFF",
+    fontSize: 18,
+    fontWeight: "bold",
+  },
+  errorText: {
+    color: "red",
+    fontSize: 12,
+    marginTop: -10,
+    marginBottom: 10,
   },
   locationInputContainer: {
     flexDirection: "row",
@@ -406,7 +721,7 @@ const styles = StyleSheet.create({
   selectContainer: {
     backgroundColor: "#2C2C2C",
     borderRadius: 5,
-    overflow: 'hidden',
+    overflow: "hidden",
   },
   picker: {
     color: "#FFFFFF",
@@ -433,15 +748,15 @@ const styles = StyleSheet.create({
   },
   mapContainer: {
     flex: 1,
-    justifyContent: 'flex-end',
-    alignItems: 'center',
-    backgroundColor: 'white',
+    justifyContent: "flex-end",
+    alignItems: "center",
+    backgroundColor: "white",
   },
   map: {
     ...StyleSheet.absoluteFillObject,
   },
   closeMapButton: {
-    position: 'absolute',
+    position: "absolute",
     bottom: 20,
     backgroundColor: "#8E44AD",
     borderRadius: 5,
@@ -452,12 +767,6 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: "bold",
   },
-  errorText: {
-    color: "red",
-    fontSize: 12,
-    marginTop: -10,
-    marginBottom: 10,
-  }
 });
 
-export default React.memo(Screening); 
+export default React.memo(Screening);

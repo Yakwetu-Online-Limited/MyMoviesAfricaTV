@@ -40,10 +40,6 @@ const MovieDetailScreen = ({route}) => {
     // Fetch the movie data from the API
     useEffect(() => {
         //Function to fetch movie data from the api
-        if (!userId || !movieId) {
-          console.error('Missing parameters for MovieDetailScreen');
-          return;
-        }
         const fetchMovieData = async() => {
             try {
                 const response = await fetch (API_URL);
@@ -195,6 +191,8 @@ const MovieDetailScreen = ({route}) => {
         console.error('Error adding movie to collection:', error);
       }
     };
+    
+
     const HeaderSection = ({ setModalVisible, genres, onGenreSelect }) => (
       <View style={styles.headerContainer}>
         <Image source={require('../images/mymovies-africa-logo.png')} style={styles.logo} />
@@ -224,6 +222,7 @@ const MovieDetailScreen = ({route}) => {
 
 
     return (
+        <PaperProvider>
         <ScrollView style={styles.container}>
             <HeaderSection />
             {/* <Text style={styles.walletBalance}>Wallet Balance: ${walletBalance}</Text> */}
@@ -334,7 +333,9 @@ const MovieDetailScreen = ({route}) => {
             showsHorizontalScrollIndicator={false}
             style={styles.similarMoviesContainer}
             />
+            
         </ScrollView>
+         </PaperProvider>
     );
 };  
 
@@ -392,17 +393,7 @@ const styles = StyleSheet.create({
     width: 160,
     
   },
-  buttonWatchNow: {
-    backgroundColor: '#f4c430',
-    borderColor: '#f4c430',
-    borderWidth: 2,
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    borderRadius: 50,
-    marginTop: 16,
-    alignItems: "center",
-},
-ownButton: {
+  ownButton: {
     borderColor: '#d648d7',
     backgroundColor: 'black',
     borderWidth:2,

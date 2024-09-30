@@ -10,6 +10,7 @@ import PaymentPage from './screens/PaymentScreen';
 import SearchPage from './screens/SearchScreen';
 import LoginScreen from './screens/LoginScreen';
 import SignupScreen from './screens/SignupScreen';
+import { UserProvider } from './components/UserContext';
 import MembershipScreen from './membership/MembershipScreen';
 import UpdateAccountForm from './membership/UpdateAccountForm';
 
