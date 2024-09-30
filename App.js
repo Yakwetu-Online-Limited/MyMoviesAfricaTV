@@ -10,18 +10,23 @@ import PaymentPage from './screens/PaymentScreen';
 import SearchPage from './screens/SearchScreen';
 import LoginScreen from './screens/LoginScreen';
 import SignupScreen from './screens/SignupScreen';
+import { UserProvider } from './components/UserContext';
 import MembershipScreen from './membership/MembershipScreen';
 import UpdateAccountForm from './membership/UpdateAccountForm';
 
+import { PaperProvider } from 'react-native-paper';
+import { gestureHandlerRootHOC, GestureHandlerRootView } from 'react-native-gesture-handler';
 
 // Placeholder screens for future implementation
+
+
 
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
 
 const BottomTabNavigator = ({ route }) => {
-  const { userId, username, movieId } = route.params || {};
+  const { userId, username, movieId, walletBalance, userEmail, phoneNumber, birthday } = route.params || {};
   console.log('BottomTabNavigator params:', route.params); 
 
   return (
@@ -55,7 +60,7 @@ const BottomTabNavigator = ({ route }) => {
         name="Home"
         component={HomePage}
         options={{ headerShown: false }} 
-        initialParams={{ userId, username }}
+        initialParams={{ userId, username, userEmail, walletBalance }}
       />
       <Tab.Screen
         name="Search"
@@ -67,12 +72,13 @@ const BottomTabNavigator = ({ route }) => {
         name="Collection"
         component={CollectionPage}
         options={{ headerShown: false }} 
-        initialParams={{ userId, username }}
+        initialParams={{ userId, username, walletBalance }}
       />
       <Tab.Screen
         name="Profile"
         component={MembershipScreen}
-        options={{ headerShown: false }} 
+        options={{ headerShown: false }}
+        initialParams={{ userId, username, userEmail, walletBalance }}
       />
     </Tab.Navigator>
   );
@@ -80,7 +86,9 @@ const BottomTabNavigator = ({ route }) => {
 
 const App = () => {
   return (
-    <NavigationContainer>
+    <GestureHandlerRootView style={{flex: 1}}>
+      <PaperProvider>
+      <NavigationContainer>
       <Stack.Navigator screenOptions={{ headerShown: false }} initialRouteName="Login">
         <Stack.Screen name="Login" component={LoginScreen} />
         <Stack.Screen name="Signup" component={SignupScreen} />        
@@ -88,7 +96,13 @@ const App = () => {
         <Stack.Screen name="Search" component={SearchPage} />
         <Stack.Screen name="Collection" component={CollectionPage} />
         <Stack.Screen name="Payment" component={PaymentPage} />
+        
         <Stack.Screen
+          name="MovieDetail"
+          component={MovieDetailScreen}
+          options={{ title: 'Movie Details' }}
+      />
+      <Stack.Screen
           name="Membership"
           component={MembershipScreen}
         />
@@ -96,13 +110,12 @@ const App = () => {
           name="UpdateAccountForm"
           component={UpdateAccountForm} 
         />
-        <Stack.Screen
-          name="MovieDetail"
-          component={MovieDetailScreen}
-          options={{ title: 'Movie Details' }}
-      />
       </Stack.Navigator>
     </NavigationContainer>
+    </PaperProvider>
+    </GestureHandlerRootView>
+    
+    
   );
 };
 

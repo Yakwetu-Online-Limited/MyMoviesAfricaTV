@@ -1,94 +1,158 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, Image } from 'react-native';
+import React, { useEffect, useState } from 'react';  
+import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, Image, Alert } from 'react-native';
 import { Button, Card } from '@rneui/themed';
-import { useNavigation } from '@react-navigation/native';
+import Icon from 'react-native-vector-icons/MaterialIcons';
+import { useNavigation, useRoute } from '@react-navigation/native';
+import Cookies from 'js-cookie'; // Import JS Cookies
+import axios from 'axios';
+import qs from 'qs';
 
 const MembershipScreen = () => {
+    const [userData, setUserData] = useState(null);
+    const [walletBalance, setWalletBalance] = useState(null);
+    const [isLoading, setLoading] = useState(false);
     const navigation = useNavigation();
+    const route = useRoute();
+    const { userId, userEmail, username, phoneNumber, birthday } = route.params; // Get name and email from params
 
-    // Add state for button presses
-    const [topUpPressed, setTopUpPressed] = useState(false);
-    const [updateAccountPressed, setUpdateAccountPressed] = useState(false);
+    console.log("Route params - userId:", userId, "userEmail:", userEmail, "fullName:", username, "phoneNumber:", phoneNumber, "birthday:", birthday);
 
-    // : Create handler functions for button presses
-    const handleTopUpPress = () => {
-        setTopUpPressed(true);
-        // Simulate button press duration
-        setTimeout(() => setTopUpPressed(false), 200);
-        navigation.navigate('Payment');
+    useEffect(() => {
+        const loadData = async () => {
+            try {
+                setLoading(true);
+                console.log("User ID from params:", userId); // Log the value of userId from route params
+
+                if (userId && userEmail && username) { // Ensure all necessary data is available
+                    // Fetch user data, send the required parameters
+                    console.log("Fetching user data...");
+                    const userResponse = await axios.post(
+                        'https://api.mymovies.africa/api/v1/users/login',
+                        qs.stringify({
+                            user_id: userId,
+                            email: userEmail,
+                            name: username
+                        }),
+                        {
+                            headers: {
+                                'Content-Type': 'application/x-www-form-urlencoded',
+                            },
+                        }
+                    );
+                    console.log("User Response:", userResponse.data);
+
+                    if (userResponse.data && userResponse.data.user) {
+                        setUserData(userResponse.data.user);
+                        console.log("User Data Set:", userResponse.data.user);
+                    } else {
+                        console.error('User data is missing in response:', userResponse.data);
+                        Alert.alert("Error", "User data not found.");
+                    }
+
+                    // Fetch wallet balance
+                    console.log("Fetching wallet balance...");
+                    const balanceResponse = await axios.post('https://api.mymovies.africa/api/v1/users/wallet', 
+                        qs.stringify({ user_id: userId }), 
+                        {
+                            headers: {
+                                'Content-Type': 'application/x-www-form-urlencoded',
+                            },
+                        }
+                    );
+                    setWalletBalance(balanceResponse.data.balance);
+                } else {
+                    console.log("User ID, Email, or Full Name not available in route params");
+                    Alert.alert("Error", "Missing required user details.");
+                }
+            } catch (error) {
+                console.error('Error loading user data:', error.response ? error.response.data : error.message);
+                Alert.alert("Error", "Could not load user data. Please try again later.");
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        loadData();
+    }, [userId, userEmail, username]); // Ensure these values trigger the effect
+
+    const handleLogout = () => {
+        Cookies.remove('userId'); // Clear the userId cookie
+        navigation.navigate('Login'); // Navigate to login screen
     };
 
-    const handleUpdateAccountPress = ({ navigation }) => {
-        setUpdateAccountPressed(true);
-        // Simulate button press duration
-        setTimeout(() => setUpdateAccountPressed(false), 200);
-    };
+    if (isLoading) {
+        return <Text style={styles.loadingText}>Loading user data...</Text>;
+    }
+
+    if (!userData) {
+        return <Text style={styles.loadingText}>No user data available</Text>;
+    }
 
     return (
         <SafeAreaView style={styles.safeArea}>
-            {/* header section */}
             <View style={styles.header}>
                 <Image 
                     source={require('../assets/mymovies-africa-logo.png')}
                     style={styles.logoImage}
                 />
-                <TouchableOpacity>
-                    <Image 
-                        source={require('../assets/default.jpg')}
-                        style={styles.logoutImage}
+                <TouchableOpacity onPress={handleLogout}>
+                    <Icon 
+                        name="logout" 
+                        size={30} 
+                        color="#fff" 
+                        style={styles.logoutIcon}
                     />
                 </TouchableOpacity>
             </View>
 
-            {/* Card container */}
             <View style={styles.cardContainer}>
                 <Card containerStyle={styles.card}>
                     <Card.Title style={styles.cardTitle}>
-                        <Image source={require('../assets/default.jpg')} style={styles.titleImage}/>
+                        <View style={{ marginTop: 20 }}>
+                            <Icon 
+                                name="person-outline" 
+                                size={22} 
+                                color="white"
+                                onPress={() => navigation.navigate('Login')} 
+                            />
+                        </View>
                         <Text style={styles.titleText}>Account</Text>
                     </Card.Title>
 
                     <Card.Divider/>
 
                     <View style={styles.cardContent}>
-                        <Card.Image source={require('../assets/default.jpg')} style={styles.profileImage}/>
+                        <Icon name="account-circle" size={140} color="rgba(172, 231, 223, 1)" />
                         <View style={styles.userInfo}>
-                            <Text style={styles.text}>Ryan Munge</Text>
-                            <Text style={styles.text}>ryanmunge@gmail.com</Text> 
-                            <Text style={styles.text}>+254701449264</Text>
+                            <Text style={styles.text}>{username}</Text>
+                            <Text style={styles.text}>{userEmail}</Text> 
+                            <Text style={styles.text}>{phoneNumber}</Text>
+                            <Text style={styles.text}>{birthday}</Text>
+                            <Text style={styles.text}>Locale: {userData.locale}</Text>
                             <Text style={[styles.text, styles.boldUnderline]}>Wallet Balance</Text>
-                            <Text style={styles.text}>KSH 0</Text>
+                            <Text style={styles.text}>KSH {walletBalance !== null ? walletBalance : 'Loading...'}</Text>
                         </View>
 
-                        {/* Step 3: Update Button components with onPress handlers and dynamic styles */}
                         <Button
                             title="Top Up"
-                            buttonStyle={[
-                                styles.button,
-                                topUpPressed && styles.buttonPressed
-                            ]}
+                            buttonStyle={styles.button}
                             type="outline"
-                            titleStyle={[
-                                styles.buttonText,
-                                topUpPressed && styles.buttonTextPressed
-                            ]}
                             containerStyle={styles.buttonContainer}
-                            onPress={handleTopUpPress}
+                            onPress={() => {}}
                         />
 
                         <Button
                             title="Update Account"
-                            buttonStyle={[
-                                styles.button,
-                                updateAccountPressed && styles.buttonPressed
-                            ]}
+                            buttonStyle={styles.button}
                             type="outline"
-                            titleStyle={[
-                                styles.buttonText,
-                                updateAccountPressed && styles.buttonTextPressed
-                            ]}
                             containerStyle={styles.buttonContainer}
-                            onPress={() => navigation.navigate('UpdateAccountForm')}
+                            onPress={() => navigation.navigate('UpdateAccountForm', {
+                                userId: userId,
+                                username: username, // Use userData instead of user
+                                userEmail:  userEmail,
+                                phoneNumber: userData.phoneNumber,
+                                birthday: userData.birthday,
+                            })}
                         />
                     </View>
                 </Card>
@@ -122,6 +186,7 @@ const styles = StyleSheet.create({
         flex: 1,
         justifyContent: 'center',
         paddingHorizontal: 10,
+        marginTop: 20,
     },
     card: {
         backgroundColor: '#000000',
@@ -187,5 +252,6 @@ const styles = StyleSheet.create({
         color: 'white',
     },
 });
+
 
 export default MembershipScreen;

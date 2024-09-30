@@ -4,7 +4,7 @@ import PhoneInput from 'react-native-phone-input';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { auth } from '../firebase'; 
 import { createUserWithEmailAndPassword } from 'firebase/auth';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import Cookies from 'js-cookie'; // import js-cookie
 
 const SignupScreen = ({ navigation }) => {
   const [fullName, setFullName] = useState('');
@@ -20,9 +20,9 @@ const SignupScreen = ({ navigation }) => {
       Alert.alert('Error', 'Please fill in all fields and agree to the Privacy Policy');
       return;
     }
-  
+
     setIsLoading(true);
-  
+
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       console.log('Firebase user created', userCredential);
@@ -35,7 +35,7 @@ const SignupScreen = ({ navigation }) => {
         isHidden: '0',
         reason: 'newUserSignup',
       }).toString();
-  
+
       console.log('Request URL:', 'https://api.mymovies.africa/api/v1/users/createAccount');
       console.log('Request Body:', formData);
 
@@ -46,7 +46,7 @@ const SignupScreen = ({ navigation }) => {
         },
         body: formData,
       });
-  
+
       console.log('Response status:', response.status);
       console.log('Response headers:', response.headers);
 
@@ -77,16 +77,16 @@ const SignupScreen = ({ navigation }) => {
         Alert.alert('Error', 'Unable to parse server response. Please try again later.');
         return;
       }
-  
+
       if (data.status === true) {
         console.log('API response contains uid:', data.userId);
         Alert.alert('Success', 'Account created successfully');
 
-        // Store the uid in AsyncStorage
-        await AsyncStorage.setItem('userId', String(data.userId));
-        console.log('UserId stored in AsyncStorage successfully:', data.userId);
-
-        navigation.navigate('Home', { userId: data.userId, username: fullName });
+        // Set cookies for userId and username
+        Cookies.set('userId', data.userId, { expires: 7 }); // expires in 7 days
+        Cookies.set('username', fullName, { expires: 7 });
+        
+        navigation.navigate('Home', { userId: data.userId, username: fullName, userEmail: email });
       } else {
         console.error('Server error:', data);
         Alert.alert('Error', data.message || 'An error occurred while creating the account.');
@@ -239,45 +239,40 @@ const styles = StyleSheet.create({
   passwordInput: {
     flex: 1,
     color: '#fff',
-    paddingVertical: 10,
-  },
-  errorText: {
-    color: '#ff4d4d',
-    fontSize: 12,
-    marginTop: 5,
+    padding: 10,
   },
   checkboxContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 20,
+    marginVertical: 10,
   },
   checkboxLabel: {
-    color: '#ffcc00',
+    color: '#fff',
     marginLeft: 10,
   },
   signupButton: {
-    borderRadius: 5,
-    borderWidth: 1,
-    borderColor: '#90EE90',
+    backgroundColor: '#007BFF',
     padding: 15,
+    borderRadius: 5,
     alignItems: 'center',
-    marginTop: 20,
   },
   signupButtonText: {
     color: '#fff',
     fontSize: 16,
-    fontWeight: 'bold',
   },
   orText: {
-    color: '#fff',
+    color: '#888',
     textAlign: 'center',
     marginVertical: 10,
   },
   footerText: {
-    color: '#fff',
-    fontSize: 14,
+    color: '#007BFF',
     textAlign: 'center',
-    marginTop: 20,
+  },
+  errorText: {
+    color: 'red',
+    fontSize: 12,
+    marginTop: 5,
   },
 });
 

@@ -3,53 +3,54 @@ import { View, Text, FlatList, Image, StyleSheet, TouchableOpacity } from 'react
 import Header from '../components/Header';
 import axios from 'axios';
 import { useRoute } from '@react-navigation/native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 
 const CollectionPage = () => {
   const [collection, setCollection] = useState([]);
-  const [walletBalance, setWalletBalance] = useState(0);
+  const [purchasedMovies, setPurchasedMovies] = useState([]);
+  const [rentedMovies, setRentedMovies] = useState([]);
+  const [ownedMovies, setOwnedMovies] = useState([]);
   const route = useRoute();
-  const { userId, username } = route.params || { userId: null, username: 'Guest' };
+  const { userId, username, movieId, walletBalance } = route.params || { userId: null, username: 'Guest' };
 
   console.log('Received route params:', route.params); 
   console.log('Received userName in CollectionPage:', username); 
   console.log('Received userId:', userId); 
-
+  console.log('Received walletBalance:', walletBalance);
+  console.log('Received movieId:', movieId);
 
   // Fetch user's collection from API
-  useEffect(() => {
-    const fetchCollection = async () => {
-      try {
-        const response = await axios.get('https://api.mymovies.africa/api/cache');
-        setCollection(response.data);
-      } catch (error) {
-        console.error("Error fetching collection: ", error);
-      }
-    };
-    
-    fetchCollection();
-  }, []);
+  // useEffect(() => {
+  //   // Fetch purchased movies from your API or local state
+  //   const fetchPurchasedMovies = async () => {
+  //     try {
+  //       const response = await axios.get(`https://api.mymovies.africa/api/v1/purchases?userId=${userId}&movieId=${movieId}`);
+  //       setPurchasedMovies(response.data); 
+  //     } catch (error) {
+  //       console.error('Error fetching purchased movies:', error);
+  //     }
+  //   };
 
-  // Fetch wallet balance from API
-  useEffect(() => {
-    const fetchWalletBalance = async () => {
-      try {
-        const response = await axios.post('https://api.mymovies.africa/api/v1/users/wallet', null, {
-          params: { user_id: userId },
-          headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-          },
-        });
-        setWalletBalance(response.data.balance || '0'); // Assuming the API returns an object with the balance
-      } catch (error) {
-        console.error("Error fetching wallet balance: ", error);
-      }
-    };
+  //   fetchPurchasedMovies();
+  // }, [userId]);
 
-    if (userId) {
-      fetchWalletBalance();
+  // Replace the API call in useEffect
+useEffect(() => {
+  const fetchPurchasedMovies = async () => {
+    try {
+      // Fetch purchased movies from AsyncStorage
+      const purchased = await AsyncStorage.getItem('purchasedMovies');
+      setPurchasedMovies(purchased ? JSON.parse(purchased) : []);
+    } catch (error) {
+      console.error('Error fetching purchased movies from AsyncStorage:', error);
     }
-  }, [userId]); // Fetch balance whenever userId changes
+  };
+
+  fetchPurchasedMovies();
+}, []);
+
+
   
   const renderMovieItem = ({ item }) => (
     <TouchableOpacity style={styles.movieItem}>
@@ -59,39 +60,44 @@ const CollectionPage = () => {
       />
       <View style={styles.movieDetails}>
         <Text style={styles.movieTitle}>{item.title}</Text>
-        <Text style={styles.rentDuration}>Rent for {item.rentDuration} Days</Text>
+        {item.rentDuration && <Text style={styles.rentDuration}>Rent for {item.rentDuration} Days</Text>}
       </View>
     </TouchableOpacity>
   );
-
-  
-
-  const onTopUp = () => {
-    // Handle top-up action here
-    console.log('Top Up Pressed');
-  };
 
   return (
     <View style={styles.container}>
       {/* Add the Header Component */}
       <Header 
-        userName={username}
+        username={username}
         userId={userId}
-        walletBalance={walletBalance}
-        onTopUp={onTopUp}
+        walletBalance={walletBalance} 
       />
       
       <Text style={styles.header}>My Collection</Text>
       
-      {collection.length > 0 ? (
+      <Text style={styles.subHeader}>Rented Movies</Text>
+      {rentedMovies.length > 0 ? (
         <FlatList
-          data={collection}
+          data={rentedMovies}
           renderItem={renderMovieItem}
-          keyExtractor={item => item.id}
+          keyExtractor={(item, index) => index.toString()}
           contentContainerStyle={styles.movieList}
         />
       ) : (
-        <Text style={styles.emptyMessage}>Your collection is empty.</Text>
+        <Text style={styles.emptyMessage}>You haven't rented any movies yet.</Text>
+      )}
+
+      <Text style={styles.subHeader}>Owned Movies</Text>
+      {ownedMovies.length > 0 ? (
+        <FlatList
+          data={ownedMovies}
+          renderItem={renderMovieItem}
+          keyExtractor={(item, index) => index.toString()}
+          contentContainerStyle={styles.movieList}
+        />
+      ) : (
+        <Text style={styles.emptyMessage}>You don't own any movies yet.</Text>
       )}
     </View>
   );
@@ -107,9 +113,15 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: 'bold',
     color: '#FFCC00',
-    marginTop: 20, // Adjust this as needed to space it from the header
+    marginTop: 20,
     marginBottom: 20,
     textAlign: 'center',
+  },
+  subHeader: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#FFCC00',
+    marginBottom: 10,
   },
   movieList: {
     paddingBottom: 50,

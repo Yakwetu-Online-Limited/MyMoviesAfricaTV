@@ -32,12 +32,12 @@ const PaymentPage = () => {
   // Fetch payment options from the API
   const fetchPaymentOptions = async (userId, purchaseType, ref) => {
     try {
-      const response = await axios.get(`https://api.mymovies.africa/api/v1/payment/gate/${userId}`, {
-        params: {
-          amount: amount,
-          purchase_type: purchaseType,
-          ref: ref,
-        },
+      const response = await axios.get(`https://api.mymovies.africa/api/v1/payment/gate/11632/?amount=99&purchase_type=rental&ref=159523d727df74e6 `, {
+        // params: {
+        //   amount: amount,
+        //   purchase_type: purchaseType,
+        //   ref: ref,
+        // },
       });
       console.log('Payment options:', response.data);
       setPaymentOptions(response.data.paymentOptions || []);
@@ -66,32 +66,32 @@ const PaymentPage = () => {
   };
 
   // Function to process Mpesa payment
-  const processMpesaPayment = async () => {
-    try {
-      // First, generate the OAuth token
-      const tokenResponse = await axios.get('http://192.168.100.86:3000/mpesa/token');
-      const token = tokenResponse.data.access_token;
+  // const processMpesaPayment = async () => {
+  //   try {
+  //     // First, generate the OAuth token
+  //     const tokenResponse = await axios.get('http://192.168.100.86:3000/mpesa/token');
+  //     const token = tokenResponse.data.access_token;
 
-      // Call the STK push endpoint
-      const stkPushResponse = await axios.post('http://192.168.100.86:3000/mpesa/stkpush', {
-        phone: '254701449264', // Example phone number
-        amount: amount,
-      }, {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
-      });
+  //     // Call the STK push endpoint
+  //     const stkPushResponse = await axios.post('http://192.168.100.86:3000/mpesa/stkpush', {
+  //       phone: '254701449264', // Example phone number
+  //       amount: amount,
+  //     }, {
+  //       headers: {
+  //         Authorization: `Bearer ${token}`
+  //       }
+  //     });
 
-      if (stkPushResponse.data.ResponseCode === '0') {
-        Alert.alert('Success', 'Payment initiated successfully.');
-      } else {
-        Alert.alert('Error', 'Payment initiation failed.');
-      }
-    } catch (error) {
-      console.error('Mpesa Payment Error:', error);
-      Alert.alert('Payment Error', 'Failed to initiate Mpesa payment.');
-    }
-  };
+  //     if (stkPushResponse.data.ResponseCode === '0') {
+  //       Alert.alert('Success', 'Payment initiated successfully.');
+  //     } else {
+  //       Alert.alert('Error', 'Payment initiation failed.');
+  //     }
+  //   } catch (error) {
+  //     console.error('Mpesa Payment Error:', error);
+  //     Alert.alert('Payment Error', 'Failed to initiate Mpesa payment.');
+  //   }
+  // };
 
   const handleNextPress = () => {
     if (paymentMethod) {
@@ -101,7 +101,7 @@ const PaymentPage = () => {
       }
       console.log(`Selected Payment Method: ${paymentMethod}`);
       if (paymentMethod === 'mpesa') {
-        processMpesaPayment(); // Call the function here
+        processPayment(); // Call the function here
         return;
       }
       processPayment(paymentMethod);
@@ -119,7 +119,7 @@ const PaymentPage = () => {
         purchase_type,
       };
 
-      const response = await axios.post(`https://api.mymovies.africa/api/v1/payment/`, transactionParams);
+      const response = await axios.post(`https://api.mymovies.africa/api/v1/payment/gate/11632/?amount=99&purchase_type=rental&ref=159523d727df74e6 `, transactionParams);
 
       if (response.status === 200) {
         Alert.alert('Payment Successful', `Your payment of Ksh ${amount} has been processed successfully.`);
