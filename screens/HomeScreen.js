@@ -18,6 +18,7 @@ import { eventsData } from "../events";
 import Events from "../components/Events";
 import Screening from "../components/Screening";
 import { useRoute } from '@react-navigation/native';
+import { UserProvider } from '../components/UserContext';
 
 const { width } = Dimensions.get("window");
 
@@ -125,6 +126,7 @@ const HomePage = () => {
   };
 
   return (
+    <UserProvider value={{ userId, userEmail, username, walletBalance }}>
     <ScrollView style={styles.container}>
       <HeaderSection
         genres={genres}
@@ -148,6 +150,7 @@ const HomePage = () => {
         </TouchableOpacity>
       )}
     </ScrollView>
+    </UserProvider>
   );
 };
 
