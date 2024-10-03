@@ -14,10 +14,53 @@ import Screening from "../components/Screening";
 import { Provider as PaperProvider, Button, Modal, Portal } from 'react-native-paper';
 import { storePurchasedMovie } from '../utils/storage';
 import { useUser } from '../components/UserContext';
+import { UserProvider } from '../components/UserContext';
 
 const { width } = Dimensions.get('window');
 
 const MovieDetailScreen = ({route}) => {
+  // const { user } = useUser();
+  // const userContext = useUser();
+  // const { userId, userEmail, username, walletBalance } = useUser();
+
+
+ // CHANGE: Use destructuring to get specific properties from useUser
+//  const { userId, username, walletBalance: contextWalletBalance } = useUser();
+const { user } = useUser();
+const { userId: routeUserId, username, walletBalance: contextWalletBalance } = user || {};
+
+
+ // CHANGE: Use route params as fallback
+ const { movieId, walletBalance: routeWalletBalance } = route.params;
+
+  // Use userId from context if available, otherwise use route param
+  const userId = userId || routeUserId;
+
+ // CHANGE: Use context wallet balance if available, otherwise use route params
+ const [walletBalance, setWalletBalance] = useState(contextWalletBalance || routeWalletBalance);
+
+
+   // CHANGE: Use destructuring to get specific properties from useUser
+  //  const { userId, username, walletBalance: contextWalletBalance } = useUser();
+  // const { user } = userContext;
+  // const { movieId, walletBalance: initialWalletBalance, userId: routeUserId, username: routeUsername } = route.params;
+  // const [walletBalance, setWalletBalance] = useState(initialWalletBalance);
+
+
+  //  // Check if user data is loading or unavailable
+  //  if (!user) {
+  //   return (
+  //     <View style={styles.loadingContainer}>
+  //       <Text>Loading user data...</Text>
+  //       <ActivityIndicator size="large" color="#0000ff" />
+  //     </View>
+  //   );
+  // }
+   // Use context data if available, otherwise fall back to route params
+  //  const userId = userContext?.user?.id || routeUserId;
+  //  const username = userContext?.user?.username || routeUsername;
+  //  const [walletBalance, setWalletBalance] = useState(userContext?.user?.walletBalance || initialWalletBalance);
+ 
     // set useStates
     
     const [ movie, setMovie ] = useState(null);
@@ -31,13 +74,16 @@ const MovieDetailScreen = ({route}) => {
     const [trailerUrl, setTrailerUrl ] = useState (null);
     const [url, setUrl] = useState(null);
    
-    const { movieId, userId, walletBalance: initialWalletBalance, username  } = route.params;
-    const [walletBalance, setWalletBalance] = useState(initialWalletBalance);
+    // const { movieId, walletBalance: initialWalletBalance, userId, username  } = route.params;
+    // const [walletBalance, setWalletBalance] = useState(initialWalletBalance);
     console.log("Movie ID received in MovieDetailScreen: ", movieId);
-    console.log("MovieDetailScreen - userId:", userId, "username:", username);	
+    console.log("MovieDetailScreen - userId:", userId, "username:", username);
     console.log("MovieDetailScreen - walletBalance:", walletBalance);
+    console.log("MovieDetailScreen - user:", user);
     const [currentEvents, setCurrentEvents] = useState([]);
     const [genres, setGenres] = useState([]);
+    
+    // console.log("MovieDetailScreen - user:", user);
     const navigation = useNavigation();
 
 
@@ -107,6 +153,10 @@ const MovieDetailScreen = ({route}) => {
     //  line to update current events
     updateCurrentEvents();
       }, [movieId]);
+
+
+
+
 
     const updateCurrentEvents = () => {
       const now = new Date();
@@ -300,10 +350,21 @@ const addToCollection = async (movie, freeMovieTag) => {
         
       );
     };
+if (loading) {
+    return <ActivityIndicator size="large" color="#0000ff" style={styles.loadingContainer} />;
+  }
 
+  if (error) {
+    return <Text style={styles.errorText}>Error fetching movie data: {error}</Text>;
+  }
+
+  // if (!userId || !username) {
+  //   return <Text style={styles.errorText}>Error: User data is not available</Text>;
+  // }
 
     return (
         <PaperProvider>
+          {/* <UserProvider> */}
         <ScrollView style={styles.container}>
             <HeaderSection setModalVisible={setModalVisible} genres={genres}/>
             {/* <Events currentEvents={currentEvents} genres={genres} /> */}
@@ -417,6 +478,8 @@ const addToCollection = async (movie, freeMovieTag) => {
             />
             
         </ScrollView>
+        
+        {/* </UserPro*vider> */}
          </PaperProvider>
     );
 };  
