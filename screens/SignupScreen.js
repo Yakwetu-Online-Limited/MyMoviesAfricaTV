@@ -4,7 +4,7 @@ import PhoneInput from 'react-native-phone-input';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { auth } from '../firebase'; 
 import { createUserWithEmailAndPassword } from 'firebase/auth';
-import Cookies from 'js-cookie'; // import js-cookie
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const SignupScreen = ({ navigation }) => {
   const [fullName, setFullName] = useState('');
@@ -82,9 +82,26 @@ const SignupScreen = ({ navigation }) => {
         console.log('API response contains uid:', data.userId);
         Alert.alert('Success', 'Account created successfully');
 
-        // Set cookies for userId and username
-        Cookies.set('userId', data.userId, { expires: 7 }); // expires in 7 days
-        Cookies.set('username', fullName, { expires: 7 });
+        // Save user data to AsyncStorage
+        await AsyncStorage.setItem('userId', JSON.stringify(data.userId));
+        await AsyncStorage.setItem('username', fullName);
+        await AsyncStorage.setItem('userEmail', email);
+
+        console.log("Stored in AsyncStorage:", {userId: data.userId, username: fullName, userEmail: email});
+
+        //Retrieve to verify
+        const checkUserId = await AsyncStorage.getItem('userId');
+        const parsedUserId = JSON.parse(checkUserId);
+        console.log("Login check userId:", parsedUserId);
+
+        const checkUsername = await AsyncStorage.getItem('username');
+        console.log("Login check username:", checkUsername);
+
+        if (!checkUserId || !checkUsername) {
+          console.error("Error: AsyncStorage values were not set properly");
+        } else {
+          console.log("AsyncStorage values are set correctly");
+        }
         
         navigation.navigate('Home', { userId: data.userId, username: fullName, userEmail: email });
       } else {
