@@ -13,6 +13,7 @@ import Events from "../components/Events";
 import Screening from "../components/Screening";
 import { Provider as PaperProvider, Button, Modal, Portal } from 'react-native-paper';
 import { storePurchasedMovie } from '../utils/storage';
+import { useUser } from '../components/UserContext';
 
 const { width } = Dimensions.get('window');
 
@@ -278,7 +279,7 @@ const addToCollection = async (movie, freeMovieTag) => {
           {/* <TouchableOpacity style={styles.requestScreeningButton} onPress={() => setModalVisible(true)}>
             <Text style={styles.buttonText}>Request Screening</Text>
           </TouchableOpacity> */}
-          {/* <Screening /> */}
+          <Screening />
           <Events currentEvents={currentEvents} genres={genres} />
           {/* <TouchableOpacity style={styles.eventsButton}>
             <Text style={styles.buttonText}>Events</Text>
