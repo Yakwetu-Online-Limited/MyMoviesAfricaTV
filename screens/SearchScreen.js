@@ -16,7 +16,7 @@ const SearchScreen = ({ navigation }) => {
     const [searchQuery, setSearchQuery] = useState('');
 
     const route = useRoute();
-    const { userId, username, walletBalance = 500, movieId } = route.params || {};
+    const { userId, username, walletBalance, movieId } = route.params || {};
 
     console.log('Received route params in SearchScreen:', route.params);  
     console.log('SearchScreen -> userId:', userId);
@@ -80,7 +80,7 @@ const SearchScreen = ({ navigation }) => {
 
     const handlePress = (item) => {
         console.log("Selected movie item: ", item);
-        navigation.navigate('MovieDetail', { movieId: item.id, userId: userId, walletBalance, username: username });
+        navigation.navigate('MovieDetail', { movieId: item.id, userId: userId, walletBalance: 600, username: username });
     };
 
     const renderItem = ({ item }) => {

@@ -11,7 +11,7 @@ import {
   Dimensions,
   FlatList,
 } from "react-native";
-import { useNavigation, useFocusEffect } from "@react-navigation/native";
+import { useNavigation, useFocusEffect, useRoute } from "@react-navigation/native";
 import defaultPosterImage from "../images/default.jpg";
 import { getArtwork } from "../components/imageUtils";
 
@@ -23,6 +23,11 @@ const Events = ({ currentEvents, genres }) => {
   const [newReleases, setNewReleases] = useState([]);
 
   const navigation = useNavigation();
+
+  const route = useRoute();
+  const { userId, userEmail, username, walletBalance = 500 } = route.params || {};
+  console.log('Received route params Events:', route.params);  
+  console.log('Events Received :- userId / walletBalance', userId, userEmail, username, walletBalance);
 
   useEffect(() => {
     if (genres && genres.length > 0) {
@@ -73,6 +78,8 @@ const Events = ({ currentEvents, genres }) => {
           event={selectedEvent}
           onClose={() => setSelectedEvent(null)}
           newReleases={newReleases}
+          userId={userId} // Pass userId here
+          username={username} // Pass username here
         />
       )}
     </>
@@ -157,7 +164,7 @@ const EventDetailsModal = ({ visible, events, onClose, onLearnMore }) => {
   );
 };
 
-const EventLearnMoreModal = ({ visible, event, onClose, newReleases }) => {
+const EventLearnMoreModal = ({ visible, event, onClose, newReleases, userId, username }) => {
   return (
     <Modal
       visible={visible}
@@ -186,6 +193,8 @@ const EventLearnMoreModal = ({ visible, event, onClose, newReleases }) => {
                 renderItem={({ item }) => (
                   <MovieItem
                     movie={item}
+                    userId={userId} // Pass userId here
+                    username={username} // Pass username here
                     onPress={(movie) => console.log("Movie pressed:", movie)}
                   />
                 )}
@@ -201,14 +210,14 @@ const EventLearnMoreModal = ({ visible, event, onClose, newReleases }) => {
   );
 };
 
-const MovieItem = ({ movie, onPress }) => {
+const MovieItem = ({ movie, userId, username }) => {
   const navigation = useNavigation();
   const posterUrl =
     movie.poster || (movie.ref ? getArtwork(movie.ref).portrait : null);
 
   return (
     <TouchableOpacity
-      onPress={() => navigation.navigate("MovieDetail", { movieId: movie.id })}
+      onPress={() => navigation.navigate("MovieDetail", { movieId: movie.id, userId: userId, username: username, walletBalance: 600 })}
     >
       <View style={styles.movieContainer}>
         <Image

@@ -8,7 +8,9 @@ import axios from 'axios';
 import { Linking } from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
 import { WebView } from 'react-native-webview';
-
+import { eventsData } from "../events";
+import Events from "../components/Events";
+import Screening from "../components/Screening";
 import { Provider as PaperProvider, Button, Modal, Portal } from 'react-native-paper';
 import { storePurchasedMovie } from '../utils/storage';
 
@@ -184,7 +186,7 @@ const addToCollection = async (movie, freeMovieTag) => {
           alert(`Purchase successful! You've been charged KSH. ${amount}.`);
           
           // Store purchased movie locally
-          await storePurchasedMovie(movie, purchaseType === 'rent' ? 'rental' : 'est');
+          await storePurchasedMovie(movie, purchaseType === 'rent' ? 'rent' : 'own');
 
           // await addMovieToCollection(movie, purchaseType === 'RENTAL' ? 7 : null, purchaseType); 
 
@@ -306,11 +308,11 @@ const addToCollection = async (movie, freeMovieTag) => {
               </>
             ) : (
               <>
-              <TouchableOpacity style={styles.rentButton} onPress={() => handleRentOrOwn('rental')}>
+              <TouchableOpacity style={styles.rentButton} onPress={() => handleRentOrOwn('rent')}>
                 <Text style={styles.buttonText}>{`RENT FOR 7 DAYS KSH. ${rentalPrice} `}</Text>
               </TouchableOpacity>
 
-              <TouchableOpacity style={styles.ownButton} onPress={() => handleRentOrOwn('est')} >
+              <TouchableOpacity style={styles.ownButton} onPress={() => handleRentOrOwn('own')} >
                 <Text style={styles.buttonText}>{`OWN FOR LIFE KSH. ${ownPrice}`}</Text>
               </TouchableOpacity>
 

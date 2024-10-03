@@ -5,66 +5,41 @@ import axios from 'axios';
 import { useRoute } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-
 const CollectionPage = () => {
-  const [collection, setCollection] = useState([]);
-  const [purchasedMovies, setPurchasedMovies] = useState([]);
   const [rentedMovies, setRentedMovies] = useState([]);
   const [ownedMovies, setOwnedMovies] = useState([]);
   const route = useRoute();
-  const { userId, username, movieId, walletBalance } = route.params || { userId: null, username: 'Guest' };
+  const { username, walletBalance } = route.params || { username: 'Guest' };
 
-  
-  console.log('Received route params:', route.params); 
-  console.log('Received userName in CollectionPage:', username); 
-  console.log('Received userId from route:', userId); 
+  console.log('Received route params:', route.params);
+  console.log('Received userName in CollectionPage:', username);
   console.log('Received walletBalance:', walletBalance);
-  console.log('Received movieId:', movieId);
 
   // Fetch user's collection from API
-  // useEffect(() => {
-  //   // Fetch purchased movies from your API or local state
-  //   const fetchPurchasedMovies = async () => {
-  //     const storedUserId = await AsyncStorage.getItem('userId');
-  //     try {
-  //       const response = await axios.get(`https://api.mymovies.africa/api/v1/purchases?userId=${userId}&movieId=${movieId}`);
-  //       setPurchasedMovies(response.data); 
-  //     } catch (error) {
-  //       console.error('Error fetching purchased movies:', error);
-  //     }
-  //   };
-
-  //   fetchPurchasedMovies();
-  // }, [userId]);
-
-  // Replace the API call in useEffect
   useEffect(() => {
     const fetchUserMovies = async () => {
       try {
-        // Fetch userId from AsyncStorage to confirm it's correctly stored
+        // Fetch userId from AsyncStorage
         const storedUserId = await AsyncStorage.getItem('userId');
         console.log('Fetched userId from AsyncStorage:', storedUserId); // Check if this matches the userId from login
-  
-        const rented = await AsyncStorage.getItem('rentedMovies');
-        const owned = await AsyncStorage.getItem('ownedMovies');
-  
-        const rentedList = rented ? JSON.parse(rented) : {};
-        const ownedList = owned ? JSON.parse(owned) : {};
-  
-        // Use stored userId to fetch specific user's movies
-        setRentedMovies(rentedList[storedUserId] || []);
-        setOwnedMovies(ownedList[storedUserId] || []);
+        
+        if (storedUserId) {
+          // Fetch rented movies
+          const rentedResponse = await axios.get(`https://api.mymovies.africa/api/v1/purchases/rented?userId=${storedUserId}`);
+          setRentedMovies(rentedResponse.data || []);
+
+          // Fetch owned movies
+          const ownedResponse = await axios.get(`https://api.mymovies.africa/api/v1/purchases/owned?userId=${storedUserId}`);
+          setOwnedMovies(ownedResponse.data || []);
+        }
       } catch (error) {
-        console.error('Error fetching user movies from AsyncStorage:', error);
+        console.error('Error fetching user movies from API:', error);
       }
     };
-  
+
     fetchUserMovies();
   }, []);
-  
 
-
-  
   const renderMovieItem = ({ item }) => (
     <TouchableOpacity style={styles.movieItem}>
       <Image
@@ -83,7 +58,6 @@ const CollectionPage = () => {
       {/* Add the Header Component */}
       <Header 
         username={username}
-        userId={userId}
         walletBalance={walletBalance} 
       />
       

@@ -3,18 +3,28 @@ import { View, Text, Image, StyleSheet, TouchableOpacity, Alert } from 'react-na
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { Linking } from 'react-native';
 import axios from 'axios'; 
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const Header = ({ username, walletBalance, userId, purchaseSuccess }) => {
-  console.log('Header received userName:', username);
-  console.log('Header received userId:', userId);
-
+const Header = ({ username, walletBalance }) => {
   const [currentBalance, setCurrentBalance] = useState(walletBalance);
   const navigation = useNavigation();
+  const [userId, setUserId] = useState(null);
 
   useEffect(() => {
     // Ensure that the currentBalance updates if walletBalance changes from props
     setCurrentBalance(walletBalance);
   }, [walletBalance]);
+
+  useFocusEffect(
+    React.useCallback(() => {
+      const fetchUserId = async () => {
+        const storedUserId = await AsyncStorage.getItem('userId');
+        setUserId(storedUserId);  // Set userId from AsyncStorage
+        fetchWalletBalance(storedUserId);  // Fetch wallet balance
+      };
+      fetchUserId();
+    }, [])
+  );
 
   const handleTopUp = () => {
     if (userId) {
@@ -32,12 +42,16 @@ const Header = ({ username, walletBalance, userId, purchaseSuccess }) => {
       Alert.alert('Error', 'User ID not found. Please log in.');
     }
   };
-  // Function to fetch wallet balance after a top-up
-  const fetchWalletBalance = async () => {
-    try {
-      const mockBalance = 300;  
 
-        // Preparing form-encoded data
+  // Function to fetch wallet balance
+  const fetchWalletBalance = async (userId) => {
+    if (!userId) {
+      console.error('No user ID provided');
+      return;
+    }
+    const mockBalance = 300;
+    try {
+      // Preparing form-encoded data
       const formData = new URLSearchParams();
       formData.append('user_id', userId);
       formData.append('amount', mockBalance);
@@ -46,8 +60,7 @@ const Header = ({ username, walletBalance, userId, purchaseSuccess }) => {
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded',  // Set the content type for form data
         },
-      }
-    );
+      });
 
       if (response.data && response.data.balance) {
         setCurrentBalance(response.data.balance);  // Update the wallet balance state
@@ -56,28 +69,10 @@ const Header = ({ username, walletBalance, userId, purchaseSuccess }) => {
         Alert.alert('Error', 'Failed to retrieve wallet balance.');
       }
     } catch (error) {
-      console.error('Error fetching updated wallet balance:', error.response ? error.response.data : error.message);
-      Alert.alert('Error', 'Failed to update wallet balance.');
+      console.error('Error fetching wallet balance:', error.response ? error.response.data : error.message);
+      Alert.alert('Error', 'Failed to retrieve wallet balance.');
     }
   };
-
-  // Mocking wallet balance for now
-  // const fetchWalletBalance = async () => {
-  //   try {
-  //     const mockBalance = 500;  // Mocking with a wallet balance of 500
-  //     setCurrentBalance(mockBalance);
-  //     Alert.alert('Mock Top Up Successful', `New Wallet Balance: ${mockBalance}`);
-  //   } catch (error) {
-  //     console.error('Error fetching updated wallet balance:', error);
-  //     Alert.alert('Error', 'Failed to update wallet balance.');
-  //   }
-  // };
-
-  useFocusEffect(
-    React.useCallback(() => {
-      fetchWalletBalance();
-    }, [])
-  );
 
   return (
     <View style={styles.container}>
@@ -86,10 +81,9 @@ const Header = ({ username, walletBalance, userId, purchaseSuccess }) => {
           source={require('../assets/mymovies-africa-logo.png')} 
           style={styles.logo}
         />
-        
       </View>
       <View style={styles.userContainer}>
-        <TouchableOpacity onPress={handleTopUp}  style={styles.topUpButton}>
+        <TouchableOpacity onPress={handleTopUp} style={styles.topUpButton}>
           <Text style={styles.topUpText}>Top Up</Text>
         </TouchableOpacity>
         <View style={styles.userInfo}>

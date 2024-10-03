@@ -65,7 +65,7 @@ const BottomTabNavigator = ({ route }) => {
         name="Search"
         component={SearchPage}
         options={{ headerShown: false }} 
-        initialParams={{ userId, username }}
+        initialParams={{ userId, username, walletBalance: 600 }}
       />
       <Tab.Screen
         name="Collection"
