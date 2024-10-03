@@ -89,8 +89,17 @@ const MovieDetailScreen = ({route}) => {
             }
         };
         fetchMovieData();
-    }, [movieId]);
+   
+      }, [movieId]);
 
+    const updateCurrentEvents = () => {
+      const now = new Date();
+      const filteredEvents = eventsData.filter((event) => {
+          const endDate = new Date(event.endDate);
+          return endDate > now;
+      });
+      setCurrentEvents(filteredEvents);
+  };
     
 
     // Render loading state.
