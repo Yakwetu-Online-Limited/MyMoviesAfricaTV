@@ -36,6 +36,7 @@ const MovieDetailScreen = ({route}) => {
     console.log("MovieDetailScreen - userId:", userId, "username:", username);	
     console.log("MovieDetailScreen - walletBalance:", walletBalance);
     const [currentEvents, setCurrentEvents] = useState([]);
+    const [genres, setGenres] = useState([]);
     const navigation = useNavigation();
 
 
@@ -53,6 +54,19 @@ const MovieDetailScreen = ({route}) => {
 
                 }
                 setMovie(movieData);
+
+                // Set genres data
+                const allGenres = data.content.reduce((acc, movie) => {
+                  const movieGenres = JSON.parse(movie.genres);
+                  movieGenres.forEach(genre => {
+                      if (!acc[genre]) {
+                          acc[genre] = { name: genre, movies: [] };
+                      }
+                      acc[genre].movies.push(movie);
+                  });
+                  return acc;
+              }, {});
+              setGenres(Object.values(allGenres));
 
                 // Set rental and purchase prices from the API response
                 const rentalPriceData = parseFloat(JSON.parse(movieData.rental_price)?.kenya);
@@ -261,10 +275,11 @@ const addToCollection = async (movie, freeMovieTag) => {
       <View style={styles.headerContainer}>
         <Image source={require('../images/mymovies-africa-logo.png')} style={styles.logo} />
         <View style={styles.headerButtons}>
-          <TouchableOpacity style={styles.requestScreeningButton} onPress={() => setModalVisible(true)}>
+          {/* <TouchableOpacity style={styles.requestScreeningButton} onPress={() => setModalVisible(true)}>
             <Text style={styles.buttonText}>Request Screening</Text>
-          </TouchableOpacity>
-          <Events currentEvents={currentEvents} />
+          </TouchableOpacity> */}
+          {/* <Screening /> */}
+          <Events currentEvents={currentEvents} genres={genres} />
           {/* <TouchableOpacity style={styles.eventsButton}>
             <Text style={styles.buttonText}>Events</Text>
           </TouchableOpacity> */}
@@ -289,7 +304,8 @@ const addToCollection = async (movie, freeMovieTag) => {
     return (
         <PaperProvider>
         <ScrollView style={styles.container}>
-            <HeaderSection />
+            <HeaderSection setModalVisible={setModalVisible} genres={genres}/>
+            {/* <Events currentEvents={currentEvents} genres={genres} /> */}
             {/* <Text style={styles.walletBalance}>Wallet Balance: ${walletBalance}</Text> */}
             {/* Display movie trailer if available  */}
             {trailerUrl ? (
