@@ -35,6 +35,7 @@ const MovieDetailScreen = ({route}) => {
     console.log("Movie ID received in MovieDetailScreen: ", movieId);
     console.log("MovieDetailScreen - userId:", userId, "username:", username);	
     console.log("MovieDetailScreen - walletBalance:", walletBalance);
+    const [currentEvents, setCurrentEvents] = useState([]);
     const navigation = useNavigation();
 
 
