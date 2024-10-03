@@ -19,33 +19,19 @@ import { UserProvider } from '../components/UserContext';
 const { width } = Dimensions.get('window');
 
 const MovieDetailScreen = ({route}) => {
-  // const { user } = useUser();
-  // const userContext = useUser();
-  // const { userId, userEmail, username, walletBalance } = useUser();
-
-
- // CHANGE: Use destructuring to get specific properties from useUser
-//  const { userId, username, walletBalance: contextWalletBalance } = useUser();
+ 
 const { user } = useUser();
 const { userId: routeUserId, username, walletBalance: contextWalletBalance } = user || {};
 
 
- // CHANGE: Use route params as fallback
+ //  Use route params as fallback
  const { movieId, walletBalance: routeWalletBalance } = route.params;
 
   // Use userId from context if available, otherwise use route param
   const userId = userId || routeUserId;
 
- // CHANGE: Use context wallet balance if available, otherwise use route params
+ //  Use context wallet balance if available, otherwise use route params
  const [walletBalance, setWalletBalance] = useState(contextWalletBalance || routeWalletBalance);
-
-
-   // CHANGE: Use destructuring to get specific properties from useUser
-  //  const { userId, username, walletBalance: contextWalletBalance } = useUser();
-  // const { user } = userContext;
-  // const { movieId, walletBalance: initialWalletBalance, userId: routeUserId, username: routeUsername } = route.params;
-  // const [walletBalance, setWalletBalance] = useState(initialWalletBalance);
-
 
   //  // Check if user data is loading or unavailable
   //  if (!user) {
@@ -56,10 +42,7 @@ const { userId: routeUserId, username, walletBalance: contextWalletBalance } = u
   //     </View>
   //   );
   // }
-   // Use context data if available, otherwise fall back to route params
-  //  const userId = userContext?.user?.id || routeUserId;
-  //  const username = userContext?.user?.username || routeUsername;
-  //  const [walletBalance, setWalletBalance] = useState(userContext?.user?.walletBalance || initialWalletBalance);
+  
  
     // set useStates
     
