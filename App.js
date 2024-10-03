@@ -6,7 +6,6 @@ import { Ionicons } from '@expo/vector-icons';
 import HomePage from './screens/HomeScreen';
 import MovieDetailScreen from './screens/MovieDetailScreen';
 import CollectionPage from './screens/CollectionScreen';
-import PaymentPage from './screens/PaymentScreen';
 import SearchPage from './screens/SearchScreen';
 import LoginScreen from './screens/LoginScreen';
 import SignupScreen from './screens/SignupScreen';
@@ -66,13 +65,13 @@ const BottomTabNavigator = ({ route }) => {
         name="Search"
         component={SearchPage}
         options={{ headerShown: false }} 
-        initialParams={{ userId, movieId }}
+        initialParams={{ userId, username }}
       />
       <Tab.Screen
         name="Collection"
         component={CollectionPage}
         options={{ headerShown: false }} 
-        initialParams={{ userId, username, walletBalance }}
+        initialParams={{ userId, username, walletBalance, movieId }}
       />
       <Tab.Screen
         name="Profile"
@@ -95,7 +94,7 @@ const App = () => {
         <Stack.Screen name="Home" component={BottomTabNavigator}  />
         <Stack.Screen name="Search" component={SearchPage} />
         <Stack.Screen name="Collection" component={CollectionPage} />
-        <Stack.Screen name="Payment" component={PaymentPage} />
+        
         
         <Stack.Screen
           name="MovieDetail"

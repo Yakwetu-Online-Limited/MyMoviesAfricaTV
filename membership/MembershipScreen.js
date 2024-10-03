@@ -6,6 +6,7 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import Cookies from 'js-cookie'; // Import JS Cookies
 import axios from 'axios';
 import qs from 'qs';
+import { Linking } from 'react-native';
 
 const MembershipScreen = () => {
     const [userData, setUserData] = useState(null);
@@ -80,6 +81,23 @@ const MembershipScreen = () => {
         navigation.navigate('Login'); // Navigate to login screen
     };
 
+    const handleTopUp = () => {
+        if (userId) {
+          const url = `https://api.mymovies.africa/api/v1/payment/gate/${userId}`;
+    
+          Linking.openURL(url)
+            .then((supported) => {
+              if (!supported) {
+                console.error('Unable to open URL:', url);
+                Alert.alert('Error', 'Unable to open the top-up page.');
+              }
+            })
+            .catch((err) => console.error('An error occurred:', err));
+        } else {
+          Alert.alert('Error', 'User ID not found. Please log in.');
+        }
+      };
+
     if (isLoading) {
         return <Text style={styles.loadingText}>Loading user data...</Text>;
     }
@@ -138,7 +156,7 @@ const MembershipScreen = () => {
                             buttonStyle={styles.button}
                             type="outline"
                             containerStyle={styles.buttonContainer}
-                            onPress={() => {}}
+                            onPress={handleTopUp}
                         />
 
                         <Button

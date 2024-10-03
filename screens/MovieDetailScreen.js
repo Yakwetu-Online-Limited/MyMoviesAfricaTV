@@ -9,8 +9,7 @@ import { Linking } from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
 import { WebView } from 'react-native-webview';
 
-import { Button, Modal, Portal } from 'react-native-paper';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Provider as PaperProvider, Button, Modal, Portal } from 'react-native-paper';
 import { storePurchasedMovie } from '../utils/storage';
 
 const { width } = Dimensions.get('window');
@@ -53,8 +52,9 @@ const MovieDetailScreen = ({route}) => {
                 setMovie(movieData);
 
                 // Set rental and purchase prices from the API response
-                const rentalPriceData = JSON.parse(movieData.rental_price)?.kenya;
-                const estPriceData = JSON.parse(movieData.est_price)?.kenya;
+                const rentalPriceData = parseFloat(JSON.parse(movieData.rental_price)?.kenya);
+                const estPriceData = parseFloat(JSON.parse(movieData.est_price)?.kenya);
+
 
                 // Set the rental and own prices
                 setRentalPrice(rentalPriceData);
@@ -110,16 +110,53 @@ const MovieDetailScreen = ({route}) => {
     const isMovieFree = movie.genres && movie.genres.includes('Watch these Movies for FREE!');
 
     // Handle Watch Now Button for free movies
-    const handleWatchNow = () => {
-      // Directly add the movie to "My Collection" and navigate to the player
-      addToCollection(movie);
+    const handleWatchNow = async () => {
+      try {
+        // Tag the movie as "Free Movie"
+        const freeMovieTag = "Free Movie";
+        await addToCollection(movie, freeMovieTag);
+    
+        // Navigate to the player or collection screen after adding the movie
+        navigation.navigate('Collection', { userId: userId, username: username, movieId: movieId, walletBalance, purchaseSuccess: true });
+      } catch (error) {
+        console.error('Error adding movie to collection:', error);
+        alert("There was an error adding the movie to your collection.");
+      }
     };
+
+    // Updated function to add a movie to the collection
+const addToCollection = async (movie, freeMovieTag) => {
+  try {
+    const response = await axios.post(`https://api.mymovies.africa/api/v1/purchases?userId=${userId}&movieId=${movieId}`, {
+      user_id: userId,
+      ref: movie.ref,
+      purchase_type: 'rent', // Rent for 7 days
+      title: movie.title,
+      poster: getArtwork(movie.ref).portrait,
+      tag: freeMovieTag, // Add "Free Movie" tag
+    });
+    console.log('Movie added to collection:', response.data);
+  } catch (error) {
+    console.error('Error adding movie to collection:', error);
+  }
+};
 
     const handleRentOrOwn = (type) => {
       setPurchaseType(type);
       
       // Determine the amount based on the type
       const amount = type === 'rent' ? rentalPrice : ownPrice;
+
+      console.log("Rental Price:", rentalPrice, "Own Price:", ownPrice);
+      console.log("Calculated Amount:", amount);
+      console.log("Wallet Balance:", walletBalance);
+
+      // Check if the amount is valid
+      if (typeof amount !== 'number' || isNaN(amount)) {
+        console.error("Calculated amount is NaN", amount);
+        alert("There was an error calculating the amount. Please try again.");
+        return; // Exit the function if the amount is invalid
+      }
       
       // Check if wallet balance is sufficient
       if (walletBalance >= amount) {
@@ -131,10 +168,9 @@ const MovieDetailScreen = ({route}) => {
     }
     };
 
-    const handlePurchase = async (amount, movie, purchaseType, username) => {
+    const handlePurchase = async (amount, movie, purchaseType) => {
       const purchaseObj = {
           user_id: userId,
-          username: username,
           ref: movie.ref,
           purchase_type: purchaseType,
           source: 1,
@@ -148,14 +184,14 @@ const MovieDetailScreen = ({route}) => {
           alert(`Purchase successful! You've been charged KSH. ${amount}.`);
           
           // Store purchased movie locally
-          await storePurchasedMovie(movie, purchaseType === 'rent' ? 'rent' : 'own');
+          await storePurchasedMovie(movie, purchaseType === 'rent' ? 'rental' : 'est');
 
           // await addMovieToCollection(movie, purchaseType === 'RENTAL' ? 7 : null, purchaseType); 
 
           // Navigate to the CollectionScreen to show updated collection
           setTimeout(() => {
-            navigation.navigate('Collection', { userId: userId, username: username, movieId: movieId });
-        }, 5000);
+            navigation.navigate('Collection', { userId: userId, username: username, movieId: movieId, walletBalance });
+        }, 3000);
       } catch (error) {
           console.error('Error making purchase:', error);
       }
@@ -163,15 +199,30 @@ const MovieDetailScreen = ({route}) => {
     
   const handleModalTopUp = () => {
     // Determine the required amount based on purchaseType
-    const amount = purchaseType === 'rent' ? 'Rent for 7 Days' : 'Movies Owned';
+    const amount = purchaseType === 'rent' ? rentalPrice : ownPrice;
 
         const remainingBalance = amount - walletBalance;
+        if (isNaN(remainingBalance)) {
+          console.error("Remaining balance is NaN", remainingBalance);
+          alert("There was an error calculating the remaining balance. Please try again.");
+          return; // Exit the function if the remaining balance is invalid
+        }
+
+        
         const url = `https://api.mymovies.africa/api/v1/payment/gate/${userId}/?amount=${remainingBalance}&purchase_type=${purchaseType}&ref=${movie.ref}`;
         
         Linking.openURL(url)
             .catch((err) => console.error('Failed to open URL:', err));
         alert(`Your wallet balance is insufficient. Please top-up to cover KSH. ${remainingBalance}.`);
-    
+        console.log("Payment URL:", url);
+
+        console.log("Rental Price:", rentalPrice);
+        console.log("Own Price:", ownPrice);
+        console.log("Wallet Balance:", walletBalance);
+        console.log("Remaining Balance:", remainingBalance);
+        console.log("Final Payment URL:", url);
+
+
 };
     
 
@@ -255,11 +306,11 @@ const MovieDetailScreen = ({route}) => {
               </>
             ) : (
               <>
-              <TouchableOpacity style={styles.rentButton} onPress={() => handleRentOrOwn('rent')}>
+              <TouchableOpacity style={styles.rentButton} onPress={() => handleRentOrOwn('rental')}>
                 <Text style={styles.buttonText}>{`RENT FOR 7 DAYS KSH. ${rentalPrice} `}</Text>
               </TouchableOpacity>
 
-              <TouchableOpacity style={styles.ownButton} onPress={() => handleRentOrOwn('own')} >
+              <TouchableOpacity style={styles.ownButton} onPress={() => handleRentOrOwn('est')} >
                 <Text style={styles.buttonText}>{`OWN FOR LIFE KSH. ${ownPrice}`}</Text>
               </TouchableOpacity>
 

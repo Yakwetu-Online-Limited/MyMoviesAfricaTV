@@ -4,7 +4,7 @@ import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { Linking } from 'react-native';
 import axios from 'axios'; 
 
-const Header = ({ username, walletBalance, userId, movieId }) => {
+const Header = ({ username, walletBalance, userId, purchaseSuccess }) => {
   console.log('Header received userName:', username);
   console.log('Header received userId:', userId);
 
@@ -33,39 +33,45 @@ const Header = ({ username, walletBalance, userId, movieId }) => {
     }
   };
   // Function to fetch wallet balance after a top-up
+  const fetchWalletBalance = async () => {
+    try {
+      const mockBalance = 300;  
+
+        // Preparing form-encoded data
+      const formData = new URLSearchParams();
+      formData.append('user_id', userId);
+      formData.append('amount', mockBalance);
+
+      const response = await axios.post('https://api.mymovies.africa/api/v1/users/wallet', formData.toString(), {
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',  // Set the content type for form data
+        },
+      }
+    );
+
+      if (response.data && response.data.balance) {
+        setCurrentBalance(response.data.balance);  // Update the wallet balance state
+        Alert.alert('Top Up Successful', `New Wallet Balance: ${response.data.balance}`);
+      } else {
+        Alert.alert('Error', 'Failed to retrieve wallet balance.');
+      }
+    } catch (error) {
+      console.error('Error fetching updated wallet balance:', error.response ? error.response.data : error.message);
+      Alert.alert('Error', 'Failed to update wallet balance.');
+    }
+  };
+
+  // Mocking wallet balance for now
   // const fetchWalletBalance = async () => {
   //   try {
-  //     const response = await axios.post('https://api.mymovies.africa/api/v1/users/wallet', {
-  //       user_id: userId,  // Send userId in the request body
-  //     }, {
-  //       headers: {
-  //         'Content-Type': 'application/x-www-form-urlencoded',  // Set the content type for form data
-  //       }
-  //     });
-
-  //     if (response.data && response.data.balance) {
-  //       setCurrentBalance(response.data.balance);  // Update the wallet balance state
-  //       Alert.alert('Top Up Successful', `New Wallet Balance: ${response.data.balance}`);
-  //     } else {
-  //       Alert.alert('Error', 'Failed to retrieve wallet balance.');
-  //     }
+  //     const mockBalance = 500;  // Mocking with a wallet balance of 500
+  //     setCurrentBalance(mockBalance);
+  //     Alert.alert('Mock Top Up Successful', `New Wallet Balance: ${mockBalance}`);
   //   } catch (error) {
   //     console.error('Error fetching updated wallet balance:', error);
   //     Alert.alert('Error', 'Failed to update wallet balance.');
   //   }
   // };
-
-  // Mocking wallet balance for now
-  const fetchWalletBalance = async () => {
-    try {
-      const mockBalance = 500;  // Mocking with a wallet balance of 5000
-      setCurrentBalance(mockBalance);
-      Alert.alert('Mock Top Up Successful', `New Wallet Balance: ${mockBalance}`);
-    } catch (error) {
-      console.error('Error fetching updated wallet balance:', error);
-      Alert.alert('Error', 'Failed to update wallet balance.');
-    }
-  };
 
   useFocusEffect(
     React.useCallback(() => {

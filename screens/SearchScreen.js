@@ -16,11 +16,12 @@ const SearchScreen = ({ navigation }) => {
     const [searchQuery, setSearchQuery] = useState('');
 
     const route = useRoute();
-    const { userId, username, walletBalance = 500 } = route.params || {};
+    const { userId, username, walletBalance = 500, movieId } = route.params || {};
 
-    console.log('Received route params:', route.params);  
+    console.log('Received route params in SearchScreen:', route.params);  
     console.log('SearchScreen -> userId:', userId);
-    console.log('SearchScreen -> walletBalance', userId, walletBalance);
+    console.log('SearchScreen -> walletBalance', walletBalance);
+    console.log('SearchScreen -> username', username);
 
     useEffect(() => {
         fetchMovies();
