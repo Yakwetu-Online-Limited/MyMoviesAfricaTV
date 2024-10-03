@@ -89,7 +89,8 @@ const MovieDetailScreen = ({route}) => {
             }
         };
         fetchMovieData();
-   
+    //  line to update current events
+    updateCurrentEvents();
       }, [movieId]);
 
     const updateCurrentEvents = () => {
