@@ -5,7 +5,7 @@ import { signInWithEmailAndPassword } from 'firebase/auth';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { auth } from '../firebase';
 import axios from 'axios';
-import { useUser } from '../components/UserContext';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const LoginScreen = ({ navigation }) => {
   const [email, setEmail] = useState('');
@@ -14,15 +14,29 @@ const LoginScreen = ({ navigation }) => {
   const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
-    const checkUserCookie = () => {
-      const userId = Cookies.get('userId'); // Access the cookie
-      const username = Cookies.get('username');
-      if (userId && username) {
-        // If cookie exists, navigate to the Home screen
-        navigation.navigate('Home', { userId, username });
+    const checkUserInStorage = async () => {
+      try {
+        const userIdString = await AsyncStorage.getItem('userId');
+        const username = await AsyncStorage.getItem('username');
+        const userEmail = await AsyncStorage.getItem('userEmail');
+
+        const userId = userIdString ? Number(userIdString) : null;
+
+        console.log('AsyncStorage userId:', userId); // Log the userId for troubleshooting
+        console.log('AsyncStorage username with userEmail:', username, userEmail); // Log the username
+
+        if (userId && username) {
+          // If user data exists in AsyncStorage, navigate to the Home screen
+          console.log('Navigating to Home with userId and username');
+          navigation.navigate('Home', { userId, username, userEmail });
+        } else {
+          console.log('No user data in AsyncStorage');
+        }
+      } catch (error) {
+        console.error("Error checking AsyncStorage:", error);
       }
     };
-    checkUserCookie();
+    checkUserInStorage();
   }, [navigation]);
 
   const handleLogin = async () => {
@@ -60,14 +74,17 @@ const LoginScreen = ({ navigation }) => {
   
       if (response.data && response.data.user) {
         const userData = response.data.user;
-        ;
-  
-        // Store the userId and username in cookies
-        Cookies.set('userId', userId, { expires: 7 });
-        Cookies.set('username', userData.fullname || fullName, { expires: 7 });
-  
+        console.log("Login API user data:", userData);
+        
+        // Store the userId and username in AsyncStorage
+        await AsyncStorage.setItem('userId', userData.id.toString()); // Store userId as a string
+        await AsyncStorage.setItem('username', userData.fullname || fullName); // Store username
+
+        console.log('User data saved to AsyncStorage');
+        const userId = userData.id ? Number(userData.id) : null;
+        
         // Navigate to the Home screen with user data
-        navigation.navigate('Home', { userId, username: userData.fullname || fullName, userEmail: userData.email || email });
+        navigation.navigate('Home', { userId: userId, username: userData.fullname || fullName, userEmail: userData.email || email });
       } else {
         throw new Error('User data not found in the API response');
       }
