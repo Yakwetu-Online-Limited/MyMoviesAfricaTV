@@ -264,9 +264,10 @@ const addToCollection = async (movie, freeMovieTag) => {
           <TouchableOpacity style={styles.requestScreeningButton} onPress={() => setModalVisible(true)}>
             <Text style={styles.buttonText}>Request Screening</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.eventsButton}>
+          <Events currentEvents={currentEvents} />
+          {/* <TouchableOpacity style={styles.eventsButton}>
             <Text style={styles.buttonText}>Events</Text>
-          </TouchableOpacity>
+          </TouchableOpacity> */}
         </View>
       </View>
     );
