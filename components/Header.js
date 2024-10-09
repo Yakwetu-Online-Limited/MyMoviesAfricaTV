@@ -26,25 +26,32 @@ const Header = ({ username, walletBalance }) => {
     }, [])
   );
 
-  const handleTopUp = () => {
+  const handleTopUp = async () => {
     if (userId) {
       const url = `https://api.mymovies.africa/api/v1/payment/gate/${userId}`;
 
-      Linking.openURL(url)
-        .then((supported) => {
-          if (!supported) {
-            console.error('Unable to open URL:', url);
-            Alert.alert('Error', 'Unable to open the top-up page.');
-          }
-        })
-        .catch((err) => console.error('An error occurred:', err));
+      try {
+        const supported = await Linking.openURL(url);
+        if (!supported) {
+          console.error('Unable to open URL:', url);
+          Alert.alert('Error', 'Unable to open the top-up page.');
+        } else {
+          
+          setTimeout(() => {
+            fetchWalletBalance(userId, true); 
+          }, 3000);  
+        }
+      } catch (err) {
+        console.error('An error occurred:', err);
+        Alert.alert('Error', 'An error occurred while processing the top-up.');
+      }
     } else {
       Alert.alert('Error', 'User ID not found. Please log in.');
     }
   };
 
   // Function to fetch wallet balance
-  const fetchWalletBalance = async (userId) => {
+  const fetchWalletBalance = async (userId, isTopUp = false) => {
     if (!userId) {
       console.error('No user ID provided');
       return;
@@ -64,7 +71,10 @@ const Header = ({ username, walletBalance }) => {
 
       if (response.data && response.data.balance) {
         setCurrentBalance(response.data.balance);  // Update the wallet balance state
-        Alert.alert('Top Up Successful', `New Wallet Balance: ${response.data.balance}`);
+        if (isTopUp) {
+          // Show the alert only if this was triggered by a top-up
+          Alert.alert('Top Up Successful', `New Wallet Balance: ${response.data.balance}`);
+        }
       } else {
         Alert.alert('Error', 'Failed to retrieve wallet balance.');
       }
@@ -108,8 +118,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   logo: {
-    width: 120,
-    height: 90,
+    width: 150,
+    height: 100,
     resizeMode: 'contain',
   },
   userContainer: {
