@@ -181,7 +181,7 @@ const addToCollection = async (movie, freeMovieTag) => {
       setWalletBalance((prevBalance) => prevBalance - amount);
 
       alert(`Purchase successful! You've been charged KSH. ${amount}.`);
-      navigation.navigate('Collection', { userId, username, walletBalance });
+      navigation.navigate('Collection', { userId, username, walletBalance, movieId });
     } else {
       setModalVisible(true); // Show modal for insufficient balance
     }
