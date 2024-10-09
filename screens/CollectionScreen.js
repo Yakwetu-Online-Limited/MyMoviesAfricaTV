@@ -3,6 +3,7 @@ import { View, Text, FlatList, Image, StyleSheet, TouchableOpacity } from 'react
 import Header from '../components/Header';
 import axios from 'axios';
 import { useRoute } from '@react-navigation/native';
+import { storePurchasedMovie, getPurchasedMovies } from '../utils/storage';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const CollectionPage = () => {
@@ -12,9 +13,8 @@ const CollectionPage = () => {
   const { username, walletBalance } = route.params || { username: 'Guest' };
 
   console.log('Received route params in CollectionPage:', route.params);
-  
 
-  // Fetch user's collection from API
+  // Fetch user's collection from API and AsyncStorage
   useEffect(() => {
     const fetchUserMovies = async () => {
       try {
@@ -23,16 +23,24 @@ const CollectionPage = () => {
         console.log('Fetched userId from AsyncStorage:', storedUserId); // Check if this matches the userId from login
         
         if (storedUserId) {
-          // Fetch rented movies
+          // Fetch rented movies from API
           const rentedResponse = await axios.get(`https://api.mymovies.africa/api/v1/purchases/rented?userId=${storedUserId}`);
           setRentedMovies(rentedResponse.data || []);
 
-          // Fetch owned movies
+          // Fetch owned movies from API
           const ownedResponse = await axios.get(`https://api.mymovies.africa/api/v1/purchases/owned?userId=${storedUserId}`);
           setOwnedMovies(ownedResponse.data || []);
+
+          // Fetch purchased movies from AsyncStorage
+          const purchasedMovies = await getPurchasedMovies(storedUserId);
+          console.log('Fetched purchased movies from AsyncStorage:', purchasedMovies);
+
+          // Log the movieIds from purchased movies
+          const movieIds = purchasedMovies.map(movie => movie.movieId);
+          console.log('Movie IDs fetched from AsyncStorage:', movieIds);
         }
       } catch (error) {
-        console.error('Error fetching user movies from API:', error);
+        console.error('Error fetching user movies:', error);
       }
     };
 
@@ -54,7 +62,6 @@ const CollectionPage = () => {
 
   return (
     <View style={styles.container}>
-      {/* Add the Header Component */}
       <Header 
         username={username}
         walletBalance={walletBalance} 
