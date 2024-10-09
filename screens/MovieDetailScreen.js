@@ -9,41 +9,15 @@ import { Linking } from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
 import { WebView } from 'react-native-webview';
 import { eventsData } from "../events";
-import Events from "../components/Events";
-import Screening from "../components/Screening";
+// import Events from "../components/Events";
+// import Screening from "../components/Screening";
 import { Provider as PaperProvider, Button, Modal, Portal } from 'react-native-paper';
 import { storePurchasedMovie } from '../utils/storage';
-import { useUser } from '../components/UserContext';
-import { UserProvider } from '../components/UserContext';
-
+import Screening from '../components/Screening';
+import Events from '../components/Events';
 const { width } = Dimensions.get('window');
 
 const MovieDetailScreen = ({route}) => {
- 
-const { user } = useUser();
-const { userId: routeUserId, username, walletBalance: contextWalletBalance } = user || {};
-
-
- //  Use route params as fallback
- const { movieId, walletBalance: routeWalletBalance } = route.params;
-
-  // Use userId from context if available, otherwise use route param
-  const userId = userId || routeUserId;
-
- //  Use context wallet balance if available, otherwise use route params
- const [walletBalance, setWalletBalance] = useState(contextWalletBalance || routeWalletBalance);
-
-  //  // Check if user data is loading or unavailable
-  //  if (!user) {
-  //   return (
-  //     <View style={styles.loadingContainer}>
-  //       <Text>Loading user data...</Text>
-  //       <ActivityIndicator size="large" color="#0000ff" />
-  //     </View>
-  //   );
-  // }
-  
- 
     // set useStates
     
     const [ movie, setMovie ] = useState(null);
@@ -57,16 +31,11 @@ const { userId: routeUserId, username, walletBalance: contextWalletBalance } = u
     const [trailerUrl, setTrailerUrl ] = useState (null);
     const [url, setUrl] = useState(null);
    
-    // const { movieId, walletBalance: initialWalletBalance, userId, username  } = route.params;
-    // const [walletBalance, setWalletBalance] = useState(initialWalletBalance);
+    const { movieId, userId, walletBalance: initialWalletBalance, username  } = route.params;
+    const [walletBalance, setWalletBalance] = useState(initialWalletBalance);
     console.log("Movie ID received in MovieDetailScreen: ", movieId);
-    console.log("MovieDetailScreen - userId:", userId, "username:", username);
+    console.log("MovieDetailScreen - userId:", userId, "username:", username);	
     console.log("MovieDetailScreen - walletBalance:", walletBalance);
-    console.log("MovieDetailScreen - user:", user);
-    const [currentEvents, setCurrentEvents] = useState([]);
-    const [genres, setGenres] = useState([]);
-    
-    // console.log("MovieDetailScreen - user:", user);
     const navigation = useNavigation();
 
 
@@ -84,19 +53,6 @@ const { userId: routeUserId, username, walletBalance: contextWalletBalance } = u
 
                 }
                 setMovie(movieData);
-
-                // Set genres data
-                const allGenres = data.content.reduce((acc, movie) => {
-                  const movieGenres = JSON.parse(movie.genres);
-                  movieGenres.forEach(genre => {
-                      if (!acc[genre]) {
-                          acc[genre] = { name: genre, movies: [] };
-                      }
-                      acc[genre].movies.push(movie);
-                  });
-                  return acc;
-              }, {});
-              setGenres(Object.values(allGenres));
 
                 // Set rental and purchase prices from the API response
                 const rentalPriceData = parseFloat(JSON.parse(movieData.rental_price)?.kenya);
@@ -133,22 +89,8 @@ const { userId: routeUserId, username, walletBalance: contextWalletBalance } = u
             }
         };
         fetchMovieData();
-    //  line to update current events
-    updateCurrentEvents();
-      }, [movieId]);
+    }, [movieId]);
 
-
-
-
-
-    const updateCurrentEvents = () => {
-      const now = new Date();
-      const filteredEvents = eventsData.filter((event) => {
-          const endDate = new Date(event.endDate);
-          return endDate > now;
-      });
-      setCurrentEvents(filteredEvents);
-  };
     
 
     // Render loading state.
@@ -309,14 +251,12 @@ const addToCollection = async (movie, freeMovieTag) => {
       <View style={styles.headerContainer}>
         <Image source={require('../images/mymovies-africa-logo.png')} style={styles.logo} />
         <View style={styles.headerButtons}>
-          {/* <TouchableOpacity style={styles.requestScreeningButton} onPress={() => setModalVisible(true)}>
+          <TouchableOpacity style={styles.requestScreeningButton} onPress={() => setModalVisible(true)}>
             <Text style={styles.buttonText}>Request Screening</Text>
-          </TouchableOpacity> */}
-          <Screening />
-          <Events currentEvents={currentEvents} genres={genres} />
-          {/* <TouchableOpacity style={styles.eventsButton}>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.eventsButton}>
             <Text style={styles.buttonText}>Events</Text>
-          </TouchableOpacity> */}
+          </TouchableOpacity>
         </View>
       </View>
     );
@@ -333,24 +273,12 @@ const addToCollection = async (movie, freeMovieTag) => {
         
       );
     };
-if (loading) {
-    return <ActivityIndicator size="large" color="#0000ff" style={styles.loadingContainer} />;
-  }
 
-  if (error) {
-    return <Text style={styles.errorText}>Error fetching movie data: {error}</Text>;
-  }
-
-  // if (!userId || !username) {
-  //   return <Text style={styles.errorText}>Error: User data is not available</Text>;
-  // }
 
     return (
         <PaperProvider>
-          {/* <UserProvider> */}
         <ScrollView style={styles.container}>
-            <HeaderSection setModalVisible={setModalVisible} genres={genres}/>
-            {/* <Events currentEvents={currentEvents} genres={genres} /> */}
+            <HeaderSection />
             {/* <Text style={styles.walletBalance}>Wallet Balance: ${walletBalance}</Text> */}
             {/* Display movie trailer if available  */}
             {trailerUrl ? (
@@ -461,8 +389,6 @@ if (loading) {
             />
             
         </ScrollView>
-        
-        {/* </UserPro*vider> */}
          </PaperProvider>
     );
 };  

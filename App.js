@@ -87,7 +87,7 @@ const App = () => {
   return (
     <GestureHandlerRootView style={{flex: 1}}>
       <PaperProvider>
-        <UserProvider>
+        {/* <UserProvider> */}
       <NavigationContainer>
       <Stack.Navigator screenOptions={{ headerShown: false }} initialRouteName="Login">
         <Stack.Screen name="Login" component={LoginScreen} />
@@ -112,7 +112,7 @@ const App = () => {
         />
       </Stack.Navigator>
     </NavigationContainer>
-    </UserProvider>
+    {/* </UserProvider> */}
     </PaperProvider>
     </GestureHandlerRootView>
     
