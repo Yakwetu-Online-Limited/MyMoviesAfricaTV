@@ -1,50 +1,32 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-// Store purchased movie
-export const storePurchasedMovie = async (movie, userId, type) => {
+// Store the purchased movie
+export const storePurchasedMovie = async (movieId, userId, type) => {
   try {
-    // Fetch existing data
-    const rentedMovies = await AsyncStorage.getItem('rentedMovies');
-    const ownedMovies = await AsyncStorage.getItem('ownedMovies');
+    const key = `purchasedMovies_${userId}`;
+    const storedMovies = await AsyncStorage.getItem(key);
+    let movies = storedMovies ? JSON.parse(storedMovies) : [];
 
-    const rentedList = rentedMovies ? JSON.parse(rentedMovies) : {};
-    const ownedList = ownedMovies ? JSON.parse(ownedMovies) : {};
-
-    // Using userId to categorize movies for each user
-    if (!rentedList[userId]) rentedList[userId] = [];
-    if (!ownedList[userId]) ownedList[userId] = [];
-
-    if (type === 'rent') {
-      // Add movie to "Rent for 7 Days" category for the specific user
-      rentedList[userId].push({ ...movie, movieId: movie.id, rentedDate: new Date() });
-      await AsyncStorage.setItem('rentedMovies', JSON.stringify(rentedList));
-    } else if (type === 'own') {
-      // Add movie to "Own for Life" category for the specific user
-      ownedList[userId].push({ ...movie, movieId: movie.id });
-      await AsyncStorage.setItem('ownedMovies', JSON.stringify(ownedList));
+    // Check if the movie is already purchased
+    const movieExists = movies.some((movie) => movie.movieId === movieId);
+    if (!movieExists) {
+      movies.push({ movieId, type });
     }
+
+    await AsyncStorage.setItem(key, JSON.stringify(movies));
   } catch (error) {
-    console.error("Error storing movie:", error);
+    console.error('Error storing purchased movie:', error);
   }
 };
 
-
-// Fetch movies for the user
-export const fetchUserMovies = async (userId) => {
+// Get the purchased movies
+export const getPurchasedMovies = async (userId) => {
   try {
-    const rentedMovies = await AsyncStorage.getItem('rentedMovies');
-    const ownedMovies = await AsyncStorage.getItem('ownedMovies');
-
-    const rentedList = rentedMovies ? JSON.parse(rentedMovies) : {};
-    const ownedList = ownedMovies ? JSON.parse(ownedMovies) : {};
-
-    // Return movies based on userId
-    return {
-      rented: rentedList[userId] || [],
-      owned: ownedList[userId] || [],
-    };
+    const key = `purchasedMovies_${userId}`;
+    const storedMovies = await AsyncStorage.getItem(key);
+    return storedMovies ? JSON.parse(storedMovies) : [];
   } catch (error) {
-    console.error("Error fetching user movies:", error);
-    return { rented: [], owned: [] };
+    console.error('Error fetching purchased movies:', error);
+    return [];
   }
 };
