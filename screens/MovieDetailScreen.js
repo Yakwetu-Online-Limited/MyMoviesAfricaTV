@@ -17,6 +17,31 @@ import { storePurchasedMovie, getPurchasedMovies } from '../utils/storage';
 const { width } = Dimensions.get('window');
 
 const MovieDetailScreen = ({route}) => {
+ 
+const { user } = useUser();
+const { userId: routeUserId, username, walletBalance: contextWalletBalance } = user || {};
+
+
+ //  Use route params as fallback
+ const { movieId, walletBalance: routeWalletBalance } = route.params;
+
+  // Use userId from context if available, otherwise use route param
+  const userId = userId || routeUserId;
+
+ //  Use context wallet balance if available, otherwise use route params
+ const [walletBalance, setWalletBalance] = useState(contextWalletBalance || routeWalletBalance);
+
+  //  // Check if user data is loading or unavailable
+  //  if (!user) {
+  //   return (
+  //     <View style={styles.loadingContainer}>
+  //       <Text>Loading user data...</Text>
+  //       <ActivityIndicator size="large" color="#0000ff" />
+  //     </View>
+  //   );
+  // }
+  
+ 
     // set useStates
     
     const [ movie, setMovie ] = useState(null);
@@ -31,11 +56,16 @@ const MovieDetailScreen = ({route}) => {
     const [url, setUrl] = useState(null);
     const [purchasedMovies, setPurchasedMovies] = useState([]);
    
-    const { movieId, userId, walletBalance: initialWalletBalance, username  } = route.params;
-    const [walletBalance, setWalletBalance] = useState(initialWalletBalance);
+    // const { movieId, walletBalance: initialWalletBalance, userId, username  } = route.params;
+    // const [walletBalance, setWalletBalance] = useState(initialWalletBalance);
     console.log("Movie ID received in MovieDetailScreen: ", movieId);
-    console.log("MovieDetailScreen - userId:", userId, "username:", username);	
+    console.log("MovieDetailScreen - userId:", userId, "username:", username);
     console.log("MovieDetailScreen - walletBalance:", walletBalance);
+    console.log("MovieDetailScreen - user:", user);
+    const [currentEvents, setCurrentEvents] = useState([]);
+    const [genres, setGenres] = useState([]);
+    
+    // console.log("MovieDetailScreen - user:", user);
     const navigation = useNavigation();
 
 
@@ -66,6 +96,19 @@ const MovieDetailScreen = ({route}) => {
 
                 }
                 setMovie(movieData);
+
+                // Set genres data
+                const allGenres = data.content.reduce((acc, movie) => {
+                  const movieGenres = JSON.parse(movie.genres);
+                  movieGenres.forEach(genre => {
+                      if (!acc[genre]) {
+                          acc[genre] = { name: genre, movies: [] };
+                      }
+                      acc[genre].movies.push(movie);
+                  });
+                  return acc;
+              }, {});
+              setGenres(Object.values(allGenres));
 
                 // Set rental and purchase prices from the API response
                 const rentalPriceData = parseFloat(JSON.parse(movieData.rental_price)?.kenya);
@@ -102,8 +145,22 @@ const MovieDetailScreen = ({route}) => {
             }
         };
         fetchMovieData();
-    }, [movieId]);
+    //  line to update current events
+    updateCurrentEvents();
+      }, [movieId]);
 
+
+
+
+
+    const updateCurrentEvents = () => {
+      const now = new Date();
+      const filteredEvents = eventsData.filter((event) => {
+          const endDate = new Date(event.endDate);
+          return endDate > now;
+      });
+      setCurrentEvents(filteredEvents);
+  };
     
 
     // Render loading state.
@@ -250,12 +307,14 @@ const addToCollection = async (movie, freeMovieTag) => {
       <View style={styles.headerContainer}>
         <Image source={require('../images/mymovies-africa-logo.png')} style={styles.logo} />
         <View style={styles.headerButtons}>
-          <TouchableOpacity style={styles.requestScreeningButton} onPress={() => setModalVisible(true)}>
+          {/* <TouchableOpacity style={styles.requestScreeningButton} onPress={() => setModalVisible(true)}>
             <Text style={styles.buttonText}>Request Screening</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.eventsButton}>
+          </TouchableOpacity> */}
+          <Screening />
+          <Events currentEvents={currentEvents} genres={genres} />
+          {/* <TouchableOpacity style={styles.eventsButton}>
             <Text style={styles.buttonText}>Events</Text>
-          </TouchableOpacity>
+          </TouchableOpacity> */}
         </View>
       </View>
     );
@@ -272,12 +331,24 @@ const addToCollection = async (movie, freeMovieTag) => {
         
       );
     };
+if (loading) {
+    return <ActivityIndicator size="large" color="#0000ff" style={styles.loadingContainer} />;
+  }
 
+  if (error) {
+    return <Text style={styles.errorText}>Error fetching movie data: {error}</Text>;
+  }
+
+  // if (!userId || !username) {
+  //   return <Text style={styles.errorText}>Error: User data is not available</Text>;
+  // }
 
     return (
         <PaperProvider>
+          {/* <UserProvider> */}
         <ScrollView style={styles.container}>
-            <HeaderSection />
+            <HeaderSection setModalVisible={setModalVisible} genres={genres}/>
+            {/* <Events currentEvents={currentEvents} genres={genres} /> */}
             {/* <Text style={styles.walletBalance}>Wallet Balance: ${walletBalance}</Text> */}
             {/* Display movie trailer if available  */}
             {trailerUrl ? (
@@ -389,6 +460,8 @@ const addToCollection = async (movie, freeMovieTag) => {
             />
             
         </ScrollView>
+        
+        {/* </UserPro*vider> */}
          </PaperProvider>
     );
 };  

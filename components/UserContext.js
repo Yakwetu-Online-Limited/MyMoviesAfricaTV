@@ -8,7 +8,7 @@ const UserContext = createContext();
 
 
 // Create the UserProvider component that wraps the app and provides user-related data/functions.
-export const UserProvider = ({ children }) => {
+export const UserProvider = ({ children , value}) => {
   // Declare the user state and initialize it to null.
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);

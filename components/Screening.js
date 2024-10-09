@@ -271,7 +271,7 @@ const Screening = () => {
           const paymentUrl = `https://api.mymovies.africa/api/v1/payment/gate/${
             user.uid
           }/?amount=${Math.round(
-            totalPrice * 100
+            totalPrice *1 
           )}&purchase_type=BULK OFFLINE SCREENING&screeningid=""&ref=${movieRef}&source=pwa`;
 
           console.log("Payment URL:", paymentUrl);
