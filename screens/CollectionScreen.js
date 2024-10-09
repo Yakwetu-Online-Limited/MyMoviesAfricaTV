@@ -11,9 +11,8 @@ const CollectionPage = () => {
   const route = useRoute();
   const { username, walletBalance } = route.params || { username: 'Guest' };
 
-  console.log('Received route params:', route.params);
-  console.log('Received userName in CollectionPage:', username);
-  console.log('Received walletBalance:', walletBalance);
+  console.log('Received route params in CollectionPage:', route.params);
+  
 
   // Fetch user's collection from API
   useEffect(() => {
