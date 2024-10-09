@@ -10,7 +10,7 @@ import {
   Dimensions,
   TouchableOpacity,
 } from "react-native";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useIsFocused } from "@react-navigation/native";
 import defaultPosterImage from "../images/default.jpg";
 import { baseURL, mediaURL } from "../components/urlStore";
 import { getArtwork } from "../components/imageUtils";
@@ -35,6 +35,7 @@ const HomePage = () => {
   const [currentEvents, setCurrentEvents] = useState([]);
 
   const navigation = useNavigation();
+  const isFocused = useIsFocused();
 
   const route = useRoute();
   const { userId, userEmail, username, walletBalance = 500 } = route.params || {};
@@ -99,9 +100,12 @@ const HomePage = () => {
   };
 
   useEffect(() => {
-    fetchMovies();
-    updateCurrentEvents();
-  }, []);
+    if (isFocused) {
+      fetchMovies();
+      updateCurrentEvents();
+      setSelectedGenre(null);
+    }
+  }, [isFocused]);
 
   const updateCurrentEvents = () => {
     const now = new Date();
@@ -124,7 +128,11 @@ const HomePage = () => {
   }
 
   const handleGenreSelect = (genre) => {
-    setSelectedGenre(genre);
+    if (genre === 'All') {
+      setSelectedGenre('All');
+    } else {
+      setSelectedGenre(prevGenre => prevGenre === genre ? null : genre);
+    }
   };
 
   return (
@@ -212,9 +220,9 @@ const BannerItem = ({ banner }) => {
 };
 
 const GenreSection = ({ genres, selectedGenre, userId, username, walletBalance }) => {
-  const filteredGenres = selectedGenre
-    ? genres.filter((genre) => genre.name === selectedGenre)
-    : genres;
+  const filteredGenres = selectedGenre === 'All' || selectedGenre === null
+    ? genres
+    : genres.filter((genre) => genre.name === selectedGenre);
 
   return (
     <View>
@@ -266,13 +274,16 @@ const MovieItem = ({ movie, userId, username, walletBalance }) => {
   );
 };
 
-const GenreButtonCarousel = ({ genres, onGenreSelect }) => {
+const GenreButtonCarousel = ({ genres, onGenreSelect, selectedGenre }) => {
   return (
     <FlatList
-      data={genres}
+      data={[{ id: 'all', name: 'All' }, ...genres]}
       renderItem={({ item }) => (
         <TouchableOpacity
-          style={styles.genreButton}
+          style={[
+            styles.genreButton,
+            (selectedGenre === item.name || (selectedGenre === 'All' && item.name === 'All')) && styles.selectedGenreButton
+          ]}
           onPress={() => onGenreSelect(item.name)}
         >
           <Text style={styles.genreButtonText}>{item.name}</Text>
