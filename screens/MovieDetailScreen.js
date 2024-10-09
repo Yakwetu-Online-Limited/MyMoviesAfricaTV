@@ -12,7 +12,7 @@ import { eventsData } from "../events";
 import Events from "../components/Events";
 import Screening from "../components/Screening";
 import { Provider as PaperProvider, Button, Modal, Portal } from 'react-native-paper';
-import { storePurchasedMovie } from '../utils/storage';
+import { storePurchasedMovie, getPurchasedMovies } from '../utils/storage';
 
 const { width } = Dimensions.get('window');
 
@@ -29,6 +29,7 @@ const MovieDetailScreen = ({route}) => {
     const [ purchaseType, setPurchaseType ] = useState (null);
     const [trailerUrl, setTrailerUrl ] = useState (null);
     const [url, setUrl] = useState(null);
+    const [purchasedMovies, setPurchasedMovies] = useState([]);
    
     const { movieId, userId, walletBalance: initialWalletBalance, username  } = route.params;
     const [walletBalance, setWalletBalance] = useState(initialWalletBalance);
@@ -37,6 +38,19 @@ const MovieDetailScreen = ({route}) => {
     console.log("MovieDetailScreen - walletBalance:", walletBalance);
     const navigation = useNavigation();
 
+
+    // Fetch the purchased movies when the screen loads
+  useEffect(() => {
+    const fetchPurchasedMovies = async () => {
+      const movies = await getPurchasedMovies(userId);
+      setPurchasedMovies(movies);
+    };
+
+    fetchPurchasedMovies();
+  }, [userId]);
+
+  // Check if the movie has already been purchased
+  const isMoviePurchased = purchasedMovies.some((movie) => movie.movieId === movieId);
 
     // Fetch the movie data from the API
     useEffect(() => {
@@ -143,7 +157,7 @@ const addToCollection = async (movie, freeMovieTag) => {
   }
 };
 
-    const handleRentOrOwn = (type) => {
+    const handleRentOrOwn = async (type) => {
       setPurchaseType(type);
       
       // Determine the amount based on the type
@@ -162,11 +176,14 @@ const addToCollection = async (movie, freeMovieTag) => {
       
       // Check if wallet balance is sufficient
       if (walletBalance >= amount) {
-        handlePurchase(amount, movie.ref, type);
+      // Store purchased movie locally and update wallet balance
+      await storePurchasedMovie(movieId, userId, type);
+      setWalletBalance((prevBalance) => prevBalance - amount);
+
+      alert(`Purchase successful! You've been charged KSH. ${amount}.`);
+      navigation.navigate('Collection', { userId, username, walletBalance });
     } else {
-        const remainingBalance = amount - walletBalance;
-        alert(`Your wallet balance is insufficient. You need KSH. ${remainingBalance} more.`);
-        setModalVisible(true);
+      setModalVisible(true); // Show modal for insufficient balance
     }
     };
 
@@ -227,23 +244,6 @@ const addToCollection = async (movie, freeMovieTag) => {
 
 };
     
-
-    const addMovieToCollection = async (movie, rentDuration, purchaseType) => {
-      try {
-        const response = await axios.post(`https://api.mymovies.africa/api/v1/purchases?userId=${userId}&movieId=${movieId}`, {
-          user_id: userId, 
-          ref: movie.ref,  
-          purchase_type: purchaseType, 
-          title: movie.title,
-          poste: getArtwork(movie.ref).portrait,
-        });
-        // console.log('Full API response:', response);
-        console.log('Movie added to collection:', response.data);
-        console.log('Movie ID:', movieId);
-      } catch (error) {
-        console.error('Error adding movie to collection:', error);
-      }
-    };
     
 
     const HeaderSection = ({ setModalVisible, genres, onGenreSelect }) => (
@@ -260,11 +260,11 @@ const addToCollection = async (movie, freeMovieTag) => {
       </View>
     );
 
-    const renderSimilarMovie = ({item, userId, walletBalance}) => {
+    const renderSimilarMovie = ({item, userId, walletBalance, username}) => {
       const similarPosterUrl = getArtwork(item.ref).portrait;
       return(
         <TouchableOpacity 
-        onPress={()=> navigation.push ('MovieDetail',{movieId: item.id, userId: userId, walletBalance }) }>
+        onPress={()=> navigation.push ('MovieDetail',{movieId: item.id, userId: userId, walletBalance, username }) }>
           <Image source={{uri:similarPosterUrl}}
         style={styles.similarMoviePoster} />
 
@@ -295,29 +295,30 @@ const addToCollection = async (movie, freeMovieTag) => {
                   
             <View style={styles.buttonContainer}>
 
-            { isMovieFree ? (
-              <>
-              
-              <TouchableOpacity style={styles.watchNowButton} onPress={handleWatchNow}>
-                <Text style={styles.buttonText}>WATCH NOW </Text>
-              </TouchableOpacity>
+            {!isMoviePurchased ? (
+        <View style={styles.buttonContainer}>
+          <TouchableOpacity
+            style={styles.rentButton}
+            onPress={() => handleRentOrOwn('rent')}
+          >
+            <Text style={styles.buttonText}>RENT FOR 7 DAYS KSH. {rentalPrice}</Text>
+          </TouchableOpacity>
 
-              <TouchableOpacity style={styles.ownButton} onPress={() => handleRentOrOwn('own')} >
-              <Text style={styles.buttonText}>{`OWN FOR LIFE KSH. ${ownPrice}`}</Text>
-              </TouchableOpacity>
-              </>
-            ) : (
-              <>
-              <TouchableOpacity style={styles.rentButton} onPress={() => handleRentOrOwn('rent')}>
-                <Text style={styles.buttonText}>{`RENT FOR 7 DAYS KSH. ${rentalPrice} `}</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity style={styles.ownButton} onPress={() => handleRentOrOwn('own')} >
-                <Text style={styles.buttonText}>{`OWN FOR LIFE KSH. ${ownPrice}`}</Text>
-              </TouchableOpacity>
-
-              </>
-            )}
+          <TouchableOpacity
+            style={styles.ownButton}
+            onPress={() => handleRentOrOwn('own')}
+          >
+            <Text style={styles.buttonText}>OWN FOR LIFE KSH. {ownPrice}</Text>
+          </TouchableOpacity>
+        </View>
+      ) : (
+        <TouchableOpacity
+            style={styles.ownButton}
+            onPress={() => navigation.navigate('Collection', { userId: userId, username: username, movieId: movieId, walletBalance })}
+          >
+            <Text style={styles.buttonText}>Already Owned</Text>
+          </TouchableOpacity>
+      )}
 
             
             </View>
@@ -380,7 +381,7 @@ const addToCollection = async (movie, freeMovieTag) => {
 
             <FlatList
             data={similarMovies}
-            renderItem={({ item }) => renderSimilarMovie({ item, userId, walletBalance })}
+            renderItem={({ item }) => renderSimilarMovie({ item, userId, walletBalance, username })}
             keyExtractor={(item) => item.id}
             horizontal
             showsHorizontalScrollIndicator={false}
