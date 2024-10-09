@@ -19,6 +19,7 @@ import Events from "../components/Events";
 import Screening from "../components/Screening";
 import { useRoute } from '@react-navigation/native';
 import { UserProvider } from '../components/UserContext';
+import Header from '../components/Header';
 
 const { width } = Dimensions.get("window");
 
@@ -38,8 +39,8 @@ const HomePage = () => {
   const route = useRoute();
   const { userId, userEmail, username, walletBalance = 500 } = route.params || {};
 
-  console.log('Received route params:', route.params);  
-  console.log('HomeScreen :- userId / walletBalance', userId, userEmail, username, walletBalance);
+  console.log('Received route params in HomeScreen:', route.params);  
+  
 
   const fetchMovies = async () => {
     try {
@@ -117,6 +118,7 @@ const HomePage = () => {
     return (
       <View style={styles.loaderContainer}>
         <ActivityIndicator size="large" color="#0000ff" />
+        
       </View>
     );
   }
@@ -132,6 +134,8 @@ const HomePage = () => {
         genres={genres}
         onGenreSelect={handleGenreSelect}
         currentEvents={currentEvents}
+        username={username}
+        walletBalance={walletBalance}
       />
       <BannerSection banners={banners} />
       <GenreSection 
@@ -158,12 +162,14 @@ const HeaderSection = ({
   genres,
   onGenreSelect,
   currentEvents,
+  username,
+  walletBalance,
 }) => (
   <View style={styles.headerContainer}>
-    <Image
-      source={require("../images/mymovies-africa-logo.png")}
-      style={styles.logo}
-    />
+    <Header 
+        username={username}
+        walletBalance={walletBalance} 
+      />
     <View style={styles.headerButtons}>
       <Screening />
       <Events currentEvents={currentEvents} genres={genres} />
