@@ -25,7 +25,7 @@ import dayjs from "dayjs";
 
 const { width, height } = Dimensions.get("window");
 
-// Helper function to build FormData
+// Helper function to build FormData, not available in RN, use new URLSearchParams
 const buildFormData = (formObj) => {
   const formData = new FormData();
   const keys = Object.keys(formObj);

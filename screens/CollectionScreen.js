@@ -1,62 +1,63 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, FlatList, Image, StyleSheet, TouchableOpacity } from 'react-native';
 import Header from '../components/Header';
-import axios from 'axios';
 import { useRoute } from '@react-navigation/native';
-import { storePurchasedMovie, getPurchasedMovies } from '../utils/storage';
+import { getUserBundle } from '../utils/storage';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { getArtwork } from '../components/imageUtils';
 
 const CollectionPage = () => {
-  const [rentedMovies, setRentedMovies] = useState([]);
-  const [ownedMovies, setOwnedMovies] = useState([]);
+  const [content, setContent] = useState(null);
   const route = useRoute();
   const { username, walletBalance } = route.params || { username: 'Guest' };
+  const [isPressed, setIsPressed] = useState(false);
 
   console.log('Received route params in CollectionPage:', route.params);
+  
 
-  // Fetch user's collection from API and AsyncStorage
   useEffect(() => {
-    const fetchUserMovies = async () => {
-      try {
-        // Fetch userId from AsyncStorage
-        const storedUserId = await AsyncStorage.getItem('userId');
-        console.log('Fetched userId from AsyncStorage:', storedUserId); // Check if this matches the userId from login
-        
-        if (storedUserId) {
-          // Fetch rented movies from API
-          const rentedResponse = await axios.get(`https://api.mymovies.africa/api/v1/purchases/rented?userId=${storedUserId}`);
-          setRentedMovies(rentedResponse.data || []);
-
-          // Fetch owned movies from API
-          const ownedResponse = await axios.get(`https://api.mymovies.africa/api/v1/purchases/owned?userId=${storedUserId}`);
-          setOwnedMovies(ownedResponse.data || []);
-
-          // Fetch purchased movies from AsyncStorage
-          const purchasedMovies = await getPurchasedMovies(storedUserId);
-          console.log('Fetched purchased movies from AsyncStorage:', purchasedMovies);
-
-          // Log the movieIds from purchased movies
-          const movieIds = purchasedMovies.map(movie => movie.movieId);
-          console.log('Movie IDs fetched from AsyncStorage:', movieIds);
-        }
-      } catch (error) {
-        console.error('Error fetching user movies:', error);
+    (async function () {
+      // Fetch userId from AsyncStorage
+      const storedUserId = await AsyncStorage.getItem('userId');
+      console.log('Fetched userId from AsyncStorage:', storedUserId); // Check if this matches the userId from login
+      
+      if (storedUserId || route?.params?.userId) {
+        let data = await getUserBundle({ user_id: storedUserId || route?.params?.userId });
+        //console.log(data, 'fetched movies')
+        return setContent(data);
       }
-    };
-
-    fetchUserMovies();
+    })();
   }, []);
 
+  const moviesByPurchaseType = content?.purchases?.reduce((acc, movie) => {
+    if (movie.purchase_type === 'BULK OFFLINE SCREENING') {
+      return acc;
+    }
+
+    const purchaseType = movie.purchase_type.toLowerCase().includes('offline')
+      ? 'RENTAL' : movie.purchase_type;
+    if (purchaseType in acc) {
+      acc[purchaseType].push(movie);
+    } else {
+      acc[purchaseType] = [movie];
+    }
+    return acc;
+  }, {});
+
+
   const renderMovieItem = ({ item }) => (
-    <TouchableOpacity style={styles.movieItem}>
+    <TouchableOpacity 
+      style={styles.movieItem}
+      onPress={()=> console.log(item.ref)}
+      onPressIn={() => setIsPressed(true)}
+      onPressOut={() => setIsPressed(false)}>
       <Image
-        source={{ uri: item.poster }}
-        style={styles.poster}
+        source={{uri: getArtwork(item.ref).portrait}}
+        style={[styles.moviePoster, isPressed && styles.moviePosterPressed]}
+        onError={(error) => {
+          console.log("Error loading poster image:", error.nativeEvent.error);
+        }}
       />
-      <View style={styles.movieDetails}>
-        <Text style={styles.movieTitle}>{item.title}</Text>
-        {item.rentDuration && <Text style={styles.rentDuration}>Rent for {item.rentDuration} Days</Text>}
-      </View>
     </TouchableOpacity>
   );
 
@@ -68,29 +69,50 @@ const CollectionPage = () => {
       />
       
       <Text style={styles.header}>My Collection</Text>
-      
-      <Text style={styles.subHeader}>Rented Movies</Text>
-      {rentedMovies.length > 0 ? (
-        <FlatList
-          data={rentedMovies}
-          renderItem={renderMovieItem}
-          keyExtractor={(item) => item.movieId.toString()}
-          contentContainerStyle={styles.movieList}
-        />
-      ) : (
-        <Text style={styles.emptyMessage}>You haven't rented any movies yet.</Text>
-      )}
 
-      <Text style={styles.subHeader}>Owned Movies</Text>
-      {ownedMovies.length > 0 ? (
-        <FlatList
-          data={ownedMovies}
-          renderItem={renderMovieItem}
-          keyExtractor={(item) => item.movieId.toString()}
-          contentContainerStyle={styles.movieList}
-        />
+      {content &&
+      content?.purchases &&
+      Object.keys(moviesByPurchaseType).length > 0 ? (
+        <View>
+          {Object.entries(moviesByPurchaseType).map(
+            ([purchaseType, movies], index) => (
+                <View key={index}>
+                  <Text style={styles.genreTitle}>
+                    {purchaseType === 'RENTAL'
+                      ? '#RentFor7Days'
+                      : purchaseType === 'PVOD'
+                      ? '#RentFor2Days'
+                      : '#OwnForLife'}
+                  </Text>
+                  
+                  <FlatList
+                    data={movies}
+                    renderItem={renderMovieItem}
+                    keyExtractor={(item, index) => item.ref.toString()+index.toString()}
+                    contentContainerStyle={styles.movieList}
+                    horizontal
+                    showsHorizontalScrollIndicator={false}
+                  />
+                  
+              </View> 
+            )
+          )}
+        </View>
       ) : (
-        <Text style={styles.emptyMessage}>You don't own any movies yet.</Text>
+        <View>
+          <Text style={styles.emptyMessage}>
+            Movies you #RentFor2Days or #RentFor7Days are Stored here, till
+            they Expire. 😊
+          </Text>
+          <Text style={styles.emptyMessage}>
+            Movies you #OwnForLife are Stored here Forever. 😎
+          </Text>
+          {/* <Link href="/home" className="text-center"> */}
+          <Text style={styles.emptyMessage}>
+              Click here to Browse for Movies youd like to Rent or Own.
+          </Text>
+          {/* </Link> */}
+        </View>
       )}
     </View>
   );
@@ -99,15 +121,14 @@ const CollectionPage = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 20,
+    paddingHorizontal: 5,
     backgroundColor: '#000',
   },
   header: {
     fontSize: 24,
     fontWeight: 'bold',
     color: '#FFCC00',
-    marginTop: 20,
-    marginBottom: 20,
+    marginBottom: 10,
     textAlign: 'center',
   },
   subHeader: {
@@ -128,6 +149,22 @@ const styles = StyleSheet.create({
     width: 100,
     height: 150,
     borderRadius: 8,
+  },
+  moviePoster: {
+    width: 120,
+    height: 180,
+    borderRadius: 10,
+    marginRight: 20
+  },
+  genreTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+    color: "white",
+    marginHorizontal: 15,
+    marginBottom: 10,
+  },
+  moviePosterPressed: {
+    transform: [{ scale: 0.9 }],
   },
   movieDetails: {
     marginLeft: 15,

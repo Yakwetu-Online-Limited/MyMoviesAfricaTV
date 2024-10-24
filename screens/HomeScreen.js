@@ -242,7 +242,7 @@ const GenreSection = ({ genres, selectedGenre, userId, username, walletBalance }
   );
 };
 
-const MovieItem = ({ movie, userId, username, walletBalance }) => {
+export const MovieItem = ({ movie, userId, username, walletBalance }) => {
   const navigation = useNavigation();
   const [isPressed, setIsPressed] = useState(false);
 
